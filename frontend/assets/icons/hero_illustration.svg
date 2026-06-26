@@ -1,0 +1,117 @@
+<svg viewBox="0 0 600 450" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+    <defs>
+        <!-- Background Grid Pattern -->
+        <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#0c0f0a" stroke-width="1" opacity="0.04"/>
+        </pattern>
+        <!-- Gradients -->
+        <linearGradient id="primaryGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#0051d6" />
+            <stop offset="100%" stop-color="#2c6af7" />
+        </linearGradient>
+        <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#ffdb0f" />
+            <stop offset="100%" stop-color="#86750d" />
+        </linearGradient>
+        <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#ffdb0f" stop-opacity="0.3" />
+            <stop offset="100%" stop-color="#ffdb0f" stop-opacity="0" />
+        </radialGradient>
+    </defs>
+
+    <!-- Background Grid -->
+    <rect width="100%" height="100%" fill="#ffffff" />
+    <rect width="100%" height="100%" fill="url(#grid)" />
+
+    <!-- Glow Backdrops -->
+    <circle cx="300" cy="225" r="180" fill="url(#glow)" filter="blur(20px)" />
+    <circle cx="150" cy="180" r="100" fill="url(#glow)" filter="blur(30px)" opacity="0.5" />
+
+    <!-- Connecting Paths (Network Links) -->
+    <g fill="none" stroke="#0c0f0a" stroke-width="3" stroke-linecap="round" opacity="0.8">
+        <path d="M 150 200 C 220 200, 220 120, 300 120" stroke-dasharray="6 6" />
+        <path d="M 300 120 C 380 120, 380 200, 450 200" />
+        <path d="M 150 200 C 250 200, 250 320, 300 320" />
+        <path d="M 300 320 C 350 320, 400 240, 450 200" stroke-dasharray="8 4" />
+        <path d="M 300 120 L 300 320" stroke="#0051d6" stroke-width="2" opacity="0.3" />
+        <path d="M 150 200 L 450 200" stroke="#86750d" stroke-dasharray="10 10" opacity="0.4" />
+    </g>
+
+    <!-- Animated Data Packets (Represented statically but dynamic style) -->
+    <g fill="none" stroke-linecap="round">
+        <path d="M 170 200 L 220 200" stroke="#0051d6" stroke-width="5" />
+        <path d="M 270 145 C 290 125, 300 120, 310 120" stroke="#ffdb0f" stroke-width="5" />
+        <path d="M 320 320 C 340 320, 370 280, 400 240" stroke="#86750d" stroke-width="4" />
+    </g>
+
+    <!-- Edge Node Left (Client/Source) -->
+    <g transform="translate(100, 160)">
+        <rect x="0" y="0" width="100" height="80" rx="16" fill="#0c0f0a" filter="drop-shadow(0 10px 15px rgba(12,15,10,0.15))" />
+        <rect x="8" y="8" width="84" height="64" rx="8" fill="#ffffff" />
+        <!-- Screen Content Mockup -->
+        <rect x="20" y="20" width="30" height="12" rx="4" fill="url(#primaryGrad)" />
+        <circle cx="70" cy="26" r="6" fill="#22c55e" />
+        <rect x="20" y="42" width="60" height="6" rx="3" fill="#0c0f0a" opacity="0.1" />
+        <rect x="20" y="54" width="40" height="6" rx="3" fill="#0c0f0a" opacity="0.1" />
+    </g>
+
+    <!-- Server Node Center Top -->
+    <g transform="translate(250, 60)">
+        <rect x="0" y="0" width="100" height="110" rx="12" fill="url(#primaryGrad)" filter="drop-shadow(0 12px 20px rgba(0,81,214,0.2))" />
+        <!-- Server Slots -->
+        <rect x="10" y="15" width="80" height="20" rx="4" fill="#0c0f0a" />
+        <circle cx="25" cy="25" r="3" fill="#22c55e" />
+        <line x1="38" y1="25" x2="80" y2="25" stroke="#ffffff" stroke-width="3" opacity="0.3" stroke-linecap="round" />
+        
+        <rect x="10" y="45" width="80" height="20" rx="4" fill="#0c0f0a" />
+        <circle cx="25" cy="55" r="3" fill="#ffdb0f" />
+        <line x1="38" y1="55" x2="70" y2="55" stroke="#ffffff" stroke-width="3" opacity="0.3" stroke-linecap="round" />
+
+        <rect x="10" y="75" width="80" height="20" rx="4" fill="#0c0f0a" />
+        <circle cx="25" cy="85" r="3" fill="#22c55e" />
+        <line x1="38" y1="85" x2="80" y2="85" stroke="#ffffff" stroke-width="3" opacity="0.3" stroke-linecap="round" />
+    </g>
+
+    <!-- Cloud Database Node Center Bottom -->
+    <g transform="translate(250, 270)">
+        <!-- Stack of cylinders -->
+        <g fill="#0c0f0a" stroke="#ffffff" stroke-width="2" filter="drop-shadow(0 10px 15px rgba(12,15,10,0.15))">
+            <!-- Cylinder 3 (Bottom) -->
+            <path d="M 10 70 L 10 90 A 40 12 0 0 0 90 90 L 90 70 A 40 12 0 0 1 10 70" />
+            <ellipse cx="50" cy="70" rx="40" ry="12" fill="#ffffff" />
+            <!-- Cylinder 2 (Middle) -->
+            <path d="M 10 40 L 10 60 A 40 12 0 0 0 90 60 L 90 40 A 40 12 0 0 1 10 40" fill="#0c0f0a" />
+            <ellipse cx="50" cy="40" rx="40" ry="12" fill="#ffffff" />
+            <!-- Cylinder 1 (Top) -->
+            <path d="M 10 10 L 10 30 A 40 12 0 0 0 90 30 L 90 10 A 40 12 0 0 1 10 10" />
+            <ellipse cx="50" cy="10" rx="40" ry="12" fill="url(#accentGrad)" stroke="none" />
+            <ellipse cx="50" cy="10" rx="40" ry="12" fill="none" />
+        </g>
+        <!-- Indicator lights -->
+        <circle cx="50" cy="22" r="3.5" fill="#0c0f0a" />
+        <circle cx="50" cy="52" r="3.5" fill="#22c55e" />
+        <circle cx="50" cy="82" r="3.5" fill="#22c55e" />
+    </g>
+
+    <!-- Dashboard Preview Node Right -->
+    <g transform="translate(400, 160)">
+        <rect x="0" y="0" width="110" height="90" rx="16" fill="#0c0f0a" filter="drop-shadow(0 15px 25px rgba(12,15,10,0.2))" />
+        <rect x="6" y="6" width="98" height="78" rx="10" fill="#ffffff" />
+        <!-- Radial gauge mockup -->
+        <circle cx="55" cy="45" r="26" fill="none" stroke="#f1f5f9" stroke-width="6" />
+        <path d="M 55 19 A 26 26 0 1 1 29 45" fill="none" stroke="#ffdb0f" stroke-width="6" stroke-linecap="round" />
+        <text x="55" y="49" font-family="'Inter', sans-serif" font-size="12" font-weight="900" text-anchor="middle" fill="#0c0f0a">75%</text>
+    </g>
+
+    <!-- Floating Metric Badges -->
+    <!-- Uptime Badge -->
+    <g transform="translate(180, 260)">
+        <rect x="0" y="0" width="65" height="26" rx="13" fill="#ffdb0f" filter="drop-shadow(0 4px 6px rgba(255,219,15,0.25))" />
+        <text x="32.5" y="17" font-family="'Inter', sans-serif" font-size="10" font-weight="800" text-anchor="middle" fill="#0c0f0a">99.9% UP</text>
+    </g>
+    <!-- Alert Badge -->
+    <g transform="translate(370, 110)">
+        <rect x="0" y="0" width="70" height="26" rx="13" fill="#ba1a1a" filter="drop-shadow(0 4px 6px rgba(186,26,26,0.2))" />
+        <text x="35" y="17" font-family="'Inter', sans-serif" font-size="9" font-weight="800" text-anchor="middle" fill="#ffffff">0 CRITICAL</text>
+    </g>
+</svg>

@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>MonitorPro - Devices Inventory</title>
+    
+    <!-- Fonts and Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "background": "#f8f9ff",
+                        "primary": "#0051d6",
+                        "secondary": "#486459",
+                        "surface": "#ffffff"
+                    },
+                    borderRadius: {
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(12, 15, 10, 0.15); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(12, 15, 10, 0.3); }
+
+        /* CSS variables referenced by devices.js */
+        :root {
+            --success: #22c55e;
+            --danger: #ba1a1a;
+            --text-secondary: rgba(12, 15, 10, 0.6);
+            --border-glass: rgba(12, 15, 10, 0.08);
+        }
+
+        /* Dynamically generated view metrics button styles */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            cursor: pointer;
+            border-radius: 9999px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            transition: all 0.3s ease;
+        }
+        .btn-secondary {
+            background-color: #ffffff;
+            color: #0c0f0a;
+            border: 1px solid rgba(12, 15, 10, 0.1);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+        .btn-secondary:hover {
+            background-color: #0c0f0a;
+            color: #ffffff;
+            border-color: #0c0f0a;
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-[#ffdb0f] selection:text-[#0c0f0a] w-full min-h-screen m-0 p-0 overflow-x-hidden bg-background">
+
+    <div class="flex h-screen w-full overflow-hidden">
+        <!-- Sidebar -->
+        <nav class="bg-[#0c0f0a] h-full w-64 flex-shrink-0 flex flex-col z-40 shadow-2xl">
+            <div class="p-6 flex items-center gap-3 mt-2">
+                <div class="w-9 h-9 bg-[#ffffff] rounded-full flex items-center justify-center shadow-lg">
+                    <div class="w-4 h-4 bg-[#0c0f0a] rounded-full"></div>
+                </div>
+                <div>
+                    <h1 class="text-[22px] font-black text-[#ffffff] tracking-tight">MonitorPro</h1>
+                </div>
+            </div>
+            <div class="flex-1 overflow-y-auto mt-6 px-4">
+                <ul class="flex flex-col gap-2">
+                    <li>
+                        <a href="dashboard.html" class="text-[#ffffff]/60 flex items-center gap-3 px-4 py-3.5 hover:bg-[#ffffff]/10 hover:text-[#ffffff] rounded-xl transition-all duration-300 font-medium">
+                            <span class="material-symbols-outlined">dashboard</span>
+                            <span class="text-[14px]">Dashboard</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="devices.html" class="text-[#0c0f0a] font-bold bg-[#ffdb0f] rounded-xl flex items-center gap-3 px-4 py-3.5 shadow-sm transition-transform duration-300 hover:scale-[1.02]">
+                            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">devices</span>
+                            <span class="text-[14px]">Devices</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="alerts.html" class="text-[#ffffff]/60 flex items-center gap-3 px-4 py-3.5 hover:bg-[#ffffff]/10 hover:text-[#ffffff] rounded-xl transition-all duration-300 font-medium">
+                            <span class="material-symbols-outlined">notifications_active</span>
+                            <span class="text-[14px]">Alerts</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <div class="p-6 mt-auto">
+                <div class="mb-4 px-4 py-3 bg-[#ffffff]/5 rounded-xl">
+                    <div class="text-[14px] font-bold text-[#ffffff]" id="currentUser">Admin Console</div>
+                    <div class="text-[11px] text-[#ffffff]/40 uppercase tracking-wider font-semibold">Administrator</div>
+                </div>
+                <ul class="flex flex-col gap-2">
+                    <li>
+                        <a href="javascript:void(0)" id="logoutBtn" class="text-[#ffffff]/60 flex items-center gap-3 px-4 py-3.5 hover:bg-[#ffffff]/10 hover:text-[#ffffff] rounded-xl transition-all duration-300 font-medium">
+                            <span class="material-symbols-outlined">logout</span>
+                            <span class="text-[14px]">Logout</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <div class="flex-1 flex flex-col h-full overflow-y-auto">
+            <!-- Search & Actions Header -->
+            <header class="bg-[#f9f9f9]/85 backdrop-blur-md flex justify-between items-center w-full px-10 py-6 sticky top-0 z-30 border-b border-[#0c0f0a]/5">
+                <div class="flex items-center gap-4 w-1/3">
+                    <div class="relative w-full max-w-md">
+                        <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[#0c0f0a]/40 text-[20px]">search</span>
+                        <input id="searchInput" class="w-full bg-[#ffffff] text-[#0c0f0a] text-[14px] font-medium border border-[#0c0f0a]/10 rounded-full pl-12 pr-4 py-3 focus:outline-none focus:border-[#0c0f0a] transition-all shadow-sm" placeholder="Search devices, IPs..." type="text"/>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <button class="bg-[#ffffff] text-[#0c0f0a] border border-[#0c0f0a]/10 rounded-full px-6 py-2.5 text-[13px] font-bold hover:bg-[#0c0f0a] hover:text-[#ffffff] transition-colors flex items-center gap-2 shadow-sm">
+                        <span class="material-symbols-outlined text-[18px]">download</span> Export
+                    </button>
+                    <button class="bg-[#ffdb0f] text-[#0c0f0a] rounded-full px-6 py-2.5 text-[13px] font-bold hover:opacity-90 transition-opacity flex items-center gap-2 shadow-sm">
+                        <span class="material-symbols-outlined text-[18px]">add</span> Add Device
+                    </button>
+                </div>
+            </header>
+
+            <main class="flex-1 px-10 pb-10 space-y-8 mt-6">
+                <div class="flex justify-between items-end">
+                    <div>
+                        <h2 class="text-[32px] font-black text-[#0c0f0a] tracking-tight">Devices Inventory</h2>
+                        <p class="text-[15px] font-medium text-[#0c0f0a]/60 mt-1">Manage and audit your connected endpoints.</p>
+                    </div>
+                </div>
+
+                <!-- Table Container Card -->
+                <div class="bg-[#ffffff] rounded-3xl border border-[#0c0f0a]/5 overflow-hidden flex flex-col shadow-sm">
+                    <div class="overflow-x-auto p-4">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b-2 border-[#f9f9f9]">
+                                    <th class="py-4 px-6 text-[12px] font-bold text-[#0c0f0a]/40 uppercase tracking-wider">ID</th>
+                                    <th class="py-4 px-6 text-[12px] font-bold text-[#0c0f0a]/40 uppercase tracking-wider">Device Name</th>
+                                    <th class="py-4 px-6 text-[12px] font-bold text-[#0c0f0a]/40 uppercase tracking-wider">IP Address</th>
+                                    <th class="py-4 px-6 text-[12px] font-bold text-[#0c0f0a]/40 uppercase tracking-wider">Status</th>
+                                    <th class="py-4 px-6 text-[12px] font-bold text-[#0c0f0a]/40 uppercase tracking-wider text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="devicesTableBody" class="text-[14px] text-[#0c0f0a] font-medium">
+                                <tr>
+                                    <td colspan="5" class="text-center text-[#0c0f0a]/40 py-8">Loading registered monitoring agents...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/devices.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Set active role display from localStorage if present
+            const username = localStorage.getItem('username') || 'Admin Console';
+            const userDisplay = document.getElementById('currentUser');
+            if (userDisplay) userDisplay.textContent = username;
+
+            document.getElementById('logoutBtn').addEventListener('click', () => {
+                localStorage.removeItem('jwt_token');
+                localStorage.removeItem('username');
+                window.location.href = 'login.html';
+            });
+
+            // Local search feature
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                searchInput.addEventListener('input', (e) => {
+                    const query = e.target.value.toLowerCase().trim();
+                    const rows = document.querySelectorAll('#devicesTableBody tr');
+                    rows.forEach(row => {
+                        if (row.cells.length < 4) return; // ignore helper rows
+                        const text = row.innerText.toLowerCase();
+                        if (text.includes(query)) {
+                            row.style.display = '';
+                        } else {
+                            row.style.display = 'none';
+                        }
+                    });
+                });
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,124 @@
+<svg viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+    <!-- Base styles -->
+    <defs>
+        <linearGradient id="headerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#0c0f0a" />
+            <stop offset="100%" stop-color="#1e231b" />
+        </linearGradient>
+        <linearGradient id="yellowGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="rgba(255, 219, 15, 0.4)" />
+            <stop offset="100%" stop-color="rgba(255, 219, 15, 0.0)" />
+        </linearGradient>
+        <linearGradient id="darkGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="rgba(12, 15, 10, 0.2)" />
+            <stop offset="100%" stop-color="rgba(12, 15, 10, 0.0)" />
+        </linearGradient>
+        <filter id="shadow" x="-5%" y="-5%" width="110%" height="110%">
+            <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#0c0f0a" flood-opacity="0.08" />
+        </filter>
+    </defs>
+
+    <!-- Background -->
+    <rect width="100%" height="100%" fill="#f9f9f9" rx="24" />
+    <rect width="100%" height="100%" fill="none" stroke="#0c0f0a" stroke-width="2" rx="24" opacity="0.08" />
+
+    <!-- Sidebar mock -->
+    <g transform="translate(0, 0)">
+        <rect width="200" height="500" fill="#0c0f0a" rx="24" />
+        <!-- Logo -->
+        <circle cx="45" cy="45" r="14" fill="#ffffff" />
+        <circle cx="45" cy="45" r="7" fill="#0c0f0a" />
+        <text x="70" y="50" font-family="'Inter', sans-serif" font-size="16" font-weight="900" fill="#ffffff" letter-spacing="-0.5">MonitorPro</text>
+        
+        <!-- Sidebar items -->
+        <rect x="16" y="90" width="168" height="38" rx="10" fill="#ffdb0f" />
+        <text x="32" y="114" font-family="'Inter', sans-serif" font-size="13" font-weight="800" fill="#0c0f0a">Dashboard</text>
+        
+        <text x="32" y="164" font-family="'Inter', sans-serif" font-size="13" font-weight="600" fill="#ffffff" opacity="0.6">Devices</text>
+        <text x="32" y="214" font-family="'Inter', sans-serif" font-size="13" font-weight="600" fill="#ffffff" opacity="0.6">Alerts</text>
+        <text x="32" y="264" font-family="'Inter', sans-serif" font-size="13" font-weight="600" fill="#ffffff" opacity="0.6">Settings</text>
+        <text x="32" y="444" font-family="'Inter', sans-serif" font-size="13" font-weight="600" fill="#ffffff" opacity="0.4">Logout</text>
+    </g>
+
+    <!-- Main Workspace Content -->
+    <g transform="translate(200, 0)">
+        <!-- Header -->
+        <rect width="600" height="70" fill="#ffffff" opacity="0.8" />
+        <text x="32" y="44" font-family="'Inter', sans-serif" font-size="22" font-weight="900" fill="#0c0f0a" letter-spacing="-0.5">Dashboard</text>
+        
+        <rect x="420" y="20" width="148" height="32" rx="16" fill="#ffdb0f" />
+        <text x="494" y="41" font-family="'Inter', sans-serif" font-size="12" font-weight="900" fill="#0c0f0a" text-anchor="middle">+ Add Device</text>
+
+        <!-- Stats Cards Grid -->
+        <g transform="translate(32, 90)">
+            <!-- Card 1 -->
+            <rect x="0" y="0" width="120" height="80" rx="16" fill="#ffffff" filter="url(#shadow)" />
+            <text x="16" y="24" font-family="'Inter', sans-serif" font-size="10" font-weight="700" fill="#0c0f0a" opacity="0.4" letter-spacing="0.5">TOTAL DEVICES</text>
+            <text x="16" y="58" font-family="'Inter', sans-serif" font-size="26" font-weight="900" fill="#0c0f0a">1,248</text>
+
+            <!-- Card 2 -->
+            <rect x="136" y="0" width="120" height="80" rx="16" fill="#86750d" filter="url(#shadow)" />
+            <text x="152" y="24" font-family="'Inter', sans-serif" font-size="10" font-weight="700" fill="#ffffff" opacity="0.8" letter-spacing="0.5">ONLINE</text>
+            <text x="152" y="58" font-family="'Inter', sans-serif" font-size="26" font-weight="900" fill="#ffffff">1,192</text>
+
+            <!-- Card 3 -->
+            <rect x="272" y="0" width="120" height="80" rx="16" fill="#ffdb0f" filter="url(#shadow)" />
+            <text x="288" y="24" font-family="'Inter', sans-serif" font-size="10" font-weight="700" fill="#0c0f0a" opacity="0.7" letter-spacing="0.5">ACTIVE ALERTS</text>
+            <text x="288" y="58" font-family="'Inter', sans-serif" font-size="26" font-weight="900" fill="#0c0f0a">33</text>
+
+            <!-- Card 4 -->
+            <rect x="408" y="0" width="128" height="80" rx="16" fill="#0c0f0a" filter="url(#shadow)" />
+            <text x="424" y="24" font-family="'Inter', sans-serif" font-size="10" font-weight="700" fill="#ffffff" opacity="0.6" letter-spacing="0.5">CRITICAL</text>
+            <text x="424" y="58" font-family="'Inter', sans-serif" font-size="26" font-weight="900" fill="#ffffff">56</text>
+        </g>
+
+        <!-- Charts Segment -->
+        <g transform="translate(32, 190)">
+            <!-- Chart Container Left -->
+            <rect x="0" y="0" width="260" height="150" rx="20" fill="#ffffff" filter="url(#shadow)" />
+            <text x="16" y="26" font-family="'Inter', sans-serif" font-size="12" font-weight="800" fill="#0c0f0a">CPU Trend (24h)</text>
+            <!-- Chart lines -->
+            <path d="M 30 110 Q 70 60, 110 80 T 190 50 T 230 70" fill="none" stroke="#ffdb0f" stroke-width="4" stroke-linecap="round" />
+            <path d="M 30 110 Q 70 60, 110 80 T 190 50 T 230 70 L 230 130 L 30 130 Z" fill="url(#yellowGrad)" opacity="0.5" />
+            <circle cx="190" cy="50" r="4" fill="#86750d" />
+
+            <!-- Chart Container Right -->
+            <rect x="276" y="0" width="260" height="150" rx="20" fill="#ffffff" filter="url(#shadow)" />
+            <text x="292" y="26" font-family="'Inter', sans-serif" font-size="12" font-weight="800" fill="#0c0f0a">Memory Allocation</text>
+            <!-- Bar chart mockup -->
+            <g fill="#0c0f0a" rx="3">
+                <rect x="306" y="60" width="14" height="60" rx="4" />
+                <rect x="330" y="45" width="14" height="75" rx="4" fill="#86750d" />
+                <rect x="354" y="70" width="14" height="50" rx="4" />
+                <rect x="378" y="55" width="14" height="65" rx="4" />
+                <rect x="402" y="30" width="14" height="90" rx="4" fill="#ffdb0f" />
+                <rect x="426" y="40" width="14" height="80" rx="4" />
+                <rect x="450" y="65" width="14" height="55" rx="4" />
+                <rect x="474" y="50" width="14" height="70" rx="4" />
+                <rect x="498" y="35" width="14" height="85" rx="4" />
+            </g>
+        </g>
+
+        <!-- Devices List Table Card -->
+        <g transform="translate(32, 360)">
+            <rect x="0" y="0" width="536" height="120" rx="20" fill="#ffffff" filter="url(#shadow)" />
+            <text x="16" y="28" font-family="'Inter', sans-serif" font-size="13" font-weight="800" fill="#0c0f0a">Recent Devices</text>
+            
+            <!-- Table Row 1 -->
+            <line x1="16" y1="44" x2="520" y2="44" stroke="#0c0f0a" stroke-width="1" opacity="0.05" />
+            <text x="16" y="68" font-family="'Inter', sans-serif" font-size="12" font-weight="700" fill="#0c0f0a">srv-db-primary-01</text>
+            <text x="180" y="68" font-family="'Inter', sans-serif" font-size="12" font-weight="500" fill="#0c0f0a" opacity="0.6">192.168.1.10</text>
+            <rect x="340" y="54" width="60" height="20" rx="10" fill="rgba(255, 219, 15, 0.2)" />
+            <text x="370" y="68" font-family="'Inter', sans-serif" font-size="9" font-weight="900" fill="#86750d" text-anchor="middle">ONLINE</text>
+            <text x="500" y="68" font-family="'Inter', sans-serif" font-size="11" font-weight="800" fill="#0051d6" text-anchor="end">Details</text>
+
+            <!-- Table Row 2 -->
+            <line x1="16" y1="82" x2="520" y2="82" stroke="#0c0f0a" stroke-width="1" opacity="0.05" />
+            <text x="16" y="106" font-family="'Inter', sans-serif" font-size="12" font-weight="700" fill="#0c0f0a">srv-app-worker-04</text>
+            <text x="180" y="106" font-family="'Inter', sans-serif" font-size="12" font-weight="500" fill="#0c0f0a" opacity="0.6">10.0.5.44</text>
+            <rect x="340" y="92" width="60" height="20" rx="10" fill="#0c0f0a" />
+            <text x="370" y="106" font-family="'Inter', sans-serif" font-size="9" font-weight="900" fill="#ffffff" text-anchor="middle">OFFLINE</text>
+            <text x="500" y="106" font-family="'Inter', sans-serif" font-size="11" font-weight="800" fill="#0051d6" text-anchor="end">Details</text>
+        </g>
+    </g>
+</svg>

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>MonitorPro - Secure Login</title>
+    
+    <!-- Fonts and Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "background": "#f8f9ff",
+                        "primary": "#0051d6",
+                        "secondary": "#486459",
+                        "surface": "#ffffff"
+                    },
+                    borderRadius: {
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="antialiased selection:bg-[#ffdb0f] selection:text-[#0c0f0a] w-full min-h-screen m-0 p-0 overflow-x-hidden bg-background">
+
+    <div class="w-full min-h-screen bg-[#f9f9f9] flex items-center justify-center p-4 relative overflow-hidden">
+        <!-- Abstract Background Grid -->
+        <div class="absolute inset-0 pointer-events-none opacity-20">
+            <div class="h-full w-full" style="background-image: linear-gradient(to right, #0c0f0a 1px, transparent 1px), linear-gradient(to bottom, #0c0f0a 1px, transparent 1px); background-size: 40px 40px;"></div>
+        </div>
+        <!-- Login Container -->
+        <main class="w-full max-w-[420px] bg-[#ffffff] border-2 border-[#0c0f0a]/10 rounded-3xl relative z-10 p-8 flex flex-col gap-8 shadow-[0_8px_30px_rgba(12,15,10,0.08)]">
+            <header class="flex flex-col items-center gap-2 text-center">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="material-symbols-outlined text-[#ffdb0f] text-[36px] drop-shadow-sm">monitor_heart</span>
+                    <h1 class="text-[32px] text-[#0c0f0a] font-black tracking-tight">MonitorPro</h1>
+                </div>
+                <p class="text-[14px] text-[#0c0f0a]/60 font-medium">Secure Systems Access</p>
+            </header>
+            
+            <form id="loginForm" class="flex flex-col gap-6">
+                <div class="flex flex-col gap-4">
+                    <div class="flex flex-col gap-1">
+                        <label class="text-[12px] font-bold text-[#0c0f0a]/70 uppercase tracking-wider" for="username">Username / Admin ID</label>
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#0c0f0a]/40 text-[18px]">person</span>
+                            <input class="w-full bg-[#f9f9f9] border-2 border-[#0c0f0a]/10 rounded-xl pl-10 pr-4 py-3 text-[14px] text-[#0c0f0a] font-medium focus:outline-none focus:border-[#ffdb0f] focus:ring-0 transition-colors" id="username" placeholder="sysadmin" required type="text" autocomplete="username"/>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <div class="flex justify-between items-center">
+                            <label class="text-[12px] font-bold text-[#0c0f0a]/70 uppercase tracking-wider" for="password">Authentication Key</label>
+                            <a class="text-[11px] font-bold text-[#86750d] hover:text-[#0c0f0a] transition-colors" href="#">Forgot Key?</a>
+                        </div>
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#0c0f0a]/40 text-[18px]">key</span>
+                            <input class="w-full bg-[#f9f9f9] border-2 border-[#0c0f0a]/10 rounded-xl pl-10 pr-4 py-3 text-[14px] text-[#0c0f0a] font-medium focus:outline-none focus:border-[#ffdb0f] focus:ring-0 transition-colors" id="password" placeholder="••••••••••••" required type="password" autocomplete="current-password"/>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Error Message Banner -->
+                <div id="errorMessage" class="error-banner hidden p-3.5 rounded-xl bg-red-50 text-red-700 text-[13px] font-semibold text-center border border-red-100"></div>
+
+                <div class="flex items-center gap-2">
+                    <input class="w-4 h-4 bg-[#f9f9f9] border-2 border-[#0c0f0a]/20 rounded text-[#86750d] focus:ring-[#ffdb0f]" id="remember" type="checkbox"/>
+                    <label class="text-[12px] font-bold text-[#0c0f0a]/70 cursor-pointer" for="remember">Persist Session</label>
+                </div>
+                
+                <button type="submit" id="loginBtn" class="w-full bg-[#ffdb0f] text-[#0c0f0a] text-[14px] font-black py-4 px-4 rounded-xl hover:bg-[#e5c40d] transition-colors flex items-center justify-center gap-2 group shadow-[0_4px_14px_rgba(255,219,15,0.4)]">
+                    <span class="btn-text flex items-center justify-center gap-2">
+                        Initialize Connection
+                        <span class="material-symbols-outlined text-[18px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                    </span>
+                    <span class="btn-spinner hidden w-5 h-5 border-2 border-[#0c0f0a] border-t-transparent rounded-full animate-spin"></span>
+                </button>
+                <button type="button" onclick="window.location.href='index.html'" class="w-full text-[#0c0f0a]/50 hover:text-[#0c0f0a] text-[12px] font-bold py-1 transition-colors">Back to Home</button>
+            </form>
+            
+            <footer class="text-center">
+                <p class="text-[11px] font-medium text-[#0c0f0a]/40">Authorized Personnel Only. Connections are monitored and logged.</p>
+            </footer>
+        </main>
+    </div>
+    
+    <!-- External Scripts for Live Authentication -->
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+</body>
+</html>

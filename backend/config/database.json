@@ -1,0 +1,3 @@
+{
+  "comment": "Database-specific parameters can be configured here. Currently, database connection details are defined in config.json."
+}

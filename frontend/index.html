@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>MonitorPro - Proactive IT Monitoring System</title>
+    
+    <!-- Fonts and Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    
+    <!-- Tailwind and Chart.js -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-secondary-fixed": "#042018",
+                        "surface-tint": "#0053db",
+                        "surface": "#f8f9ff",
+                        "on-tertiary": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "on-primary-container": "#fefcff",
+                        "tertiary": "#9c3f00",
+                        "surface-container-highest": "#d0e4ff",
+                        "surface-container-low": "#eef4ff",
+                        "background": "#f8f9ff",
+                        "surface-variant": "#d0e4ff",
+                        "on-primary": "#ffffff",
+                        "on-background": "#071d30",
+                        "secondary-container": "#c8e7d9",
+                        "on-error-container": "#93000a",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-dim": "#c8dcf6",
+                        "on-secondary-container": "#4c685d",
+                        "on-secondary": "#ffffff",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "inverse-primary": "#b4c5ff",
+                        "error": "#ba1a1a",
+                        "primary-container": "#2c6af7",
+                        "outline-variant": "#c3c6d8",
+                        "primary": "#0051d6",
+                        "secondary": "#486459",
+                        "inverse-on-surface": "#e9f1ff",
+                        "on-primary-fixed": "#00174b",
+                        "secondary-fixed-dim": "#afcdc0",
+                        "outline": "#737686",
+                        "secondary-fixed": "#cae9db",
+                        "tertiary-fixed-dim": "#ffb693",
+                        "on-surface-variant": "#434655",
+                        "surface-container": "#e4efff",
+                        "on-tertiary-container": "#fffbff",
+                        "inverse-surface": "#1f3246",
+                        "surface-container-high": "#dae9ff",
+                        "on-primary-fixed-variant": "#003ea8",
+                        "on-secondary-fixed-variant": "#314c42",
+                        "on-error": "#ffffff",
+                        "tertiary-fixed": "#ffdbcc",
+                        "tertiary-container": "#c45100",
+                        "on-tertiary-fixed-variant": "#7a3000",
+                        "primary-fixed": "#dbe1ff",
+                        "on-tertiary-fixed": "#351000",
+                        "on-surface": "#071d30",
+                        "surface-bright": "#f8f9ff"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    spacing: {
+                        "gutter": "16px",
+                        "xl": "32px",
+                        "xs": "4px",
+                        "sm": "8px",
+                        "lg": "24px",
+                        "margin-mobile": "16px",
+                        "base": "4px",
+                        "md": "16px",
+                        "margin-desktop": "32px"
+                    },
+                    fontFamily: {
+                        "body-md": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "code-sm": ["monospace"],
+                        "headline-lg": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "label-md": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "mono-data": ["Inter"]
+                    },
+                    fontSize: {
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "body-sm": ["13px", { "lineHeight": "18px", "fontWeight": "400" }],
+                        "code-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "700" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "label-sm": ["11px", { "lineHeight": "14px", "fontWeight": "600" }],
+                        "headline-md": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Inter', sans-serif; }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(12, 15, 10, 0.15); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(12, 15, 10, 0.3); }
+    </style>
+</head>
+<body class="antialiased selection:bg-[#ffdb0f] selection:text-[#0c0f0a] w-full min-h-screen m-0 p-0 overflow-x-hidden bg-background">
+
+    <!-- Landing page container -->
+    <div id="view-landing" class="flex flex-col w-full min-h-screen bg-[#ffffff] text-[#0c0f0a]">
+        <!-- TopNavBar -->
+        <header class="bg-[#0c0f0a] text-[#ffffff] fixed w-full top-0 z-50 flex justify-between items-center px-6 md:px-10 h-[76px] transition-all duration-300 shadow-md">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 bg-[#ffffff] rounded-full flex items-center justify-center shadow-lg">
+                    <div class="w-4 h-4 bg-[#0c0f0a] rounded-full"></div>
+                </div>
+                <span class="font-headline-md text-headline-md font-black text-[#ffffff] tracking-tight">MonitorPro</span>
+            </div>
+            <div class="flex items-center gap-4">
+                <button onclick="window.location.href='login.html'" class="bg-[#ffdb0f] text-[#0c0f0a] text-[14px] font-black px-7 py-3 rounded-full hover:shadow-[0_0_20px_rgba(255,219,15,0.4)] hover:-translate-y-0.5 transition-all duration-300">
+                    Login Portal
+                </button>
+            </div>
+        </header>
+
+        <main class="pt-[76px] flex flex-col w-full flex-1">
+            <!-- Hero Section -->
+            <section class="w-full px-6 md:px-10 py-16 md:py-[120px] flex flex-col md:flex-row items-center gap-12 md:gap-[80px] bg-[#ffffff]">
+                <div class="flex-1 flex flex-col items-start gap-8">
+                    <div class="inline-flex items-center gap-2 bg-[#ffdb0f]/10 border border-[#ffdb0f]/30 rounded-full px-4 py-2 hover:bg-[#ffdb0f]/20 transition-colors duration-300 cursor-default">
+                        <span class="w-2 h-2 rounded-full bg-[#86750d] animate-pulse"></span>
+                        <span class="font-label-md text-[12px] text-[#86750d] uppercase tracking-widest font-bold">v2.4 Released</span>
+                    </div>
+                    <h1 class="text-[44px] md:text-[68px] leading-[1.05] font-black text-[#0c0f0a] tracking-tight">
+                        Monitor Your Infrastructure in Real-Time
+                    </h1>
+                    <p class="text-[18px] md:text-[22px] text-[#0c0f0a]/60 leading-relaxed max-w-2xl font-medium">
+                        Deploy a highly authoritative, un-obtrusive observability platform. Achieve zero cognitive overload with proactive alerting and high-density metric analysis designed for enterprise stability.
+                    </p>
+                    <div class="flex items-center gap-4 pt-4">
+                        <button onclick="window.location.href='login.html'" class="bg-[#ffdb0f] text-[#0c0f0a] font-black text-[15px] px-8 py-4 rounded-full transition-all hover:opacity-90 active:scale-95 shadow-[0_4px_14px_rgba(255,219,15,0.4)]">
+                            Get Started
+                        </button>
+                        <button class="bg-transparent border-2 border-[#0c0f0a] text-[#0c0f0a] font-bold text-[15px] px-8 py-4 rounded-full transition-all hover:bg-[#0c0f0a] hover:text-[#ffffff] active:scale-95">
+                            View Documentation
+                        </button>
+                    </div>
+                </div>
+                <div class="flex-1 w-full relative">
+                    <div class="w-full aspect-[4/3] flex items-center justify-center relative">
+                        <!-- Custom SVG Hero Illustration -->
+                        <img class="object-contain w-full h-full max-w-[500px]" src="assets/icons/hero_illustration.svg" alt="Abstract Network Illustration"/>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Features Bento Grid -->
+            <section class="w-full px-6 md:px-10 py-24 bg-[#f9f9f9]">
+                <div class="max-w-7xl mx-auto flex flex-col gap-12">
+                    <div class="flex flex-col gap-3">
+                        <h2 class="text-[36px] md:text-[44px] font-black text-[#0c0f0a] tracking-tight">Core Capabilities</h2>
+                        <p class="text-[20px] text-[#0c0f0a]/60 font-medium">Systematic tools for complete operational awareness.</p>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-[240px]">
+                        <div class="md:col-span-2 bg-[#ffffff] border border-[#0c0f0a]/5 rounded-3xl p-10 flex flex-col justify-between group hover:border-[#ffdb0f] transition-all duration-500 relative overflow-hidden shadow-sm hover:shadow-[0_20px_50px_rgba(255,219,15,0.15)] hover:-translate-y-1">
+                            <div class="flex flex-col gap-4 relative z-10">
+                                <span class="material-symbols-outlined text-[#ffdb0f] text-[48px] drop-shadow-sm transition-transform duration-500 group-hover:scale-110 origin-left">monitoring</span>
+                                <h3 class="font-black text-[#0c0f0a] text-[24px] mt-2">Real-time Metrics</h3>
+                                <p class="text-[#0c0f0a]/60 max-w-md font-medium text-[17px] leading-relaxed">Ingest millions of data points per second with our high-throughput pipeline. Visualize network health instantly.</p>
+                            </div>
+                            <div class="absolute right-0 bottom-0 w-1/2 h-full opacity-5 pointer-events-none bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjIiIGZpbGw9IiMwYzBmMGEiLz48L3N2Zz4=')]"></div>
+                        </div>
+                        <div class="bg-[#86750d] rounded-3xl p-10 flex flex-col justify-between group hover:-translate-y-1 hover:shadow-2xl transition-all duration-500">
+                            <div class="flex flex-col gap-4">
+                                <span class="material-symbols-outlined text-[#ffdb0f] text-[48px] transition-transform duration-500 group-hover:scale-110 origin-left">warning</span>
+                                <h3 class="font-black text-[#ffffff] text-[24px] mt-2">Smart Alerting</h3>
+                                <p class="text-[#ffffff]/80 font-medium text-[17px] leading-relaxed">Threshold-based and anomaly-driven alerts route critical issues instantly.</p>
+                            </div>
+                        </div>
+                        <div class="bg-[#0c0f0a] rounded-3xl p-10 flex flex-col justify-between group hover:-translate-y-1 hover:shadow-2xl transition-all duration-500">
+                            <div class="flex flex-col gap-4">
+                                <span class="material-symbols-outlined text-[#ffdb0f] text-[48px] transition-transform duration-500 group-hover:scale-110 origin-left">router</span>
+                                <h3 class="font-black text-[#ffffff] text-[24px] mt-2">Device Management</h3>
+                                <p class="text-[#ffffff]/70 font-medium text-[17px] leading-relaxed">Inventory tracking and automated health checks across all hardware assets.</p>
+                            </div>
+                        </div>
+                        <div class="md:col-span-2 bg-[#ffdb0f] rounded-3xl p-10 flex flex-col justify-between group hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(255,219,15,0.3)] transition-all duration-500">
+                            <div class="flex flex-col gap-4">
+                                <span class="material-symbols-outlined text-[#0c0f0a] text-[48px] transition-transform duration-500 group-hover:scale-110 origin-left">hub</span>
+                                <h3 class="font-black text-[#0c0f0a] text-[24px] mt-2">Infrastructure Insights</h3>
+                                <p class="text-[#0c0f0a]/80 max-w-lg font-medium text-[17px] leading-relaxed">Deep architectural mapping and dependency tracking to isolate root causes faster than ever before.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Value Prop Section -->
+            <section class="w-full px-6 md:px-10 py-[120px] flex flex-col items-center text-center gap-12 bg-[#0c0f0a] relative overflow-hidden">
+                <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[900px] bg-[#86750d]/20 rounded-full blur-[120px] pointer-events-none"></div>
+                
+                <div class="max-w-4xl flex flex-col items-center gap-6 relative z-10">
+                    <h2 class="text-[40px] md:text-[56px] font-black text-[#ffffff] leading-[1.1] tracking-tight">Engineered for Data Density</h2>
+                    <p class="text-[20px] text-[#ffffff]/70 font-medium leading-relaxed max-w-3xl">
+                        We utilize a strict "Information First" hierarchy. White space is managed strategically, allowing you to monitor complex enterprise systems on a single pane of glass without cognitive fatigue.
+                    </p>
+                </div>
+                <div class="w-full max-w-6xl mt-8 aspect-video relative z-10 border border-[#ffffff]/10 rounded-3xl overflow-hidden shadow-2xl transition-transform duration-700 hover:scale-[1.01]">
+                    <!-- Custom SVG Dashboard Mockup Preview -->
+                    <img class="object-cover w-full h-full opacity-90" src="assets/icons/dashboard_preview.svg" alt="MonitorPro Dashboard Mockup Preview"/>
+                </div>
+            </section>
+        </main>
+
+        <!-- Comprehensive Premium Footer -->
+        <footer class="w-full bg-[#0c0f0a] pt-20 pb-10 px-6 md:px-10 border-t border-[#ffffff]/10 relative z-20">
+            <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
+                <div class="flex flex-col gap-6 md:col-span-1">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 bg-[#ffdb0f] rounded-full flex items-center justify-center">
+                            <div class="w-3.5 h-3.5 bg-[#0c0f0a] rounded-full"></div>
+                        </div>
+                        <span class="text-[22px] font-black text-[#ffffff] tracking-tight">MonitorPro</span>
+                    </div>
+                    <p class="text-[14px] text-[#ffffff]/60 leading-relaxed font-medium">
+                        Enterprise-grade observability and proactive monitoring for modern infrastructure.
+                    </p>
+                </div>
+                <div class="flex flex-col gap-4">
+                    <h4 class="text-[13px] font-black text-[#ffffff] uppercase tracking-wider">Product</h4>
+                    <a href="#" class="text-[14px] text-[#ffffff]/60 hover:text-[#ffdb0f] font-medium transition-colors">Features</a>
+                    <a href="#" class="text-[14px] text-[#ffffff]/60 hover:text-[#ffdb0f] font-medium transition-colors">Integrations</a>
+                    <a href="#" class="text-[14px] text-[#ffffff]/60 hover:text-[#ffdb0f] font-medium transition-colors">Pricing</a>
+                    <a href="#" class="text-[14px] text-[#ffffff]/60 hover:text-[#ffdb0f] font-medium transition-colors">Changelog</a>
+                </div>
+                <div class="flex flex-col gap-4">
+                    <h4 class="text-[13px] font-black text-[#ffffff] uppercase tracking-wider">Resources</h4>
+                    <a href="#" class="text-[14px] text-[#ffffff]/60 hover:text-[#ffdb0f] font-medium transition-colors">Documentation</a>
+                    <a href="#" class="text-[14px] text-[#ffffff]/60 hover:text-[#ffdb0f] font-medium transition-colors">API Reference</a>
+                    <a href="#" class="text-[14px] text-[#ffffff]/60 hover:text-[#ffdb0f] font-medium transition-colors">Community</a>
+                    <a href="#" class="text-[14px] text-[#ffffff]/60 hover:text-[#ffdb0f] font-medium transition-colors">Blog</a>
+                </div>
+                <div class="flex flex-col gap-4">
+                    <h4 class="text-[13px] font-black text-[#ffffff] uppercase tracking-wider">Legal</h4>
+                    <a href="#" class="text-[14px] text-[#ffffff]/60 hover:text-[#ffdb0f] font-medium transition-colors">Privacy Policy</a>
+                    <a href="#" class="text-[14px] text-[#ffffff]/60 hover:text-[#ffdb0f] font-medium transition-colors">Terms of Service</a>
+                    <a href="#" class="text-[14px] text-[#ffffff]/60 hover:text-[#ffdb0f] font-medium transition-colors">Security</a>
+                    <a href="#" class="text-[14px] text-[#ffffff]/60 hover:text-[#ffdb0f] font-medium transition-colors">Compliance</a>
+                </div>
+            </div>
+            <div class="max-w-7xl mx-auto pt-8 border-t border-[#ffffff]/10 flex flex-col md:flex-row justify-between items-center gap-6">
+                <p class="text-[13px] font-medium text-[#ffffff]/40">© 2026 MonitorPro Systems. All rights reserved.</p>
+                <div class="flex gap-4">
+                    <a href="#" class="w-10 h-10 rounded-full bg-[#ffffff]/5 flex items-center justify-center text-[#ffffff]/60 hover:bg-[#ffdb0f] hover:text-[#0c0f0a] transition-all">
+                        <span class="material-symbols-outlined text-[18px]">share</span>
+                    </a>
+                    <a href="#" class="w-10 h-10 rounded-full bg-[#ffffff]/5 flex items-center justify-center text-[#ffffff]/60 hover:bg-[#ffdb0f] hover:text-[#0c0f0a] transition-all">
+                        <span class="material-symbols-outlined text-[18px]">language</span>
+                    </a>
+                </div>
+            </div>
+        </footer>
+    </div>
+</body>
+</html>

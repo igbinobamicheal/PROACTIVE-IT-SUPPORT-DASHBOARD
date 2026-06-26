@@ -1,0 +1,26 @@
+# Build directories
+build/
+bin/
+obj/
+out/
+backend/build/
+agent/build/
+
+# IDE files
+.vs/
+.vscode/
+*.user
+*.suo
+*.db
+*.opendb
+
+# Configurations
+backend/config/config.json
+
+# Vercel
+.vercel/
+node_modules/
+
+# Logs & temp files
+*.log
+*.tmp

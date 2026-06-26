@@ -1,0 +1,13 @@
+{
+  "db_host": "localhost",
+  "db_port": 33060,
+  "db_user": "root",
+  "db_password": "your_db_password_here",
+  "db_schema": "it_monitoring",
+  "server_host": "0.0.0.0",
+  "server_port": 8080,
+  "jwt_secret": "super_secret_key_12345_for_jwt_signing",
+  "jwt_expiration_hours": 24,
+  "bcrypt_work_factor": 10,
+  "registration_key": "YOUR_SHARED_REGISTRATION_KEY"
+}

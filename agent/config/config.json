@@ -1,0 +1,6 @@
+{
+  "server_url": "http://localhost:8080",
+  "device_name": "Main_Agent_Host",
+  "device_token": "",
+  "interval_seconds": 10
+}
