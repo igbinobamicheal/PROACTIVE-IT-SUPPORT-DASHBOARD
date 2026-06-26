@@ -1,24 +1,22 @@
 #include "repositories/UserRepository.hpp"
 #include "database/Database.hpp"
-#include <mysqlx/xdevapi.h>
 #include <iostream>
 
 std::optional<User> UserRepository::findByUsername(const std::string& username) {
     try {
-        auto session = Database::getInstance().getSession();
-        auto result = session.sql("SELECT id, username, password_hash, DATE_FORMAT(created_at, '%Y-%m-%d %H:%i:%s') AS created_at FROM users WHERE username = ?")
-                             .bind(username)
-                             .execute();
+        auto conn = Database::getInstance().getConnection();
+        std::unique_ptr<sql::PreparedStatement> pstmt(conn->prepareStatement(
+            "SELECT id, username, password_hash, DATE_FORMAT(created_at, '%Y-%m-%d %H:%i:%s') AS created_at FROM users WHERE username = ?"
+        ));
+        pstmt->setString(1, username);
         
-        auto row = result.fetchOne();
-        if (row) {
+        std::unique_ptr<sql::ResultSet> res(pstmt->executeQuery());
+        if (res->next()) {
             User user;
-            user.id = row[0].get<int>();
-            user.username = row[1].get<std::string>();
-            user.passwordHash = row[2].get<std::string>();
-            if (!row[3].isNull()) {
-                user.createdAt = row[3].get<std::string>();
-            }
+            user.id = res->getInt("id");
+            user.username = res->getString("username");
+            user.passwordHash = res->getString("password_hash");
+            user.createdAt = res->getString("created_at");
             return user;
         }
     } catch (const std::exception& e) {
@@ -29,13 +27,20 @@ std::optional<User> UserRepository::findByUsername(const std::string& username) 
 
 void UserRepository::create(User& user) {
     try {
-        auto session = Database::getInstance().getSession();
-        auto result = session.sql("INSERT INTO users (username, password_hash) VALUES (?, ?)")
-                             .bind(user.username)
-                             .bind(user.passwordHash)
-                             .execute();
+        auto conn = Database::getInstance().getConnection();
+        std::unique_ptr<sql::PreparedStatement> pstmt(conn->prepareStatement(
+            "INSERT INTO users (username, password_hash) VALUES (?, ?)"
+        ));
+        pstmt->setString(1, user.username);
+        pstmt->setString(2, user.passwordHash);
+        pstmt->executeUpdate();
         
-        user.id = static_cast<int>(result.getAutoIncrementValue());
+        // Retrieve the generated AUTO_INCREMENT ID
+        std::unique_ptr<sql::Statement> stmt(conn->createStatement());
+        std::unique_ptr<sql::ResultSet> res(stmt->executeQuery("SELECT LAST_INSERT_ID()"));
+        if (res->next()) {
+            user.id = res->getInt(1);
+        }
     } catch (const std::exception& e) {
         std::cerr << "[UserRepository] Error in create: " << e.what() << std::endl;
         throw;

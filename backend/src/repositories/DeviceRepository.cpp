@@ -1,6 +1,5 @@
 #include "repositories/DeviceRepository.hpp"
 #include "database/Database.hpp"
-#include <mysqlx/xdevapi.h>
 #include <random>
 #include <sstream>
 #include <iomanip>
@@ -24,15 +23,22 @@ static std::string generateDeviceToken() {
 void DeviceRepository::create(Device& device) {
     try {
         device.token = generateDeviceToken();
-        auto session = Database::getInstance().getSession();
-        auto result = session.sql("INSERT INTO devices (name, token, ip_address, status) VALUES (?, ?, ?, ?)")
-                             .bind(device.name)
-                             .bind(device.token)
-                             .bind(device.ipAddress)
-                             .bind(device.status)
-                             .execute();
+        auto conn = Database::getInstance().getConnection();
+        std::unique_ptr<sql::PreparedStatement> pstmt(conn->prepareStatement(
+            "INSERT INTO devices (name, token, ip_address, status) VALUES (?, ?, ?, ?)"
+        ));
+        pstmt->setString(1, device.name);
+        pstmt->setString(2, device.token);
+        pstmt->setString(3, device.ipAddress);
+        pstmt->setString(4, device.status);
+        pstmt->executeUpdate();
         
-        device.id = static_cast<int>(result.getAutoIncrementValue());
+        // Retrieve the generated AUTO_INCREMENT ID
+        std::unique_ptr<sql::Statement> stmt(conn->createStatement());
+        std::unique_ptr<sql::ResultSet> res(stmt->executeQuery("SELECT LAST_INSERT_ID()"));
+        if (res->next()) {
+            device.id = res->getInt(1);
+        }
     } catch (const std::exception& e) {
         std::cerr << "[DeviceRepository] Error in create: " << e.what() << std::endl;
         throw;
@@ -42,20 +48,20 @@ void DeviceRepository::create(Device& device) {
 std::vector<Device> DeviceRepository::findAll() {
     std::vector<Device> devices;
     try {
-        auto session = Database::getInstance().getSession();
-        auto result = session.sql("SELECT id, name, token, ip_address, status, DATE_FORMAT(created_at, '%Y-%m-%d %H:%i:%s') AS created_at FROM devices")
-                             .execute();
+        auto conn = Database::getInstance().getConnection();
+        std::unique_ptr<sql::Statement> stmt(conn->createStatement());
+        std::unique_ptr<sql::ResultSet> res(stmt->executeQuery(
+            "SELECT id, name, token, ip_address, status, DATE_FORMAT(created_at, '%Y-%m-%d %H:%i:%s') AS created_at FROM devices"
+        ));
         
-        for (auto row : result.fetchAll()) {
+        while (res->next()) {
             Device d;
-            d.id = row[0].get<int>();
-            d.name = row[1].get<std::string>();
-            d.token = row[2].get<std::string>();
-            d.ipAddress = row[3].get<std::string>();
-            d.status = row[4].get<std::string>();
-            if (!row[5].isNull()) {
-                d.createdAt = row[5].get<std::string>();
-            }
+            d.id = res->getInt("id");
+            d.name = res->getString("name");
+            d.token = res->getString("token");
+            d.ipAddress = res->getString("ip_address");
+            d.status = res->getString("status");
+            d.createdAt = res->getString("created_at");
             devices.push_back(d);
         }
     } catch (const std::exception& e) {
@@ -66,22 +72,21 @@ std::vector<Device> DeviceRepository::findAll() {
 
 std::optional<Device> DeviceRepository::findById(int id) {
     try {
-        auto session = Database::getInstance().getSession();
-        auto result = session.sql("SELECT id, name, token, ip_address, status, DATE_FORMAT(created_at, '%Y-%m-%d %H:%i:%s') AS created_at FROM devices WHERE id = ?")
-                             .bind(id)
-                             .execute();
+        auto conn = Database::getInstance().getConnection();
+        std::unique_ptr<sql::PreparedStatement> pstmt(conn->prepareStatement(
+            "SELECT id, name, token, ip_address, status, DATE_FORMAT(created_at, '%Y-%m-%d %H:%i:%s') AS created_at FROM devices WHERE id = ?"
+        ));
+        pstmt->setInt(1, id);
         
-        auto row = result.fetchOne();
-        if (row) {
+        std::unique_ptr<sql::ResultSet> res(pstmt->executeQuery());
+        if (res->next()) {
             Device d;
-            d.id = row[0].get<int>();
-            d.name = row[1].get<std::string>();
-            d.token = row[2].get<std::string>();
-            d.ipAddress = row[3].get<std::string>();
-            d.status = row[4].get<std::string>();
-            if (!row[5].isNull()) {
-                d.createdAt = row[5].get<std::string>();
-            }
+            d.id = res->getInt("id");
+            d.name = res->getString("name");
+            d.token = res->getString("token");
+            d.ipAddress = res->getString("ip_address");
+            d.status = res->getString("status");
+            d.createdAt = res->getString("created_at");
             return d;
         }
     } catch (const std::exception& e) {
@@ -92,22 +97,21 @@ std::optional<Device> DeviceRepository::findById(int id) {
 
 std::optional<Device> DeviceRepository::findByToken(const std::string& token) {
     try {
-        auto session = Database::getInstance().getSession();
-        auto result = session.sql("SELECT id, name, token, ip_address, status, DATE_FORMAT(created_at, '%Y-%m-%d %H:%i:%s') AS created_at FROM devices WHERE token = ?")
-                             .bind(token)
-                             .execute();
+        auto conn = Database::getInstance().getConnection();
+        std::unique_ptr<sql::PreparedStatement> pstmt(conn->prepareStatement(
+            "SELECT id, name, token, ip_address, status, DATE_FORMAT(created_at, '%Y-%m-%d %H:%i:%s') AS created_at FROM devices WHERE token = ?"
+        ));
+        pstmt->setString(1, token);
         
-        auto row = result.fetchOne();
-        if (row) {
+        std::unique_ptr<sql::ResultSet> res(pstmt->executeQuery());
+        if (res->next()) {
             Device d;
-            d.id = row[0].get<int>();
-            d.name = row[1].get<std::string>();
-            d.token = row[2].get<std::string>();
-            d.ipAddress = row[3].get<std::string>();
-            d.status = row[4].get<std::string>();
-            if (!row[5].isNull()) {
-                d.createdAt = row[5].get<std::string>();
-            }
+            d.id = res->getInt("id");
+            d.name = res->getString("name");
+            d.token = res->getString("token");
+            d.ipAddress = res->getString("ip_address");
+            d.status = res->getString("status");
+            d.createdAt = res->getString("created_at");
             return d;
         }
     } catch (const std::exception& e) {

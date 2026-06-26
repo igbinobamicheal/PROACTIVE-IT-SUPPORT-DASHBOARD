@@ -1,20 +1,26 @@
 #include "repositories/AlertRepository.hpp"
 #include "database/Database.hpp"
-#include <mysqlx/xdevapi.h>
 #include <iostream>
 
 void AlertRepository::create(Alert& alert) {
     try {
-        auto session = Database::getInstance().getSession();
-        auto result = session.sql("INSERT INTO alerts (device_id, rule_type, rule_value, threshold, message) VALUES (?, ?, ?, ?, ?)")
-                             .bind(alert.deviceId)
-                             .bind(alert.ruleType)
-                             .bind(alert.ruleValue)
-                             .bind(alert.threshold)
-                             .bind(alert.message)
-                             .execute();
+        auto conn = Database::getInstance().getConnection();
+        std::unique_ptr<sql::PreparedStatement> pstmt(conn->prepareStatement(
+            "INSERT INTO alerts (device_id, rule_type, rule_value, threshold, message) VALUES (?, ?, ?, ?, ?)"
+        ));
+        pstmt->setInt(1, alert.deviceId);
+        pstmt->setString(2, alert.ruleType);
+        pstmt->setDouble(3, alert.ruleValue);
+        pstmt->setDouble(4, alert.threshold);
+        pstmt->setString(5, alert.message);
+        pstmt->executeUpdate();
         
-        alert.id = static_cast<int>(result.getAutoIncrementValue());
+        // Retrieve the generated AUTO_INCREMENT ID
+        std::unique_ptr<sql::Statement> stmt(conn->createStatement());
+        std::unique_ptr<sql::ResultSet> res(stmt->executeQuery("SELECT LAST_INSERT_ID()"));
+        if (res->next()) {
+            alert.id = res->getInt(1);
+        }
     } catch (const std::exception& e) {
         std::cerr << "[AlertRepository] Error in create: " << e.what() << std::endl;
         throw;
@@ -24,26 +30,25 @@ void AlertRepository::create(Alert& alert) {
 std::vector<Alert> AlertRepository::findAll(int limit) {
     std::vector<Alert> alerts;
     try {
-        auto session = Database::getInstance().getSession();
+        auto conn = Database::getInstance().getConnection();
         std::string query = "SELECT a.id, a.device_id, d.name, a.rule_type, a.rule_value, a.threshold, a.message, DATE_FORMAT(a.timestamp, '%Y-%m-%d %H:%i:%s') AS timestamp, a.resolved "
                             "FROM alerts a "
                             "JOIN devices d ON a.device_id = d.id "
                             "ORDER BY a.timestamp DESC LIMIT " + std::to_string(limit);
         
-        auto result = session.sql(query).execute();
-        while (auto row = result.fetchOne()) {
+        std::unique_ptr<sql::Statement> stmt(conn->createStatement());
+        std::unique_ptr<sql::ResultSet> res(stmt->executeQuery(query));
+        while (res->next()) {
             Alert a;
-            a.id = row[0].get<int>();
-            a.deviceId = row[1].get<int>();
-            a.deviceName = row[2].get<std::string>();
-            a.ruleType = row[3].get<std::string>();
-            a.ruleValue = row[4].get<double>();
-            a.threshold = row[5].get<double>();
-            a.message = row[6].get<std::string>();
-            if (!row[7].isNull()) {
-                a.timestamp = row[7].get<std::string>();
-            }
-            a.resolved = row[8].get<int>() != 0; // BOOLEAN matches tinyint/int in X DevAPI
+            a.id = res->getInt("id");
+            a.deviceId = res->getInt("device_id");
+            a.deviceName = res->getString("name");
+            a.ruleType = res->getString("rule_type");
+            a.ruleValue = res->getDouble("rule_value");
+            a.threshold = res->getDouble("threshold");
+            a.message = res->getString("message");
+            a.timestamp = res->getString("timestamp");
+            a.resolved = res->getBoolean("resolved");
             alerts.push_back(a);
         }
     } catch (const std::exception& e) {
@@ -55,27 +60,27 @@ std::vector<Alert> AlertRepository::findAll(int limit) {
 std::vector<Alert> AlertRepository::findActive() {
     std::vector<Alert> alerts;
     try {
-        auto session = Database::getInstance().getSession();
-        auto result = session.sql("SELECT a.id, a.device_id, d.name, a.rule_type, a.rule_value, a.threshold, a.message, DATE_FORMAT(a.timestamp, '%Y-%m-%d %H:%i:%s') AS timestamp, a.resolved "
-                                   "FROM alerts a "
-                                   "JOIN devices d ON a.device_id = d.id "
-                                   "WHERE a.resolved = FALSE "
-                                   "ORDER BY a.timestamp DESC")
-                             .execute();
+        auto conn = Database::getInstance().getConnection();
+        std::unique_ptr<sql::Statement> stmt(conn->createStatement());
+        std::unique_ptr<sql::ResultSet> res(stmt->executeQuery(
+            "SELECT a.id, a.device_id, d.name, a.rule_type, a.rule_value, a.threshold, a.message, DATE_FORMAT(a.timestamp, '%Y-%m-%d %H:%i:%s') AS timestamp, a.resolved "
+            "FROM alerts a "
+            "JOIN devices d ON a.device_id = d.id "
+            "WHERE a.resolved = FALSE "
+            "ORDER BY a.timestamp DESC"
+        ));
                              
-        while (auto row = result.fetchOne()) {
+        while (res->next()) {
             Alert a;
-            a.id = row[0].get<int>();
-            a.deviceId = row[1].get<int>();
-            a.deviceName = row[2].get<std::string>();
-            a.ruleType = row[3].get<std::string>();
-            a.ruleValue = row[4].get<double>();
-            a.threshold = row[5].get<double>();
-            a.message = row[6].get<std::string>();
-            if (!row[7].isNull()) {
-                a.timestamp = row[7].get<std::string>();
-            }
-            a.resolved = row[8].get<int>() != 0;
+            a.id = res->getInt("id");
+            a.deviceId = res->getInt("device_id");
+            a.deviceName = res->getString("name");
+            a.ruleType = res->getString("rule_type");
+            a.ruleValue = res->getDouble("rule_value");
+            a.threshold = res->getDouble("threshold");
+            a.message = res->getString("message");
+            a.timestamp = res->getString("timestamp");
+            a.resolved = res->getBoolean("resolved");
             alerts.push_back(a);
         }
     } catch (const std::exception& e) {
@@ -86,14 +91,15 @@ std::vector<Alert> AlertRepository::findActive() {
 
 bool AlertRepository::hasActiveAlert(int deviceId, const std::string& ruleType) {
     try {
-        auto session = Database::getInstance().getSession();
-        auto result = session.sql("SELECT id FROM alerts WHERE device_id = ? AND rule_type = ? AND resolved = FALSE LIMIT 1")
-                             .bind(deviceId)
-                             .bind(ruleType)
-                             .execute();
+        auto conn = Database::getInstance().getConnection();
+        std::unique_ptr<sql::PreparedStatement> pstmt(conn->prepareStatement(
+            "SELECT id FROM alerts WHERE device_id = ? AND rule_type = ? AND resolved = FALSE LIMIT 1"
+        ));
+        pstmt->setInt(1, deviceId);
+        pstmt->setString(2, ruleType);
         
-        auto row = result.fetchOne();
-        return (bool)row;
+        std::unique_ptr<sql::ResultSet> res(pstmt->executeQuery());
+        return res->next();
     } catch (const std::exception& e) {
         std::cerr << "[AlertRepository] Error in hasActiveAlert: " << e.what() << std::endl;
         return false;
@@ -102,13 +108,14 @@ bool AlertRepository::hasActiveAlert(int deviceId, const std::string& ruleType) 
 
 int AlertRepository::resolveAlert(int deviceId, const std::string& ruleType) {
     try {
-        auto session = Database::getInstance().getSession();
-        auto result = session.sql("UPDATE alerts SET resolved = TRUE WHERE device_id = ? AND rule_type = ? AND resolved = FALSE")
-                             .bind(deviceId)
-                             .bind(ruleType)
-                             .execute();
-                             
-        return static_cast<int>(result.getAffectedItemsCount());
+        auto conn = Database::getInstance().getConnection();
+        std::unique_ptr<sql::PreparedStatement> pstmt(conn->prepareStatement(
+            "UPDATE alerts SET resolved = TRUE WHERE device_id = ? AND rule_type = ? AND resolved = FALSE"
+        ));
+        pstmt->setInt(1, deviceId);
+        pstmt->setString(2, ruleType);
+        
+        return pstmt->executeUpdate();
     } catch (const std::exception& e) {
         std::cerr << "[AlertRepository] Error in resolveAlert: " << e.what() << std::endl;
         return 0;

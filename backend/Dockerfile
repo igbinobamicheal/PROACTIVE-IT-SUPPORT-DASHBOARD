@@ -24,7 +24,7 @@ RUN git clone https://github.com/microsoft/vcpkg.git ${VCPKG_ROOT} \
     && ${VCPKG_ROOT}/bootstrap-vcpkg.sh \
     && ${VCPKG_ROOT}/vcpkg install \
         crow \
-        mysql-connector-cpp \
+        mysql-connector-cpp[jdbc] \
         jwt-cpp \
         nlohmann-json \
         openssl

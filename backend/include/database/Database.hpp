@@ -1,7 +1,16 @@
 #ifndef DATABASE_HPP
 #define DATABASE_HPP
 
-#include <mysqlx/xdevapi.h>
+#include <mysql_driver.h>
+#include <mysql_connection.h>
+#include <cppconn/driver.h>
+#include <cppconn/exception.h>
+#include <cppconn/resultset.h>
+#include <cppconn/statement.h>
+#include <cppconn/prepared_statement.h>
+#include <queue>
+#include <mutex>
+#include <condition_variable>
 #include <memory>
 #include <string>
 
@@ -13,11 +22,17 @@ public:
     void initialize();
 
     /**
-     * Obtains a Session from the connection pool.
-     * The Session object returned is not thread-safe, but the retrieval itself is thread-safe.
-     * When the Session goes out of scope, the connection is returned to the pool.
+     * Custom deleter for returning a connection to the pool.
      */
-    mysqlx::Session getSession();
+    struct ConnectionDeleter {
+        void operator()(sql::Connection* conn) const;
+    };
+    using ConnectionPtr = std::unique_ptr<sql::Connection, ConnectionDeleter>;
+
+    /**
+     * Obtains a Connection from the pool.
+     */
+    ConnectionPtr getConnection();
 
     /**
      * Singleton instance access.
@@ -29,7 +44,21 @@ public:
 
 private:
     Database() = default;
-    std::unique_ptr<mysqlx::Client> client;
+    ~Database();
+
+    void returnConnection(sql::Connection* conn);
+
+    sql::Driver* driver = nullptr;
+    std::queue<sql::Connection*> connectionPool;
+    std::mutex poolMutex;
+    std::condition_variable poolCv;
+    int maxPoolSize = 10;
+    int currentPoolSize = 0;
+
+    std::string dbUrl;
+    std::string dbUser;
+    std::string dbPassword;
+    std::string dbSchema;
 };
 
 #endif // DATABASE_HPP
