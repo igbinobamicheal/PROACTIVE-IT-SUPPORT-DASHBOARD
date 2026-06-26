@@ -6,7 +6,13 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Find dependencies using vcpkg
 find_package(Crow CONFIG REQUIRED)
-find_package(mysql-concpp CONFIG REQUIRED)
+
+# Find MySQL Connector/C++ (supporting both official and vcpkg unofficial packages)
+find_package(mysql-concpp CONFIG QUIET)
+if(NOT mysql-concpp_FOUND)
+    find_package(unofficial-mysql-connector-cpp CONFIG REQUIRED)
+endif()
+
 find_package(jwt-cpp CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
 find_package(OpenSSL REQUIRED)
@@ -53,9 +59,18 @@ target_compile_definitions(proactive_it_dashboard PRIVATE
 )
 
 # Link libraries
+# Determine MySQL target to link
+if(TARGET mysql::concpp)
+    set(MYSQL_LIBRARIES mysql::concpp)
+elseif(TARGET unofficial::mysql-connector-cpp::connector)
+    set(MYSQL_LIBRARIES unofficial::mysql-connector-cpp::connector)
+else()
+    message(FATAL_ERROR "MySQL Connector/C++ target not found!")
+endif()
+
 target_link_libraries(proactive_it_dashboard PRIVATE
     Crow::Crow
-    mysql::concpp
+    ${MYSQL_LIBRARIES}
     jwt-cpp::jwt-cpp
     nlohmann_json::nlohmann_json
     OpenSSL::SSL
