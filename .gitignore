@@ -14,8 +14,7 @@ agent/build/
 *.db
 *.opendb
 
-# Configurations
-backend/config/config.json
+
 
 # Vercel
 .vercel/
