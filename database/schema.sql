@@ -1,6 +1,6 @@
--- Create database if not exists
-CREATE DATABASE IF NOT EXISTS it_monitoring;
-USE it_monitoring;
+    -- Create database if not exists
+   -- CREATE DATABASE IF NOT EXISTS it_monitoring;
+  --  USE it_monitoring;
 
 -- Drop tables if they exist (ordered by foreign key dependencies)
 DROP TABLE IF EXISTS metrics;

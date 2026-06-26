@@ -47,6 +47,23 @@ cmake --build build --config Release
 ```
 On first start, provide the administrator JWT token (obtained via POST `/api/login` using username `admin` and password `admin123`) to register the agent device.
 
+## Render Backend Environment Variables
+
+When deploying the backend on Render, add these in **Service** -> **Environment**:
+
+| Key | Value |
+|-----|-------|
+| `DB_HOST` | Your MySQL host, for example `mysql.example.com` |
+| `DB_PORT` | `33060` for MySQL X Protocol |
+| `DB_USER` | Your MySQL username |
+| `DB_PASSWORD` | Your MySQL password |
+| `DB_NAME` | `it_monitoring` |
+| `JWT_SECRET` | A long random secret string |
+| `REGISTRATION_KEY` | A long random key shared with agents |
+| `SERVER_HOST` | `0.0.0.0` |
+
+Render automatically provides `PORT`, and the backend will use it if present. For local runs, the backend still supports `config.json`; environment variables override `config.json` when both are present.
+
 ## Deploying the Frontend to Vercel (from GitHub)
 
 The `frontend/` directory is a static HTML/CSS/JS site — no build step required. Vercel serves it directly.
@@ -113,4 +130,3 @@ The included `vercel.json` configures clean URL rewrites, so these all work:
 - `yourdomain.vercel.app/devices` → `devices.html`
 - `yourdomain.vercel.app/alerts` → `alerts.html`
 - `yourdomain.vercel.app/device-details` → `device-details.html`
-
