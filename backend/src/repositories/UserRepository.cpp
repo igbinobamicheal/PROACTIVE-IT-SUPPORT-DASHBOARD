@@ -5,18 +5,16 @@
 std::optional<User> UserRepository::findByUsername(const std::string& username) {
     try {
         auto conn = Database::getInstance().getConnection();
-        std::unique_ptr<sql::PreparedStatement> pstmt(conn->prepareStatement(
-            "SELECT id, username, password_hash, DATE_FORMAT(created_at, '%Y-%m-%d %H:%i:%s') AS created_at FROM users WHERE username = ?"
-        ));
-        pstmt->setString(1, username);
-        
-        std::unique_ptr<sql::ResultSet> res(pstmt->executeQuery());
-        if (res->next()) {
+        pqxx::nontransaction txn(*conn);
+        pqxx::result res = txn.exec_prepared("find_user", username);
+        if (!res.empty()) {
             User user;
-            user.id = res->getInt("id");
-            user.username = res->getString("username");
-            user.passwordHash = res->getString("password_hash");
-            user.createdAt = res->getString("created_at");
+            user.id = res[0]["id"].as<int>();
+            user.username = res[0]["username"].as<std::string>();
+            user.passwordHash = res[0]["password_hash"].as<std::string>();
+            if (!res[0]["created_at"].is_null()) {
+                user.createdAt = res[0]["created_at"].as<std::string>();
+            }
             return user;
         }
     } catch (const std::exception& e) {
@@ -28,19 +26,12 @@ std::optional<User> UserRepository::findByUsername(const std::string& username) 
 void UserRepository::create(User& user) {
     try {
         auto conn = Database::getInstance().getConnection();
-        std::unique_ptr<sql::PreparedStatement> pstmt(conn->prepareStatement(
-            "INSERT INTO users (username, password_hash) VALUES (?, ?)"
-        ));
-        pstmt->setString(1, user.username);
-        pstmt->setString(2, user.passwordHash);
-        pstmt->executeUpdate();
-        
-        // Retrieve the generated AUTO_INCREMENT ID
-        std::unique_ptr<sql::Statement> stmt(conn->createStatement());
-        std::unique_ptr<sql::ResultSet> res(stmt->executeQuery("SELECT LAST_INSERT_ID()"));
-        if (res->next()) {
-            user.id = res->getInt(1);
+        pqxx::work txn(*conn);
+        pqxx::result res = txn.exec_prepared("create_user", user.username, user.passwordHash);
+        if (!res.empty()) {
+            user.id = res[0]["id"].as<int>();
         }
+        txn.commit();
     } catch (const std::exception& e) {
         std::cerr << "[UserRepository] Error in create: " << e.what() << std::endl;
         throw;

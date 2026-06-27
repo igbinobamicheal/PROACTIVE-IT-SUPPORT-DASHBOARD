@@ -1,20 +1,14 @@
 cmake_minimum_required(VERSION 3.15)
 project(proactive_it_dashboard LANGUAGES C CXX)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Find dependencies using vcpkg
 find_package(Crow CONFIG REQUIRED)
 
-# Load unofficial-libmysql dependency (required by unofficial-mysql-connector-cpp-jdbc)
-find_package(unofficial-libmysql CONFIG REQUIRED)
-
-# Find MySQL Connector/C++ (supporting both official and vcpkg unofficial packages)
-find_package(mysql-concpp CONFIG QUIET)
-if(NOT mysql-concpp_FOUND)
-    find_package(unofficial-mysql-connector-cpp CONFIG REQUIRED)
-endif()
+# Find PostgreSQL C++ client library libpqxx
+find_package(libpqxx CONFIG REQUIRED)
 
 find_package(jwt-cpp CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
@@ -62,27 +56,18 @@ target_compile_definitions(proactive_it_dashboard PRIVATE
 )
 
 # Link libraries
-# Determine MySQL target to link
-if(TARGET mysql::concpp-jdbc)
-    set(MYSQL_LIBRARIES mysql::concpp-jdbc)
-elseif(TARGET unofficial::mysql-connector-cpp::connector-jdbc)
-    set(MYSQL_LIBRARIES unofficial::mysql-connector-cpp::connector-jdbc)
-elseif(TARGET mysql::concpp)
-    set(MYSQL_LIBRARIES mysql::concpp)
-elseif(TARGET unofficial::mysql-connector-cpp::connector)
-    set(MYSQL_LIBRARIES unofficial::mysql-connector-cpp::connector)
-else()
-    message(FATAL_ERROR "MySQL Connector/C++ target not found!")
-endif()
-
 target_link_libraries(proactive_it_dashboard PRIVATE
     Crow::Crow
-    ${MYSQL_LIBRARIES}
+    libpqxx::pqxx
     jwt-cpp::jwt-cpp
     nlohmann_json::nlohmann_json
     OpenSSL::SSL
     OpenSSL::Crypto
 )
+
+if(MSVC)
+    target_link_options(proactive_it_dashboard PRIVATE "/FORCE:MULTIPLE")
+endif()
 
 # Ensure CRT functions are secure (avoid warnings on MSVC) and enable modern standards
 if(MSVC)

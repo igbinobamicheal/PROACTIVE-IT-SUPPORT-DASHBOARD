@@ -1,0 +1,15 @@
+- [x] Install `libpqxx` via vcpkg
+- [x] Migrate local docker-compose database service to PostgreSQL
+- [x] Migrate `database/schema.sql` to PostgreSQL dialect
+- [x] Migrate `database/seed.sql` to PostgreSQL dialect
+- [x] Update `Config.cpp` default port
+- [x] Update `backend/CMakeLists.txt` to find and link `libpqxx::pqxx`
+- [x] Update `backend/Dockerfile` to install `libpqxx` via vcpkg
+- [x] Implement `pqxx::connection` pool in `Database.hpp`
+- [x] Implement `Database.cpp` logic and connection preparation
+- [x] Refactor `UserRepository.cpp` to use libpqxx
+- [x] Refactor `DeviceRepository.cpp` to use libpqxx
+- [x] Refactor `MetricRepository.cpp` to use libpqxx and transactions
+- [x] Refactor `AlertRepository.cpp` to use libpqxx
+- [x] Refactor `main.cpp` status checker to use libpqxx
+- [x] Verify local configure and compilation

@@ -4,45 +4,29 @@
 #include <algorithm>
 
 void MetricRepository::create(Metric& metric) {
-    auto conn = Database::getInstance().getConnection();
     try {
-        // Start a transaction to ensure both operations succeed
-        conn->setAutoCommit(false);
+        auto conn = Database::getInstance().getConnection();
+        pqxx::work txn(*conn);
         
-        std::unique_ptr<sql::PreparedStatement> pstmt(conn->prepareStatement(
-            "INSERT INTO metrics (device_id, cpu_usage, ram_usage, disk_usage, network_in, network_out, uptime) VALUES (?, ?, ?, ?, ?, ?, ?)"
-        ));
-        pstmt->setInt(1, metric.deviceId);
-        pstmt->setDouble(2, metric.cpuUsage);
-        pstmt->setDouble(3, metric.ramUsage);
-        pstmt->setDouble(4, metric.diskUsage);
-        pstmt->setDouble(5, metric.networkIn);
-        pstmt->setDouble(6, metric.networkOut);
-        pstmt->setInt64(7, metric.uptime);
-        pstmt->executeUpdate();
-        
-        // Retrieve the generated AUTO_INCREMENT ID
-        std::unique_ptr<sql::Statement> stmt(conn->createStatement());
-        std::unique_ptr<sql::ResultSet> res(stmt->executeQuery("SELECT LAST_INSERT_ID()"));
-        if (res->next()) {
-            metric.id = res->getInt(1);
+        // 1. Insert metric (returns generated ID via RETURNING id)
+        pqxx::result res = txn.exec_prepared("create_metric", 
+                                             metric.deviceId, 
+                                             metric.cpuUsage, 
+                                             metric.ramUsage, 
+                                             metric.diskUsage, 
+                                             metric.networkIn, 
+                                             metric.networkOut, 
+                                             metric.uptime);
+        if (!res.empty()) {
+            metric.id = res[0]["id"].as<int>();
         }
         
-        // Update device status to online since it sent metrics
-        std::unique_ptr<sql::PreparedStatement> pstmtUpdate(conn->prepareStatement(
-            "UPDATE devices SET status = 'online' WHERE id = ?"
-        ));
-        pstmtUpdate->setInt(1, metric.deviceId);
-        pstmtUpdate->executeUpdate();
-               
-        conn->commit();
-        conn->setAutoCommit(true);
+        // 2. Update device status to online
+        txn.exec_prepared("update_device_status", "online", metric.deviceId);
+        
+        txn.commit();
     } catch (const std::exception& e) {
         std::cerr << "[MetricRepository] Error in create: " << e.what() << std::endl;
-        try {
-            conn->rollback();
-            conn->setAutoCommit(true);
-        } catch (...) {}
         throw;
     }
 }
@@ -50,24 +34,22 @@ void MetricRepository::create(Metric& metric) {
 std::optional<Metric> MetricRepository::findLatestForDevice(int deviceId) {
     try {
         auto conn = Database::getInstance().getConnection();
-        std::unique_ptr<sql::PreparedStatement> pstmt(conn->prepareStatement(
-            "SELECT id, device_id, cpu_usage, ram_usage, disk_usage, network_in, network_out, uptime, DATE_FORMAT(timestamp, '%Y-%m-%d %H:%i:%s') AS timestamp "
-            "FROM metrics WHERE device_id = ? ORDER BY timestamp DESC LIMIT 1"
-        ));
-        pstmt->setInt(1, deviceId);
+        pqxx::nontransaction txn(*conn);
+        pqxx::result res = txn.exec_prepared("find_latest_metric", deviceId);
         
-        std::unique_ptr<sql::ResultSet> res(pstmt->executeQuery());
-        if (res->next()) {
+        if (!res.empty()) {
             Metric m;
-            m.id = res->getInt("id");
-            m.deviceId = res->getInt("device_id");
-            m.cpuUsage = res->getDouble("cpu_usage");
-            m.ramUsage = res->getDouble("ram_usage");
-            m.diskUsage = res->getDouble("disk_usage");
-            m.networkIn = res->getDouble("network_in");
-            m.networkOut = res->getDouble("network_out");
-            m.uptime = res->getInt64("uptime");
-            m.timestamp = res->getString("timestamp");
+            m.id = res[0]["id"].as<int>();
+            m.deviceId = res[0]["device_id"].as<int>();
+            m.cpuUsage = res[0]["cpu_usage"].as<double>();
+            m.ramUsage = res[0]["ram_usage"].as<double>();
+            m.diskUsage = res[0]["disk_usage"].as<double>();
+            m.networkIn = res[0]["network_in"].as<double>();
+            m.networkOut = res[0]["network_out"].as<double>();
+            m.uptime = res[0]["uptime"].as<int64_t>();
+            if (!res[0]["timestamp"].is_null()) {
+                m.timestamp = res[0]["timestamp"].as<std::string>();
+            }
             return m;
         }
     } catch (const std::exception& e) {
@@ -80,25 +62,22 @@ std::vector<Metric> MetricRepository::findHistoryForDevice(int deviceId, int lim
     std::vector<Metric> history;
     try {
         auto conn = Database::getInstance().getConnection();
-        // Since limit needs to be part of query or bound (limit is safer formatted here)
-        std::string query = "SELECT id, device_id, cpu_usage, ram_usage, disk_usage, network_in, network_out, uptime, DATE_FORMAT(timestamp, '%Y-%m-%d %H:%i:%s') AS timestamp "
-                            "FROM metrics WHERE device_id = ? ORDER BY timestamp DESC LIMIT " + std::to_string(limit);
+        pqxx::nontransaction txn(*conn);
+        pqxx::result res = txn.exec_prepared("find_metric_history", deviceId, limit);
         
-        std::unique_ptr<sql::PreparedStatement> pstmt(conn->prepareStatement(query));
-        pstmt->setInt(1, deviceId);
-        
-        std::unique_ptr<sql::ResultSet> res(pstmt->executeQuery());
-        while (res->next()) {
+        for (auto const &row : res) {
             Metric m;
-            m.id = res->getInt("id");
-            m.deviceId = res->getInt("device_id");
-            m.cpuUsage = res->getDouble("cpu_usage");
-            m.ramUsage = res->getDouble("ram_usage");
-            m.diskUsage = res->getDouble("disk_usage");
-            m.networkIn = res->getDouble("network_in");
-            m.networkOut = res->getDouble("network_out");
-            m.uptime = res->getInt64("uptime");
-            m.timestamp = res->getString("timestamp");
+            m.id = row["id"].as<int>();
+            m.deviceId = row["device_id"].as<int>();
+            m.cpuUsage = row["cpu_usage"].as<double>();
+            m.ramUsage = row["ram_usage"].as<double>();
+            m.diskUsage = row["disk_usage"].as<double>();
+            m.networkIn = row["network_in"].as<double>();
+            m.networkOut = row["network_out"].as<double>();
+            m.uptime = row["uptime"].as<int64_t>();
+            if (!row["timestamp"].is_null()) {
+                m.timestamp = row["timestamp"].as<std::string>();
+            }
             history.push_back(m);
         }
         

@@ -1,9 +1,9 @@
 {
-  "db_host": "yamabiko.proxy.rlwy.net",
-  "db_port": 30476,
-  "db_user": "root",
-  "db_password": "GcMUXiguwVSgvtjPmJHWAiqnLavgODYH",
-  "db_schema": "railway",
+  "db_host": "db.supabase.co",
+  "db_port": 5432,
+  "db_user": "postgres",
+  "db_password": "YOUR_SUPABASE_PASSWORD",
+  "db_schema": "postgres",
 
   "server_host": "0.0.0.0",
   "server_port": 8080,

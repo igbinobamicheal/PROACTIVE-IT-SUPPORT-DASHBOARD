@@ -1,13 +1,7 @@
 #ifndef DATABASE_HPP
 #define DATABASE_HPP
 
-#include <jdbc/mysql_driver.h>
-#include <jdbc/mysql_connection.h>
-#include <jdbc/cppconn/driver.h>
-#include <jdbc/cppconn/exception.h>
-#include <jdbc/cppconn/resultset.h>
-#include <jdbc/cppconn/statement.h>
-#include <jdbc/cppconn/prepared_statement.h>
+#include <pqxx/pqxx>
 #include <queue>
 #include <mutex>
 #include <condition_variable>
@@ -25,9 +19,9 @@ public:
      * Custom deleter for returning a connection to the pool.
      */
     struct ConnectionDeleter {
-        void operator()(sql::Connection* conn) const;
+        void operator()(pqxx::connection* conn) const;
     };
-    using ConnectionPtr = std::unique_ptr<sql::Connection, ConnectionDeleter>;
+    using ConnectionPtr = std::unique_ptr<pqxx::connection, ConnectionDeleter>;
 
     /**
      * Obtains a Connection from the pool.
@@ -46,19 +40,16 @@ private:
     Database() = default;
     ~Database();
 
-    void returnConnection(sql::Connection* conn);
+    void returnConnection(pqxx::connection* conn);
+    void prepareConnection(pqxx::connection& conn);
 
-    sql::Driver* driver = nullptr;
-    std::queue<sql::Connection*> connectionPool;
+    std::queue<pqxx::connection*> connectionPool;
     std::mutex poolMutex;
     std::condition_variable poolCv;
     int maxPoolSize = 10;
     int currentPoolSize = 0;
 
-    std::string dbUrl;
-    std::string dbUser;
-    std::string dbPassword;
-    std::string dbSchema;
+    std::string dbUrlStr;
 };
 
 #endif // DATABASE_HPP

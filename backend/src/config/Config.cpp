@@ -43,7 +43,7 @@ void Config::load(const std::string& filepath) {
 
     // Set configuration values with defaults where appropriate
     dbHost = j.value("db_host", "localhost");
-    dbPort = j.value("db_port", 33060);
+    dbPort = j.value("db_port", 5432);
     dbUser = j.value("db_user", "root");
     dbPassword = j.value("db_password", "");
     dbSchema = j.value("db_schema", "it_monitoring");

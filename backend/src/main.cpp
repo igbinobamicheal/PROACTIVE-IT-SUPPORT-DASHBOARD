@@ -13,6 +13,8 @@
 #include <atomic>
 #include <chrono>
 
+#include <pqxx/pqxx>
+
 std::atomic<bool> g_stopStatusChecker(false);
 std::thread g_statusCheckerThread;
 
@@ -27,35 +29,24 @@ void runStatusChecker() {
 
         try {
             auto conn = Database::getInstance().getConnection();
+            pqxx::work txn(*conn);
             
             // Find devices that are online but have no metrics in the last 30 seconds
-            std::unique_ptr<sql::Statement> stmt(conn->createStatement());
-            std::unique_ptr<sql::ResultSet> res(stmt->executeQuery(
-                "SELECT id, name, ip_address FROM devices "
-                "WHERE status = 'online' AND id NOT IN ("
-                "  SELECT DISTINCT device_id FROM metrics "
-                "  WHERE timestamp >= DATE_SUB(NOW(), INTERVAL 30 SECOND)"
-                ")"
-            ));
+            pqxx::result res = txn.exec_prepared("find_timed_out_devices");
             
             std::vector<std::tuple<int, std::string, std::string>> timedOutDevices;
-            while (res->next()) {
+            for (auto const &row : res) {
                 timedOutDevices.push_back({
-                    res->getInt("id"),
-                    res->getString("name"),
-                    res->getString("ip_address")
+                    row["id"].as<int>(),
+                    row["name"].as<std::string>(),
+                    row["ip_address"].as<std::string>()
                 });
             }
 
             if (!timedOutDevices.empty()) {
-                conn->setAutoCommit(false);
-                std::unique_ptr<sql::PreparedStatement> pstmt(conn->prepareStatement(
-                    "UPDATE devices SET status = 'offline' WHERE id = ?"
-                ));
                 for (const auto& [id, name, ip] : timedOutDevices) {
                     std::cout << "[StatusChecker] Device '" << name << "' (ID: " << id << ") timed out. Marking offline." << std::endl;
-                    pstmt->setInt(1, id);
-                    pstmt->executeUpdate();
+                    txn.exec_prepared("update_device_status", "offline", id);
                            
                     // Create offline event JSON
                     nlohmann::json eventJson = {
@@ -67,8 +58,7 @@ void runStatusChecker() {
                     
                     EventBroker::getInstance().publish("device_offline", eventJson.dump());
                 }
-                conn->commit();
-                conn->setAutoCommit(true);
+                txn.commit();
             }
         } catch (const std::exception& e) {
             std::cerr << "[StatusChecker] Error checking device statuses: " << e.what() << std::endl;

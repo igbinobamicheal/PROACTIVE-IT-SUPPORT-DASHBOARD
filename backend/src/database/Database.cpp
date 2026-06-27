@@ -6,79 +6,92 @@
 void Database::initialize() {
     auto& config = Config::getInstance();
     
-    dbUser = config.dbUser;
-    dbPassword = config.dbPassword;
-    dbSchema = config.dbSchema;
+    bool isRemote = (config.dbHost != "localhost" && config.dbHost != "127.0.0.1" && config.dbHost != "postgres" && config.dbHost != "it_monitoring_db");
     
-    // Classic MySQL connection URL format: tcp://host:port
-    dbUrl = "tcp://" + config.dbHost + ":" + std::to_string(config.dbPort);
-    
+    // Connect to "postgres" database first to verify/create target database
+    std::string sysConnStr = "host=" + config.dbHost + " port=" + std::to_string(config.dbPort) + " dbname=postgres user=" + config.dbUser + " password=" + config.dbPassword;
+    if (isRemote) {
+        sysConnStr += " sslmode=require";
+    }
+
     try {
-        driver = sql::mysql::get_mysql_driver_instance();
-        if (!driver) {
-            throw std::runtime_error("Failed to get MySQL driver instance");
+        std::cout << "[Database] Verifying database exists..." << std::endl;
+        pqxx::connection sysConn(sysConnStr);
+        pqxx::nontransaction txn(sysConn);
+        pqxx::result res = txn.exec("SELECT 1 FROM pg_database WHERE datname = " + txn.quote(config.dbSchema));
+        if (res.empty()) {
+            std::cout << "[Database] Database '" << config.dbSchema << "' does not exist. Creating..." << std::endl;
+            txn.exec("CREATE DATABASE " + txn.quote_name(config.dbSchema));
         }
-        
-        // Connect to sys/mysql default schema first to ensure our target database schema exists
-        std::cout << "[Database] Verifying database schema exists..." << std::endl;
-        std::unique_ptr<sql::Connection> tempConn(driver->connect(dbUrl, dbUser, dbPassword));
-        std::unique_ptr<sql::Statement> stmt(tempConn->createStatement());
-        stmt->execute("CREATE DATABASE IF NOT EXISTS " + dbSchema);
-        
-        // Select target schema on the temp connection to create tables
-        tempConn->setSchema(dbSchema);
-        
+    } catch (const std::exception& e) {
+        std::cerr << "[Database] Warning: Failed to pre-verify/create database: " << e.what() << std::endl;
+    }
+
+    // Build the connection string for target schema
+    dbUrlStr = "host=" + config.dbHost + " port=" + std::to_string(config.dbPort) + " dbname=" + config.dbSchema + " user=" + config.dbUser + " password=" + config.dbPassword;
+    if (isRemote) {
+        dbUrlStr += " sslmode=require";
+    }
+
+    try {
+        std::cout << "[Database] Validating target database schema..." << std::endl;
+        pqxx::connection tempConn(dbUrlStr);
+        pqxx::work txn(tempConn);
+
         // 1. Users Table
-        stmt->execute("CREATE TABLE IF NOT EXISTS users ("
-                      "  id INT AUTO_INCREMENT PRIMARY KEY,"
-                      "  username VARCHAR(255) NOT NULL UNIQUE,"
-                      "  password_hash VARCHAR(255) NOT NULL,"
-                      "  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
-                      ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+        txn.exec("CREATE TABLE IF NOT EXISTS users ("
+                 "  id SERIAL PRIMARY KEY,"
+                 "  username VARCHAR(255) NOT NULL UNIQUE,"
+                 "  password_hash VARCHAR(255) NOT NULL,"
+                 "  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
+                 ");");
 
         // 2. Devices Table
-        stmt->execute("CREATE TABLE IF NOT EXISTS devices ("
-                      "  id INT AUTO_INCREMENT PRIMARY KEY,"
-                      "  name VARCHAR(255) NOT NULL,"
-                      "  token VARCHAR(255) NOT NULL UNIQUE,"
-                      "  ip_address VARCHAR(45) NOT NULL,"
-                      "  status VARCHAR(50) DEFAULT 'offline',"
-                      "  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
-                      ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+        txn.exec("CREATE TABLE IF NOT EXISTS devices ("
+                 "  id SERIAL PRIMARY KEY,"
+                 "  name VARCHAR(255) NOT NULL,"
+                 "  token VARCHAR(255) NOT NULL UNIQUE,"
+                 "  ip_address VARCHAR(45) NOT NULL,"
+                 "  status VARCHAR(50) DEFAULT 'offline',"
+                 "  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
+                 ");");
 
         // 3. Metrics Table
-        stmt->execute("CREATE TABLE IF NOT EXISTS metrics ("
-                      "  id INT AUTO_INCREMENT PRIMARY KEY,"
-                      "  device_id INT NOT NULL,"
-                      "  cpu_usage DOUBLE NOT NULL,"
-                      "  ram_usage DOUBLE NOT NULL,"
-                      "  disk_usage DOUBLE NOT NULL,"
-                      "  network_in DOUBLE NOT NULL,"
-                      "  network_out DOUBLE NOT NULL,"
-                      "  uptime BIGINT NOT NULL,"
-                      "  timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,"
-                      "  FOREIGN KEY (device_id) REFERENCES devices(id) ON DELETE CASCADE"
-                      ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+        txn.exec("CREATE TABLE IF NOT EXISTS metrics ("
+                 "  id SERIAL PRIMARY KEY,"
+                 "  device_id INT NOT NULL,"
+                 "  cpu_usage DOUBLE PRECISION NOT NULL,"
+                 "  ram_usage DOUBLE PRECISION NOT NULL,"
+                 "  disk_usage DOUBLE PRECISION NOT NULL,"
+                 "  network_in DOUBLE PRECISION NOT NULL,"
+                 "  network_out DOUBLE PRECISION NOT NULL,"
+                 "  uptime BIGINT NOT NULL,"
+                 "  timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,"
+                 "  FOREIGN KEY (device_id) REFERENCES devices(id) ON DELETE CASCADE"
+                 ");");
 
         // 4. Alerts Table
-        stmt->execute("CREATE TABLE IF NOT EXISTS alerts ("
-                      "  id INT AUTO_INCREMENT PRIMARY KEY,"
-                      "  device_id INT NOT NULL,"
-                      "  rule_type VARCHAR(50) NOT NULL,"
-                      "  rule_value DOUBLE NOT NULL,"
-                      "  threshold DOUBLE NOT NULL,"
-                      "  message VARCHAR(255) NOT NULL,"
-                      "  timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,"
-                      "  resolved BOOLEAN DEFAULT FALSE,"
-                      "  FOREIGN KEY (device_id) REFERENCES devices(id) ON DELETE CASCADE"
-                      ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+        txn.exec("CREATE TABLE IF NOT EXISTS alerts ("
+                 "  id SERIAL PRIMARY KEY,"
+                 "  device_id INT NOT NULL,"
+                 "  rule_type VARCHAR(50) NOT NULL,"
+                 "  rule_value DOUBLE PRECISION NOT NULL,"
+                 "  threshold DOUBLE PRECISION NOT NULL,"
+                 "  message VARCHAR(255) NOT NULL,"
+                 "  timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,"
+                 "  resolved BOOLEAN DEFAULT FALSE,"
+                 "  FOREIGN KEY (device_id) REFERENCES devices(id) ON DELETE CASCADE"
+                 ");");
 
-        // 5. Seed default admin if missing (using INSERT IGNORE)
-        stmt->execute("INSERT IGNORE INTO users (username, password_hash) VALUES ('admin', '$2a$10$N9qo8uLOickgx2ZMRZoMyeMiMwiT/hYv/GXAzJLiUmBNwmYD4kh02')");
-        
-        std::cout << "[Database] Successfully initialized classic connection pool and validated tables." << std::endl;
-    } catch (const sql::SQLException& e) {
-        throw std::runtime_error("Failed to initialize MySQL database via classic Connector: " + std::string(e.what()));
+        // 5. Seed default admin if missing (using ON CONFLICT DO NOTHING)
+        txn.exec("INSERT INTO users (username, password_hash) "
+                 "VALUES ('admin', '$2a$10$N9qo8uLOickgx2ZMRZoMyeMiMwiT/hYv/GXAzJLiUmBNwmYD4kh02') "
+                 "ON CONFLICT (username) DO NOTHING;");
+
+        txn.commit();
+        std::cout << "[Database] Successfully validated database tables." << std::endl;
+    } catch (const std::exception& e) {
+        throw std::runtime_error("Failed to initialize PostgreSQL database: " + std::string(e.what()));
     }
 }
 
@@ -90,14 +103,14 @@ Database::~Database() {
     }
 }
 
-void Database::ConnectionDeleter::operator()(sql::Connection* conn) const {
+void Database::ConnectionDeleter::operator()(pqxx::connection* conn) const {
     Database::getInstance().returnConnection(conn);
 }
 
-void Database::returnConnection(sql::Connection* conn) {
+void Database::returnConnection(pqxx::connection* conn) {
     if (conn) {
         try {
-            if (conn->isClosed()) {
+            if (!conn->is_open()) {
                 delete conn;
                 std::lock_guard<std::mutex> lock(poolMutex);
                 currentPoolSize--;
@@ -119,37 +132,62 @@ void Database::returnConnection(sql::Connection* conn) {
 Database::ConnectionPtr Database::getConnection() {
     std::unique_lock<std::mutex> lock(poolMutex);
     
-    // If pool is empty, and we haven't reached maxPoolSize, create a new connection
     if (connectionPool.empty() && currentPoolSize < maxPoolSize) {
         try {
-            sql::Connection* conn = driver->connect(dbUrl, dbUser, dbPassword);
-            conn->setSchema(dbSchema);
+            pqxx::connection* conn = new pqxx::connection(dbUrlStr);
+            prepareConnection(*conn);
             currentPoolSize++;
             return ConnectionPtr(conn);
-        } catch (const sql::SQLException& e) {
+        } catch (const std::exception& e) {
             std::cerr << "[Database] Error creating connection: " << e.what() << std::endl;
             throw;
         }
     }
     
-    // Otherwise wait for a connection to become available
     poolCv.wait(lock, [this]() { return !connectionPool.empty(); });
     
-    sql::Connection* conn = connectionPool.front();
+    pqxx::connection* conn = connectionPool.front();
     connectionPool.pop();
     
-    // Verify connection is alive, if not create a new one
     try {
-        if (conn->isClosed()) {
+        if (!conn->is_open()) {
             delete conn;
-            conn = driver->connect(dbUrl, dbUser, dbPassword);
-            conn->setSchema(dbSchema);
+            conn = new pqxx::connection(dbUrlStr);
+            prepareConnection(*conn);
         }
     } catch (...) {
         delete conn;
-        conn = driver->connect(dbUrl, dbUser, dbPassword);
-        conn->setSchema(dbSchema);
+        conn = new pqxx::connection(dbUrlStr);
+        prepareConnection(*conn);
     }
     
     return ConnectionPtr(conn);
+}
+
+void Database::prepareConnection(pqxx::connection& conn) {
+    // 1. Users queries
+    conn.prepare("find_user", "SELECT id, username, password_hash, TO_CHAR(created_at, 'YYYY-MM-DD HH24:MI:SS') AS created_at FROM users WHERE username = $1");
+    conn.prepare("create_user", "INSERT INTO users (username, password_hash) VALUES ($1, $2) RETURNING id");
+
+    // 2. Devices queries
+    conn.prepare("create_device", "INSERT INTO devices (name, token, ip_address, status) VALUES ($1, $2, $3, $4) RETURNING id");
+    conn.prepare("find_all_devices", "SELECT id, name, token, ip_address, status, TO_CHAR(created_at, 'YYYY-MM-DD HH24:MI:SS') AS created_at FROM devices");
+    conn.prepare("find_device_by_id", "SELECT id, name, token, ip_address, status, TO_CHAR(created_at, 'YYYY-MM-DD HH24:MI:SS') AS created_at FROM devices WHERE id = $1");
+    conn.prepare("find_device_by_token", "SELECT id, name, token, ip_address, status, TO_CHAR(created_at, 'YYYY-MM-DD HH24:MI:SS') AS created_at FROM devices WHERE token = $1");
+
+    // 3. Metrics queries
+    conn.prepare("create_metric", "INSERT INTO metrics (device_id, cpu_usage, ram_usage, disk_usage, network_in, network_out, uptime) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id");
+    conn.prepare("update_device_status", "UPDATE devices SET status = $1 WHERE id = $2");
+    conn.prepare("find_latest_metric", "SELECT id, device_id, cpu_usage, ram_usage, disk_usage, network_in, network_out, uptime, TO_CHAR(timestamp, 'YYYY-MM-DD HH24:MI:SS') AS timestamp FROM metrics WHERE device_id = $1 ORDER BY timestamp DESC LIMIT 1");
+    conn.prepare("find_metric_history", "SELECT id, device_id, cpu_usage, ram_usage, disk_usage, network_in, network_out, uptime, TO_CHAR(timestamp, 'YYYY-MM-DD HH24:MI:SS') AS timestamp FROM metrics WHERE device_id = $1 ORDER BY timestamp DESC LIMIT $2");
+
+    // 4. Alerts queries
+    conn.prepare("create_alert", "INSERT INTO alerts (device_id, rule_type, rule_value, threshold, message) VALUES ($1, $2, $3, $4, $5) RETURNING id");
+    conn.prepare("find_all_alerts", "SELECT a.id, a.device_id, d.name, a.rule_type, a.rule_value, a.threshold, a.message, TO_CHAR(a.timestamp, 'YYYY-MM-DD HH24:MI:SS') AS timestamp, a.resolved FROM alerts a JOIN devices d ON a.device_id = d.id ORDER BY a.timestamp DESC LIMIT $1");
+    conn.prepare("find_active_alerts", "SELECT a.id, a.device_id, d.name, a.rule_type, a.rule_value, a.threshold, a.message, TO_CHAR(a.timestamp, 'YYYY-MM-DD HH24:MI:SS') AS timestamp, a.resolved FROM alerts a JOIN devices d ON a.device_id = d.id WHERE a.resolved = FALSE ORDER BY a.timestamp DESC");
+    conn.prepare("has_active_alert", "SELECT id FROM alerts WHERE device_id = $1 AND rule_type = $2 AND resolved = FALSE LIMIT 1");
+    conn.prepare("resolve_alert", "UPDATE alerts SET resolved = TRUE WHERE device_id = $1 AND rule_type = $2 AND resolved = FALSE");
+    
+    // 5. StatusChecker queries
+    conn.prepare("find_timed_out_devices", "SELECT id, name, ip_address FROM devices WHERE status = 'online' AND id NOT IN (SELECT DISTINCT device_id FROM metrics WHERE timestamp >= NOW() - INTERVAL '30 seconds')");
 }

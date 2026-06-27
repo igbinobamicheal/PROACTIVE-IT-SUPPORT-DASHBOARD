@@ -1,6 +1,4 @@
 -- Seed data for proactive_it_dashboard database
-USE it_monitoring;
-
 -- Seed default user (admin / admin123) is handled in schema.sql.
 -- Here we can seed some initial devices and metric records for testing.
 
@@ -8,7 +6,7 @@ INSERT INTO devices (name, token, ip_address, status) VALUES
 ('Main Web Server', 'e38a2e1d7f6a8e4c9b01d2c3f4e5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3', '192.168.10.101', 'online'),
 ('Primary DB Server', 'f49b3f2e8a7b9f5d0c12d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4', '192.168.10.102', 'online'),
 ('Backup Storage Host', 'a12b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b', '192.168.10.200', 'offline')
-ON DUPLICATE KEY UPDATE name=name;
+ON CONFLICT (token) DO UPDATE SET name = EXCLUDED.name;
 
 -- Seed initial metrics for 'Main Web Server' (device_id = 1)
 INSERT INTO metrics (device_id, cpu_usage, ram_usage, disk_usage, network_in, network_out, uptime) VALUES

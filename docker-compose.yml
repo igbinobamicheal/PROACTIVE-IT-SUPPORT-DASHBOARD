@@ -1,19 +1,17 @@
 version: '3.8'
 
 services:
-  mysql:
-    image: mysql:8.0
+  postgres:
+    image: postgres:15
     container_name: it_monitoring_db
     environment:
-      MYSQL_ROOT_PASSWORD: password
-      MYSQL_DATABASE: it_monitoring
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: it_monitoring
     ports:
-      # Classic MySQL Protocol
-      - "3306:3306"
-      # Modern MySQL X Protocol (Port 33060)
-      - "33060:33060"
+      - "5432:5432"
     volumes:
-      - db_data:/var/lib/mysql
+      - db_data:/var/lib/postgresql/data
       # Auto-run schema files during startup
       - ./database/schema.sql:/docker-entrypoint-initdb.d/1-schema.sql
       - ./database/seed.sql:/docker-entrypoint-initdb.d/2-seed.sql

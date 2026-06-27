@@ -24,21 +24,12 @@ void DeviceRepository::create(Device& device) {
     try {
         device.token = generateDeviceToken();
         auto conn = Database::getInstance().getConnection();
-        std::unique_ptr<sql::PreparedStatement> pstmt(conn->prepareStatement(
-            "INSERT INTO devices (name, token, ip_address, status) VALUES (?, ?, ?, ?)"
-        ));
-        pstmt->setString(1, device.name);
-        pstmt->setString(2, device.token);
-        pstmt->setString(3, device.ipAddress);
-        pstmt->setString(4, device.status);
-        pstmt->executeUpdate();
-        
-        // Retrieve the generated AUTO_INCREMENT ID
-        std::unique_ptr<sql::Statement> stmt(conn->createStatement());
-        std::unique_ptr<sql::ResultSet> res(stmt->executeQuery("SELECT LAST_INSERT_ID()"));
-        if (res->next()) {
-            device.id = res->getInt(1);
+        pqxx::work txn(*conn);
+        pqxx::result res = txn.exec_prepared("create_device", device.name, device.token, device.ipAddress, device.status);
+        if (!res.empty()) {
+            device.id = res[0]["id"].as<int>();
         }
+        txn.commit();
     } catch (const std::exception& e) {
         std::cerr << "[DeviceRepository] Error in create: " << e.what() << std::endl;
         throw;
@@ -49,19 +40,19 @@ std::vector<Device> DeviceRepository::findAll() {
     std::vector<Device> devices;
     try {
         auto conn = Database::getInstance().getConnection();
-        std::unique_ptr<sql::Statement> stmt(conn->createStatement());
-        std::unique_ptr<sql::ResultSet> res(stmt->executeQuery(
-            "SELECT id, name, token, ip_address, status, DATE_FORMAT(created_at, '%Y-%m-%d %H:%i:%s') AS created_at FROM devices"
-        ));
+        pqxx::nontransaction txn(*conn);
+        pqxx::result res = txn.exec_prepared("find_all_devices");
         
-        while (res->next()) {
+        for (auto const &row : res) {
             Device d;
-            d.id = res->getInt("id");
-            d.name = res->getString("name");
-            d.token = res->getString("token");
-            d.ipAddress = res->getString("ip_address");
-            d.status = res->getString("status");
-            d.createdAt = res->getString("created_at");
+            d.id = row["id"].as<int>();
+            d.name = row["name"].as<std::string>();
+            d.token = row["token"].as<std::string>();
+            d.ipAddress = row["ip_address"].as<std::string>();
+            d.status = row["status"].as<std::string>();
+            if (!row["created_at"].is_null()) {
+                d.createdAt = row["created_at"].as<std::string>();
+            }
             devices.push_back(d);
         }
     } catch (const std::exception& e) {
@@ -73,20 +64,18 @@ std::vector<Device> DeviceRepository::findAll() {
 std::optional<Device> DeviceRepository::findById(int id) {
     try {
         auto conn = Database::getInstance().getConnection();
-        std::unique_ptr<sql::PreparedStatement> pstmt(conn->prepareStatement(
-            "SELECT id, name, token, ip_address, status, DATE_FORMAT(created_at, '%Y-%m-%d %H:%i:%s') AS created_at FROM devices WHERE id = ?"
-        ));
-        pstmt->setInt(1, id);
-        
-        std::unique_ptr<sql::ResultSet> res(pstmt->executeQuery());
-        if (res->next()) {
+        pqxx::nontransaction txn(*conn);
+        pqxx::result res = txn.exec_prepared("find_device_by_id", id);
+        if (!res.empty()) {
             Device d;
-            d.id = res->getInt("id");
-            d.name = res->getString("name");
-            d.token = res->getString("token");
-            d.ipAddress = res->getString("ip_address");
-            d.status = res->getString("status");
-            d.createdAt = res->getString("created_at");
+            d.id = res[0]["id"].as<int>();
+            d.name = res[0]["name"].as<std::string>();
+            d.token = res[0]["token"].as<std::string>();
+            d.ipAddress = res[0]["ip_address"].as<std::string>();
+            d.status = res[0]["status"].as<std::string>();
+            if (!res[0]["created_at"].is_null()) {
+                d.createdAt = res[0]["created_at"].as<std::string>();
+            }
             return d;
         }
     } catch (const std::exception& e) {
@@ -98,20 +87,18 @@ std::optional<Device> DeviceRepository::findById(int id) {
 std::optional<Device> DeviceRepository::findByToken(const std::string& token) {
     try {
         auto conn = Database::getInstance().getConnection();
-        std::unique_ptr<sql::PreparedStatement> pstmt(conn->prepareStatement(
-            "SELECT id, name, token, ip_address, status, DATE_FORMAT(created_at, '%Y-%m-%d %H:%i:%s') AS created_at FROM devices WHERE token = ?"
-        ));
-        pstmt->setString(1, token);
-        
-        std::unique_ptr<sql::ResultSet> res(pstmt->executeQuery());
-        if (res->next()) {
+        pqxx::nontransaction txn(*conn);
+        pqxx::result res = txn.exec_prepared("find_device_by_token", token);
+        if (!res.empty()) {
             Device d;
-            d.id = res->getInt("id");
-            d.name = res->getString("name");
-            d.token = res->getString("token");
-            d.ipAddress = res->getString("ip_address");
-            d.status = res->getString("status");
-            d.createdAt = res->getString("created_at");
+            d.id = res[0]["id"].as<int>();
+            d.name = res[0]["name"].as<std::string>();
+            d.token = res[0]["token"].as<std::string>();
+            d.ipAddress = res[0]["ip_address"].as<std::string>();
+            d.status = res[0]["status"].as<std::string>();
+            if (!res[0]["created_at"].is_null()) {
+                d.createdAt = res[0]["created_at"].as<std::string>();
+            }
             return d;
         }
     } catch (const std::exception& e) {
