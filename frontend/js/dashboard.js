@@ -50,7 +50,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 showToast('Deployment Error', err.message, 'danger');
             } finally {
                 generateBtn.disabled = false;
-                generateBtn.innerHTML = `<span class="material-symbols-outlined text-[18px]">download</span> Generate Agent Package`;
+                generateBtn.innerHTML = `<i data-lucide="download" class="w-3.5 h-3.5"></i> Generate Agent Package`;
+                if (window.lucide) window.lucide.createIcons();
             }
         });
     }
@@ -132,19 +133,22 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         activeAlertsList.forEach(a => {
             const item = document.createElement('div');
-            item.className = 'flex items-center justify-between p-3.5 rounded-2xl border border-red-200 bg-red-50';
+            item.className = 'flex items-center justify-between p-3 rounded-md border border-danger/30 bg-danger/5';
             item.innerHTML = `
                 <div class="flex items-center gap-3">
-                    <span class="inline-flex items-center px-2.5 py-1 rounded-full bg-red-600 text-white text-[10px] font-black uppercase tracking-wider">${escapeHtml(a.rule_type)}</span>
-                    <span class="text-[14px] font-bold text-red-950">${escapeHtml(a.device_name)}</span>
-                    <span class="text-[13px] text-red-800/70 font-medium">&mdash; ${escapeHtml(a.message)}</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded bg-danger/10 text-danger text-[10px] font-bold uppercase tracking-wider border border-danger/30">${escapeHtml(a.rule_type.toUpperCase())}</span>
+                    <span class="text-[12px] font-semibold text-textMain">${escapeHtml(a.device_name)}</span>
+                    <span class="text-[12px] text-textMuted">&mdash; ${escapeHtml(a.message)}</span>
                 </div>
-                <div class="text-[11px] text-red-400 font-semibold">
+                <div class="text-[11px] text-danger font-mono font-semibold">
                     ${formatTimeOnly(a.timestamp)}
                 </div>
             `;
             listContainer.appendChild(item);
         });
+        if (window.lucide) {
+            window.lucide.createIcons();
+        }
     }
 
     function renderRecentDevicesTable() {
@@ -153,7 +157,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         tbody.innerHTML = '';
 
         if (devicesList.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="4" class="text-center text-[#0c0f0a]/40 py-6 text-[14px]">No agents registered yet.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="4" class="text-center text-textMuted py-4">No agents registered yet.</td></tr>`;
             return;
         }
 
@@ -161,18 +165,25 @@ document.addEventListener('DOMContentLoaded', async () => {
         const recent = [...devicesList].reverse().slice(0, 5);
         recent.forEach(d => {
             const tr = document.createElement('tr');
-            tr.className = 'border-b border-[#f9f9f9] hover:bg-[#f9f9f9]/50 transition-colors';
-            const statusColor = d.status === 'online' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200';
+            tr.className = 'border-b border-white/[0.02] hover:bg-white/[0.02] transition-colors cursor-pointer';
+            tr.onclick = () => {
+                window.location.href = `device-details.html?id=${d.id}`;
+            };
+            
+            const statusColor = d.status === 'online' 
+                ? 'border-success/30 bg-success/10 text-success' 
+                : 'border-danger/30 bg-danger/10 text-danger';
+
             tr.innerHTML = `
-                <td class="py-4 px-6 font-semibold text-[#0c0f0a]">${escapeHtml(d.name)}</td>
-                <td class="py-4 px-6 text-[#0c0f0a]/60">${escapeHtml(d.ip_address)}</td>
-                <td class="py-4 px-6">
-                    <span class="inline-flex items-center px-3 py-1 rounded-full ${statusColor} text-[11px] font-black uppercase tracking-wider border">
+                <td class="py-2.5 px-4 font-semibold text-textMain font-mono">${escapeHtml(d.name)}</td>
+                <td class="py-2.5 px-4 text-textMuted font-mono">${escapeHtml(d.ip_address)}</td>
+                <td class="py-2.5 px-4">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded ${statusColor} text-[10px] font-bold uppercase tracking-wider border">
                         ${d.status.toUpperCase()}
                     </span>
                 </td>
-                <td class="py-4 px-6 text-right">
-                    <a href="device-details.html?id=${d.id}" class="inline-flex items-center px-4 py-2 rounded-full bg-[#f9f9f9] text-[#0c0f0a] text-[12px] font-bold border border-[#0c0f0a]/10 hover:bg-[#0c0f0a] hover:text-white transition-all duration-300">Details</a>
+                <td class="py-2.5 px-4 text-right" onclick="event.stopPropagation()">
+                    <a href="device-details.html?id=${d.id}" class="inline-flex items-center px-2.5 py-1 rounded bg-white/[0.04] border border-borderSubtle text-textMain hover:bg-white/[0.08] text-[11px] font-medium transition-colors">Details</a>
                 </td>
             `;
             tbody.appendChild(tr);
@@ -186,7 +197,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const onlineDevices = devicesList.filter(d => d.status === 'online');
         if (onlineDevices.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="5" class="text-center text-[#0c0f0a]/40 py-6 text-[14px]">All monitoring agents are currently offline.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="4" class="text-center text-textMuted py-4">All monitoring agents are offline.</td></tr>`;
             return;
         }
 
@@ -194,35 +205,37 @@ document.addEventListener('DOMContentLoaded', async () => {
             const m = latestMetricsMap.get(d.id);
             const tr = document.createElement('tr');
             tr.id = `metrics-row-${d.id}`;
-            tr.className = 'border-b border-[#f9f9f9] hover:bg-[#f9f9f9]/50 transition-colors';
+            tr.className = 'border-b border-white/[0.02] hover:bg-white/[0.02] transition-colors cursor-pointer';
+            tr.onclick = () => {
+                window.location.href = `device-details.html?id=${d.id}`;
+            };
             
             if (m) {
                 tr.innerHTML = `
-                    <td class="py-4 px-6 font-semibold text-[#0c0f0a]">${escapeHtml(d.name)}</td>
-                    <td class="py-4 px-6">
+                    <td class="py-2.5 px-4 font-semibold text-textMain font-mono">${escapeHtml(d.name)}</td>
+                    <td class="py-2.5 px-4">
                         <div class="flex items-center gap-2">
-                            <span class="text-[14px] font-medium text-[#0c0f0a]">${m.cpu_usage.toFixed(1)}%</span>
+                            <span class="text-[12px] font-medium text-textMain font-mono">${m.cpu_usage.toFixed(1)}%</span>
                             <div class="custom-progress">
-                                <div class="custom-progress-bar bg-blue" style="width: ${m.cpu_usage}%"></div>
+                                <div class="custom-progress-bar bg-primary" style="width: ${m.cpu_usage}%"></div>
                             </div>
                         </div>
                     </td>
-                    <td class="py-4 px-6">
+                    <td class="py-2.5 px-4">
                         <div class="flex items-center gap-2">
-                            <span class="text-[14px] font-medium text-[#0c0f0a]">${m.ram_usage.toFixed(1)}%</span>
+                            <span class="text-[12px] font-medium text-textMain font-mono">${m.ram_usage.toFixed(1)}%</span>
                             <div class="custom-progress">
-                                <div class="custom-progress-bar bg-purple" style="width: ${m.ram_usage}%"></div>
+                                <div class="custom-progress-bar bg-success" style="width: ${m.ram_usage}%"></div>
                             </div>
                         </div>
                     </td>
-                    <td class="py-4 px-6 text-[14px] font-medium text-[#0c0f0a]">${m.disk_usage.toFixed(1)}%</td>
-                    <td class="py-4 px-6 text-[13px] text-[#0c0f0a]/50">${formatUptime(m.uptime)}</td>
+                    <td class="py-2.5 px-4 font-medium text-textMain font-mono">${m.disk_usage.toFixed(1)}%</td>
                 `;
             } else {
                 tr.innerHTML = `
-                    <td class="py-4 px-6 font-semibold text-[#0c0f0a]">${escapeHtml(d.name)}</td>
-                    <td colspan="4" class="py-4 px-6 text-center text-[#0c0f0a]/40 text-[13px] italic">
-                        Connecting... Waiting for first metric push
+                    <td class="py-2.5 px-4 font-semibold text-textMain font-mono">${escapeHtml(d.name)}</td>
+                    <td colspan="3" class="py-2.5 px-4 text-center text-textMuted italic font-mono">
+                        Connecting...
                     </td>
                 `;
             }
@@ -317,7 +330,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const row = document.getElementById(`metrics-row-${data.device_id}`);
                 if (row) {
                     row.style.transition = 'none';
-                    row.style.backgroundColor = 'rgba(255, 219, 15, 0.15)';
+                    row.style.backgroundColor = 'rgba(139, 92, 246, 0.15)';
                     setTimeout(() => {
                         row.style.transition = 'background-color 1s ease';
                         row.style.backgroundColor = 'transparent';
@@ -384,28 +397,29 @@ document.addEventListener('DOMContentLoaded', async () => {
         const container = document.getElementById('toastContainer');
         if (!container) return;
 
-        const bgColor = type === 'danger' 
-            ? 'bg-red-600' 
-            : 'bg-green-600';
-        const borderColor = type === 'danger'
-            ? 'border-red-500'
-            : 'border-green-500';
+        const indicatorColor = type === 'danger' ? 'text-danger' : 'text-success';
 
         const toast = document.createElement('div');
-        toast.className = `${bgColor} text-white rounded-2xl shadow-2xl border ${borderColor} p-4 min-w-[320px] max-w-[420px] pointer-events-auto transform translate-x-0 opacity-100 transition-all duration-500`;
+        toast.className = 'bg-surface text-textMain rounded-lg shadow-2xl border border-borderSubtle p-4 min-w-[320px] max-w-[420px] pointer-events-auto transform translate-x-0 opacity-100 transition-all duration-500';
         toast.innerHTML = `
             <div class="flex items-start justify-between gap-3">
                 <div class="flex-1">
-                    <div class="text-[13px] font-black uppercase tracking-wider mb-1">${escapeHtml(title)}</div>
-                    <div class="text-[13px] font-medium text-white/80">${escapeHtml(message)}</div>
+                    <div class="text-[11px] font-mono uppercase tracking-wider mb-1 flex items-center gap-1.5 ${indicatorColor}">
+                        <i data-lucide="${type === 'danger' ? 'alert-triangle' : 'check-circle-2'}" class="w-3.5 h-3.5"></i>
+                        ${escapeHtml(title)}
+                    </div>
+                    <div class="text-[12px] font-medium text-textMuted">${escapeHtml(message)}</div>
                 </div>
-                <button class="text-white/60 hover:text-white transition-colors flex-shrink-0 mt-0.5" onclick="this.parentElement.parentElement.remove()">
-                    <span class="material-symbols-outlined text-[18px]">close</span>
+                <button class="text-textSubtle hover:text-textMain transition-colors flex-shrink-0 mt-0.5" onclick="this.parentElement.parentElement.remove()">
+                    <i data-lucide="x" class="w-3.5 h-3.5"></i>
                 </button>
             </div>
         `;
         
         container.appendChild(toast);
+        if (window.lucide) {
+            window.lucide.createIcons();
+        }
         
         // Auto remove after 5 seconds
         setTimeout(() => {

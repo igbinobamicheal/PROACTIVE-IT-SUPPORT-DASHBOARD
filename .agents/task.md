@@ -1,18 +1,22 @@
-- [x] Install `libpqxx` via vcpkg
-- [x] Migrate local docker-compose database service to PostgreSQL
-- [x] Migrate `database/schema.sql` to PostgreSQL dialect
-- [x] Migrate `database/seed.sql` to PostgreSQL dialect
-- [x] Update `Config.cpp` default port
-- [x] Update `backend/CMakeLists.txt` to find and link `libpqxx::pqxx`
-- [x] Update `backend/Dockerfile` to install `libpqxx` via vcpkg
-- [x] Implement `pqxx::connection` pool in `Database.hpp`
-- [x] Implement `Database.cpp` logic and connection preparation
-- [x] Refactor `UserRepository.cpp` to use libpqxx
-- [x] Refactor `DeviceRepository.cpp` to use libpqxx
-- [x] Refactor `MetricRepository.cpp` to use libpqxx and transactions
-- [x] Refactor `AlertRepository.cpp` to use libpqxx
-- [x] Refactor `main.cpp` status checker to use libpqxx
-- [x] Verify local configure and compilation
-- [x] Allow CORS in backend (via global CORSMiddleware)
-- [x] Point the Frontend pages to the Railway backend URL (https://proactive-it-support-dashboard-production.up.railway.app/api)
-- [x] Configure Agent to point directly to Railway backend (supporting flexible server/server_url keys and auto-cleaning /api)
+# Tasks
+
+- [x] Implement backend signup endpoint
+  - [x] Add `/api/signup` POST route in `AuthController.cpp`
+  - [x] Add `/api/signup` OPTIONS route in `main.cpp`
+- [x] Add API and Auth frontend logic
+  - [x] Implement `api.signup` function in `api.js`
+  - [x] Implement form handling for `signupForm` in `auth.js`
+- [x] Create and Redesign pages
+  - [x] Create and implement `signup.html` matching the design of `reference/sign_up_page.html`
+  - [x] Redesign `index.html` using `reference/landing_page.html`
+  - [x] Redesign `login.html` using `reference/login_page.html`
+  - [x] Redesign `dashboard.html` using `reference/dashboard.html`
+  - [x] Redesign `devices.html` using `reference/device_inventory.html` and update `devices.js`
+  - [x] Redesign `device-details.html` using `reference/device_details.html` and update `device-details.js`
+  - [x] Redesign `alerts.html` using `reference/alerts_page.html` and update `alerts.js`
+  - [x] Collapsible sidebar and mobile responsiveness (`sidebar.js` integration)
+- [x] Verify functionality and aesthetics
+  - [x] Rebuild and run the backend
+  - [x] Test signup and login flows
+  - [x] Verify dashboard, devices, device-details, and alerts tables/charts update correctly
+  - [x] Generate and replace all CDN icons with local SVGs

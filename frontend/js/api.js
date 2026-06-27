@@ -63,6 +63,10 @@ const api = {
     login(username, password) {
         return this.request('/login', 'POST', { username, password }, false);
     },
+    
+    signup(username, password) {
+        return this.request('/signup', 'POST', { username, password }, false);
+    },
 
     registerDevice(name, ipAddress) {
         return this.request('/register-device', 'POST', { name, ip_address: ipAddress });

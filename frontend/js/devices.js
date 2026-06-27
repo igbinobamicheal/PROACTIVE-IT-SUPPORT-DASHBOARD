@@ -8,23 +8,59 @@ document.addEventListener('DOMContentLoaded', async () => {
         tableBody.innerHTML = '';
         
         if (devices.length === 0) {
-            tableBody.innerHTML = `<tr><td colspan="5" style="padding: 24px; text-align: center; color: var(--text-secondary);">No devices registered yet.</td></tr>`;
+            tableBody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-textMuted font-medium">No devices registered yet.</td></tr>`;
             return;
         }
 
         devices.forEach(d => {
             const tr = document.createElement('tr');
-            tr.style.borderBottom = '1px solid var(--border-glass)';
+            tr.className = 'border-b border-white/[0.02] hover:bg-white/[0.02] transition-colors cursor-pointer';
+            tr.onclick = () => {
+                window.location.href = `device-details.html?id=${d.id}`;
+            };
+            
+            const statusDotColor = d.status === 'online' 
+                ? 'bg-success shadow-[0_0_8px_rgba(16,185,129,0.5)]' 
+                : 'bg-danger shadow-[0_0_8px_rgba(244,63,94,0.5)]';
+            const statusText = d.status === 'online' ? 'Healthy' : 'Critical';
+
             tr.innerHTML = `
-                <td style="padding: 12px;">${d.id}</td>
-                <td style="padding: 12px; font-weight: 600;">${d.name}</td>
-                <td style="padding: 12px; color: var(--text-secondary);">${d.ip_address}</td>
-                <td style="padding: 12px;"><span style="color: ${d.status === 'online' ? 'var(--success)' : 'var(--danger)'};">${d.status.toUpperCase()}</span></td>
-                <td style="padding: 12px;"><a href="device-details.html?id=${d.id}" class="btn btn-secondary" style="padding: 6px 12px; font-size: 13px;">View Metrics</a></td>
+                <td class="py-3 px-4" onclick="event.stopPropagation()">
+                    <input type="checkbox" class="rounded bg-bg border-borderSubtle accent-primary">
+                </td>
+                <td class="py-3 px-4">
+                    <div class="font-mono font-semibold text-textMain">${escapeHtml(d.name)}</div>
+                    <div class="text-[10px] text-textSubtle mt-0.5">ID: ${d.id}</div>
+                </td>
+                <td class="py-3 px-4">
+                    <span class="flex items-center gap-2 text-textMuted">
+                        <div class="w-1.5 h-1.5 rounded-full ${statusDotColor}"></div>
+                        ${statusText}
+                    </span>
+                </td>
+                <td class="py-3 px-4 font-mono text-textMuted">
+                    ${escapeHtml(d.ip_address)}<br/>
+                    <span class="text-[10px] text-textSubtle uppercase">agent node</span>
+                </td>
+                <td class="py-3 px-4" onclick="event.stopPropagation()">
+                    <a href="device-details.html?id=${d.id}" class="inline-flex items-center px-2.5 py-1 rounded bg-white/[0.04] border border-borderSubtle text-textMain hover:bg-white/[0.08] text-[11px] font-medium transition-colors">
+                        View Metrics
+                    </a>
+                </td>
             `;
             tableBody.appendChild(tr);
         });
     } catch (err) {
-        tableBody.innerHTML = `<tr><td colspan="5" style="padding: 24px; text-align: center; color: var(--danger);">Failed to load devices: ${err.message}</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-danger font-semibold">Failed to load devices: ${escapeHtml(err.message)}</td></tr>`;
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
     }
 });

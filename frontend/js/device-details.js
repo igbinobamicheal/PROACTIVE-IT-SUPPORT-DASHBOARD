@@ -66,11 +66,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         badge.textContent = status.toUpperCase();
         if (status === 'online') {
-            badge.className = 'inline-flex items-center px-4 py-1.5 rounded-full bg-green-50 text-green-700 border border-green-200 text-[12px] font-black uppercase tracking-wider shadow-sm';
-            text.innerHTML = '<span class="inline-block w-2 h-2 rounded-full bg-green-500 animate-pulse mr-2"></span><span class="text-[15px] font-medium text-[#0c0f0a]/60">Active monitoring agent online</span>';
+            badge.className = 'inline-flex items-center px-2.5 py-0.5 rounded border border-success/30 bg-success/10 text-success text-[10px] font-bold uppercase tracking-wider shadow-sm';
+            text.innerHTML = '<span class="inline-block w-1.5 h-1.5 rounded-full bg-success shadow-[0_0_8px_rgba(16,185,129,0.6)] animate-pulse mr-2"></span><span class="text-[12px] text-textMuted font-medium">Active monitoring agent online</span>';
         } else {
-            badge.className = 'inline-flex items-center px-4 py-1.5 rounded-full bg-red-50 text-red-700 border border-red-200 text-[12px] font-black uppercase tracking-wider shadow-sm';
-            text.innerHTML = '<span class="material-symbols-outlined text-red-500 text-[16px] mr-1">cancel</span><span class="text-[15px] font-medium text-[#0c0f0a]/60">Agent offline (no contact)</span>';
+            badge.className = 'inline-flex items-center px-2.5 py-0.5 rounded border border-danger/30 bg-danger/10 text-danger text-[10px] font-bold uppercase tracking-wider shadow-sm';
+            text.innerHTML = '<span class="inline-block w-1.5 h-1.5 rounded-full bg-danger shadow-[0_0_8px_rgba(244,63,94,0.6)] mr-2"></span><span class="text-[12px] text-textMuted font-medium">Agent offline (no contact)</span>';
         }
     }
 
@@ -79,17 +79,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('cardRam').textContent = `${m.ram_usage.toFixed(1)}%`;
         document.getElementById('cardDisk').textContent = `${m.disk_usage.toFixed(1)}%`;
         document.getElementById('cardNetwork').innerHTML = `
-            <div class="flex items-center gap-1.5 mb-1">
-                <span class="material-symbols-outlined text-[16px] text-blue-500">arrow_downward</span>
-                <span class="text-[14px] font-medium text-[#0c0f0a]/60">In:</span>
-                <span class="text-[14px] font-bold text-[#0c0f0a]">${m.network_in.toFixed(1)} MB</span>
+            <div class="flex items-center gap-1.5 mb-1 text-[11px] font-mono text-textMuted">
+                <i data-lucide="arrow-down" class="w-3.5 h-3.5 text-primary"></i>
+                <span>In:</span>
+                <span class="text-textMain font-semibold">${m.network_in.toFixed(1)} MB</span>
             </div>
-            <div class="flex items-center gap-1.5">
-                <span class="material-symbols-outlined text-[16px] text-amber-500">arrow_upward</span>
-                <span class="text-[14px] font-medium text-[#0c0f0a]/60">Out:</span>
-                <span class="text-[14px] font-bold text-[#0c0f0a]">${m.network_out.toFixed(1)} MB</span>
+            <div class="flex items-center gap-1.5 text-[11px] font-mono text-textMuted">
+                <i data-lucide="arrow-up" class="w-3.5 h-3.5 text-warning"></i>
+                <span>Out:</span>
+                <span class="text-textMain font-semibold">${m.network_out.toFixed(1)} MB</span>
             </div>
         `;
+        if (window.lucide) {
+            window.lucide.createIcons();
+        }
 
         // Highlight alert thresholds (e.g. > 85%)
         highlightThreshold('cardCpu', m.cpu_usage);
@@ -99,15 +102,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function highlightThreshold(elementId, value) {
         const el = document.getElementById(elementId);
+        if (!el) return;
+        const container = el.parentElement;
         if (value > 85) {
-            el.style.color = '#ba1a1a';
-            el.parentElement.parentElement.style.borderColor = 'rgba(186, 26, 26, 0.4)';
+            el.className = 'text-[28px] font-bold font-mono tracking-tight text-danger';
+            container.style.borderColor = 'rgba(244, 63, 94, 0.4)';
         } else if (value > 70) {
-            el.style.color = '#86750d';
-            el.parentElement.parentElement.style.borderColor = 'rgba(255, 219, 15, 0.4)';
+            el.className = 'text-[28px] font-bold font-mono tracking-tight text-warning';
+            container.style.borderColor = 'rgba(245, 158, 11, 0.4)';
         } else {
-            el.style.color = '#0c0f0a';
-            el.parentElement.parentElement.style.borderColor = 'rgba(12, 15, 10, 0.05)';
+            el.className = 'text-[28px] font-bold font-mono tracking-tight text-textMain';
+            container.style.borderColor = 'rgba(255, 255, 255, 0.08)';
         }
     }
 
@@ -117,7 +122,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         tbody.innerHTML = '';
 
         if (history.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="7" class="text-center text-[#0c0f0a]/40 py-6 text-[14px]">No metrics history logged yet.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center text-textMuted py-6 text-[12px] font-medium">No metrics history logged yet.</td></tr>`;
             return;
         }
 
@@ -125,15 +130,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         const sortedHistory = [...history].reverse();
         sortedHistory.forEach(m => {
             const tr = document.createElement('tr');
-            tr.className = 'border-b border-[#f9f9f9] hover:bg-[#f9f9f9]/50 transition-colors';
+            tr.className = 'border-b border-white/[0.02] hover:bg-white/[0.02] transition-colors';
             tr.innerHTML = `
-                <td class="py-3.5 px-6 font-semibold text-[#0c0f0a] text-[13px]">${formatTimestamp(m.timestamp)}</td>
-                <td class="py-3.5 px-6"><span style="color: ${m.cpu_usage > 85 ? '#ba1a1a' : '#0c0f0a'}" class="font-medium">${m.cpu_usage.toFixed(1)}%</span></td>
-                <td class="py-3.5 px-6"><span style="color: ${m.ram_usage > 85 ? '#ba1a1a' : '#0c0f0a'}" class="font-medium">${m.ram_usage.toFixed(1)}%</span></td>
-                <td class="py-3.5 px-6 font-medium text-[#0c0f0a]">${m.disk_usage.toFixed(1)}%</td>
-                <td class="py-3.5 px-6 text-[#0c0f0a]/50">${m.network_in.toFixed(2)} MB</td>
-                <td class="py-3.5 px-6 text-[#0c0f0a]/50">${m.network_out.toFixed(2)} MB</td>
-                <td class="py-3.5 px-6 text-[#0c0f0a]/50 text-[13px]">${formatUptime(m.uptime)}</td>
+                <td class="py-3 px-4 font-semibold text-textMuted font-mono text-[11px]">${formatTimestamp(m.timestamp)}</td>
+                <td class="py-3 px-4 font-mono"><span class="${m.cpu_usage > 85 ? 'text-danger font-bold' : 'text-textMain'}" class="font-medium">${m.cpu_usage.toFixed(1)}%</span></td>
+                <td class="py-3 px-4 font-mono"><span class="${m.ram_usage > 85 ? 'text-danger font-bold' : 'text-textMain'}" class="font-medium">${m.ram_usage.toFixed(1)}%</span></td>
+                <td class="py-3 px-4 font-mono text-textMain">${m.disk_usage.toFixed(1)}%</td>
+                <td class="py-3 px-4 text-textMuted font-mono">${m.network_in.toFixed(2)} MB</td>
+                <td class="py-3 px-4 text-textMuted font-mono">${m.network_out.toFixed(2)} MB</td>
+                <td class="py-3 px-4 text-textMuted font-mono">${formatUptime(m.uptime)}</td>
             `;
             tbody.appendChild(tr);
         });
@@ -314,15 +319,15 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
 
                 const tr = document.createElement('tr');
-                tr.className = 'border-b border-[#f9f9f9] hover:bg-[#f9f9f9]/50 transition-colors';
+                tr.className = 'border-b border-white/[0.02] hover:bg-white/[0.02] transition-colors';
                 tr.innerHTML = `
-                    <td class="py-3.5 px-6 font-semibold text-[#0c0f0a] text-[13px]">${formatTimestamp(data.timestamp)}</td>
-                    <td class="py-3.5 px-6"><span style="color: ${data.cpu_usage > 85 ? '#ba1a1a' : '#0c0f0a'}" class="font-medium">${data.cpu_usage.toFixed(1)}%</span></td>
-                    <td class="py-3.5 px-6"><span style="color: ${data.ram_usage > 85 ? '#ba1a1a' : '#0c0f0a'}" class="font-medium">${data.ram_usage.toFixed(1)}%</span></td>
-                    <td class="py-3.5 px-6 font-medium text-[#0c0f0a]">${data.disk_usage.toFixed(1)}%</td>
-                    <td class="py-3.5 px-6 text-[#0c0f0a]/50">${data.network_in.toFixed(2)} MB</td>
-                    <td class="py-3.5 px-6 text-[#0c0f0a]/50">${data.network_out.toFixed(2)} MB</td>
-                    <td class="py-3.5 px-6 text-[#0c0f0a]/50 text-[13px]">${formatUptime(data.uptime)}</td>
+                    <td class="py-3 px-4 font-semibold text-textMuted font-mono text-[11px]">${formatTimestamp(data.timestamp)}</td>
+                    <td class="py-3 px-4 font-mono"><span class="${data.cpu_usage > 85 ? 'text-danger font-bold' : 'text-textMain'}" class="font-medium">${data.cpu_usage.toFixed(1)}%</span></td>
+                    <td class="py-3 px-4 font-mono"><span class="${data.ram_usage > 85 ? 'text-danger font-bold' : 'text-textMain'}" class="font-medium">${data.ram_usage.toFixed(1)}%</span></td>
+                    <td class="py-3 px-4 font-mono text-textMain">${data.disk_usage.toFixed(1)}%</td>
+                    <td class="py-3 px-4 text-textMuted font-mono">${data.network_in.toFixed(2)} MB</td>
+                    <td class="py-3 px-4 text-textMuted font-mono">${data.network_out.toFixed(2)} MB</td>
+                    <td class="py-3 px-4 text-textMuted font-mono">${formatUptime(data.uptime)}</td>
                 `;
                 
                 // Prepend to top

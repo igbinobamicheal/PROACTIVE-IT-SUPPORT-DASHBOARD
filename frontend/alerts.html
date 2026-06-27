@@ -1,18 +1,15 @@
 <!DOCTYPE html>
-<html lang="en" class="light">
+<html lang="en" class="dark">
 <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>MonitorPro - System Alerts Log</title>
+    <title>Alerts | MonitorPro</title>
     
-    <!-- Fonts and Icons -->
     <link rel="preconnect" href="https://fonts.googleapis.com"/>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-    
-    <!-- Tailwind -->
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+    <script src="js/icons.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     
     <script id="tailwind-config">
         tailwind.config = {
@@ -20,197 +17,182 @@
             theme: {
                 extend: {
                     colors: {
-                        "background": "#f8f9ff",
-                        "primary": "#0051d6",
-                        "secondary": "#486459",
-                        "surface": "#ffffff"
+                        bg: "#050505", surface: "#0E0E10", card: "#141417",
+                        borderSubtle: "rgba(255, 255, 255, 0.08)",
+                        primary: "#8B5CF6", success: "#10B981", warning: "#F59E0B", danger: "#F43F5E",
+                        textMain: "#FAFAFA", textMuted: "#A1A1AA", textSubtle: "#52525B",
                     },
-                    borderRadius: {
-                        "xl": "0.5rem",
-                        "full": "0.75rem"
-                    }
+                    fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] }
                 }
             }
         }
     </script>
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        body { background-color: #050505; color: #FAFAFA; font-family: 'Inter', sans-serif; }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(12, 15, 10, 0.15); border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: rgba(12, 15, 10, 0.3); }
-
-        /* Root color theme configuration */
-        :root {
-            --success: #22c55e;
-            --danger: #ba1a1a;
-            --text-primary: #0c0f0a;
-            --border-glass: rgba(12, 15, 10, 0.08);
-        }
-
-        /* Styling for filter tabs */
-        .filter-tab {
-            background-color: #ffffff;
-            color: #0c0f0a;
-            border: 1px solid rgba(12, 15, 10, 0.1);
-            font-size: 13px;
-            font-weight: 700;
-            padding: 10px 22px;
-            border-radius: 9999px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-        }
-        .filter-tab:hover {
-            background-color: rgba(12, 15, 10, 0.05);
-        }
-        .filter-tab.active {
-            background-color: #ffdb0f;
-            color: #0c0f0a;
-            border-color: #ffdb0f;
-            box-shadow: 0 4px 12px rgba(255, 219, 15, 0.25);
-        }
-
-        /* Dynamically injected badge CSS classes from alerts.js */
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 11px;
-            font-weight: 900;
-            padding: 6px 12px;
-            border-radius: 9999px;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-        .bg-secondary-glow {
-            background-color: rgba(12, 15, 10, 0.05);
-            color: rgba(12, 15, 10, 0.6);
-            border: 1px solid rgba(12, 15, 10, 0.1);
-        }
-        .bg-success-glow {
-            background-color: rgba(34, 197, 94, 0.1);
-            color: #16a34a;
-            border: 1px solid rgba(34, 197, 94, 0.2);
-        }
-        .bg-danger-glow {
-            background-color: rgba(220, 38, 38, 0.1);
-            color: #dc2626;
-            border: 1px solid rgba(220, 38, 38, 0.2);
-        }
+        ::-webkit-scrollbar-thumb { background: #27272A; border-radius: 2px; }
+        ::-webkit-scrollbar-thumb:hover { background: #52525B; }
+        
+        .metric-card { transition: background-color 0.2s ease; border: 1px solid rgba(255,255,255,0.05); }
+        .metric-card:hover { background-color: #141417; border-color: rgba(255,255,255,0.1); }
+        
+        .row-critical { background: linear-gradient(to right, rgba(244, 63, 94, 0.03) 0%, transparent 100%); }
     </style>
 </head>
-<body class="antialiased selection:bg-[#ffdb0f] selection:text-[#0c0f0a] w-full min-h-screen m-0 p-0 overflow-x-hidden bg-background">
+<body class="w-full h-screen overflow-hidden flex bg-bg">
 
-    <div class="flex h-screen w-full overflow-hidden">
-        <!-- Sidebar -->
-        <nav class="bg-[#0c0f0a] h-full w-64 flex-shrink-0 flex flex-col z-40 shadow-2xl">
-            <div class="p-6 flex items-center gap-3 mt-2">
-                <div class="w-9 h-9 bg-[#ffffff] rounded-full flex items-center justify-center shadow-lg">
-                    <div class="w-4 h-4 bg-[#0c0f0a] rounded-full"></div>
+    <!-- Sidebar -->
+    <nav class="bg-surface h-full w-[220px] flex-shrink-0 flex flex-col border-r border-borderSubtle z-40">
+        <div class="px-5 py-4 flex items-center gap-2 mb-4">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="#8B5CF6" stroke-width="2" stroke-linejoin="round"/>
+                <path d="M2 17L12 22L22 17" stroke="#8B5CF6" stroke-width="2" stroke-linejoin="round"/>
+                <path d="M2 12L12 17L22 12" stroke="#8B5CF6" stroke-width="2" stroke-linejoin="round"/>
+            </svg>
+            <span class="text-[14px] font-semibold tracking-tight">MonitorPro</span>
+        </div>
+        
+        <div class="flex-1 overflow-y-auto px-3 pb-4 space-y-6">
+            <div>
+                <div class="text-[10px] font-semibold text-textSubtle px-3 mb-2 uppercase tracking-widest">Platform</div>
+                <ul class="flex flex-col gap-0.5">
+                    <li>
+                        <a href="dashboard.html" class="flex items-center gap-3 px-3 py-1.5 rounded-md text-textMuted hover:text-textMain hover:bg-white/[0.04] text-[13px] font-medium transition-colors border border-transparent">
+                            <i data-lucide="layout-dashboard" class="w-4 h-4 text-textMuted"></i> Overview
+                        </a>
+                    </li>
+                    <li>
+                        <a href="devices.html" class="flex items-center gap-3 px-3 py-1.5 rounded-md hover:bg-white/[0.04] text-textMuted hover:text-textMain text-[13px] font-medium transition-colors border border-transparent">
+                            <i data-lucide="server" class="w-4 h-4 text-textMuted"></i> Infrastructure
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div>
+                <div class="text-[10px] font-semibold text-textSubtle px-3 mb-2 uppercase tracking-widest">Investigate</div>
+                <ul class="flex flex-col gap-0.5">
+                    <li>
+                        <a href="alerts.html" class="flex items-center justify-between px-3 py-1.5 rounded-md bg-white/[0.06] text-textMain text-[13px] font-medium border border-borderSubtle">
+                            <div class="flex items-center gap-3"><i data-lucide="alert-circle" class="w-4 h-4 text-primary"></i> Alerts</div>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="p-3 border-t border-borderSubtle">
+            <div class="mb-3 px-3 py-2 bg-white/[0.02] border border-borderSubtle rounded-md">
+                <div class="text-[12px] font-medium text-textMain truncate" id="currentUser">Admin Console</div>
+                <div class="text-[10px] text-textSubtle font-mono uppercase mt-0.5">Administrator</div>
+            </div>
+            <button id="logoutBtn" class="flex items-center gap-3 w-full p-2 rounded-md hover:bg-white/[0.04] text-textMuted hover:text-textMain text-[13px] font-medium transition-colors text-left border border-transparent hover:border-borderSubtle">
+                <i data-lucide="log-out" class="w-4 h-4"></i> Sign Out
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Workspace -->
+    <div class="flex-1 flex flex-col h-full overflow-y-auto bg-bg relative">
+        <header class="bg-bg/80 backdrop-blur-md border-b border-borderSubtle flex justify-between items-center px-6 h-14 sticky top-0 z-30">
+            <div class="flex items-center gap-3 text-[13px] font-medium text-textMuted">
+                <span class="text-textMuted hover:text-textMain cursor-pointer transition-colors">Investigate</span>
+                <span class="text-borderSubtle">/</span>
+                <span class="text-textMain">Alerts</span>
+            </div>
+            
+            <div class="flex items-center gap-3">
+                <div class="flex items-center gap-1.5 px-2 py-1 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-mono uppercase tracking-wide">
+                    <div class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></div> SSE Live connected
                 </div>
+            </div>
+        </header>
+
+        <main class="flex-1 p-8 max-w-[1200px] mx-auto w-full flex flex-col gap-6">
+            
+            <!-- Header & Summary Metrics -->
+            <div class="flex justify-between items-end mb-2">
                 <div>
-                    <h1 class="text-[22px] font-black text-[#ffffff] tracking-tight">MonitorPro</h1>
+                    <h2 class="text-[20px] font-semibold text-textMain tracking-tight">Active Alerts</h2>
+                    <p class="text-[13px] text-textMuted mt-1">Review and acknowledge triggered alert rules.</p>
+                </div>
+                
+                <!-- Filter tabs row -->
+                <div class="flex gap-1 bg-surface border border-borderSubtle rounded p-0.5 text-[11px] font-medium text-textMuted">
+                    <button class="px-2.5 py-1 rounded transition-colors" id="btnFilterAll">All Alerts Log</button>
+                    <button class="px-2.5 py-1 rounded transition-colors" id="btnFilterActive">Active Violations Only</button>
                 </div>
             </div>
-            <div class="flex-1 overflow-y-auto mt-6 px-4">
-                <ul class="flex flex-col gap-2">
-                    <li>
-                        <a href="dashboard.html" class="text-[#ffffff]/60 flex items-center gap-3 px-4 py-3.5 hover:bg-[#ffffff]/10 hover:text-[#ffffff] rounded-xl transition-all duration-300 font-medium">
-                            <span class="material-symbols-outlined">dashboard</span>
-                            <span class="text-[14px]">Dashboard</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="devices.html" class="text-[#ffffff]/60 flex items-center gap-3 px-4 py-3.5 hover:bg-[#ffffff]/10 hover:text-[#ffffff] rounded-xl transition-all duration-300 font-medium">
-                            <span class="material-symbols-outlined">devices</span>
-                            <span class="text-[14px]">Devices</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="alerts.html" class="text-[#0c0f0a] font-bold bg-[#ffdb0f] rounded-xl flex items-center gap-3 px-4 py-3.5 shadow-sm transition-transform duration-300 hover:scale-[1.02]">
-                            <span class="material-symbols-outlined">notifications_active</span>
-                            <span class="text-[14px]">Alerts</span>
-                        </a>
-                    </li>
-                </ul>
-            </div>
-            <div class="p-6 mt-auto">
-                <div class="mb-4 px-4 py-3 bg-[#ffffff]/5 rounded-xl">
-                    <div class="text-[14px] font-bold text-[#ffffff]" id="currentUser">Admin Console</div>
-                    <div class="text-[11px] text-[#ffffff]/40 uppercase tracking-wider font-semibold">Administrator</div>
-                </div>
-                <ul class="flex flex-col gap-2">
-                    <li>
-                        <a href="javascript:void(0)" id="logoutBtn" class="text-[#ffffff]/60 flex items-center gap-3 px-4 py-3.5 hover:bg-[#ffffff]/10 hover:text-[#ffffff] rounded-xl transition-all duration-300 font-medium">
-                            <span class="material-symbols-outlined">logout</span>
-                            <span class="text-[14px]">Logout</span>
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </nav>
 
-        <!-- Main Content Area -->
-        <div class="flex-1 flex flex-col h-full overflow-y-auto">
-            <!-- Header -->
-            <header class="bg-[#f9f9f9]/80 backdrop-blur-md flex justify-between items-center w-full px-10 py-6 sticky top-0 z-30 transition-all border-b border-[#0c0f0a]/5">
-                <div class="flex-1">
-                    <h2 class="text-[32px] font-black text-[#0c0f0a] tracking-tight">System Alerts Log</h2>
-                </div>
-                <div class="flex items-center gap-2">
-                    <span class="inline-flex items-center px-4 py-2 rounded-full bg-[#ffdb0f]/10 border border-[#ffdb0f]/30 text-[#86750d] text-[12px] font-bold tracking-wider">
-                        <span class="w-2 h-2 rounded-full bg-[#86750d] animate-pulse mr-2"></span> SSE Live Connection
-                    </span>
-                </div>
-            </header>
-
-            <main class="flex-1 px-10 pb-10 space-y-8 mt-6">
-                <!-- Filters tabs row -->
-                <div class="flex gap-3 pb-2 border-b border-[#0c0f0a]/5">
-                    <button class="filter-tab active" id="btnFilterAll">All Alerts Log</button>
-                    <button class="filter-tab" id="btnFilterActive">Active Violations Only</button>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="metric-card bg-surface rounded-lg p-4 flex flex-col gap-3 relative overflow-hidden border-t-2 border-t-danger">
+                    <div class="flex justify-between items-center">
+                        <span class="text-[12px] font-medium text-textMuted">Active Firing</span>
+                        <div class="w-2 h-2 rounded-full bg-danger animate-pulse shadow-[0_0_8px_rgba(244,63,94,0.6)]"></div>
+                    </div>
+                    <div class="text-[24px] font-bold font-mono tracking-tight text-danger" id="firingCount">-</div>
                 </div>
 
-                <!-- Table Card Container -->
-                <div class="bg-[#ffffff] rounded-3xl border border-[#0c0f0a]/5 overflow-hidden flex flex-col shadow-sm">
-                    <div class="overflow-x-auto p-4">
-                        <table class="w-full text-left border-collapse">
-                            <thead>
-                                <tr class="border-b-2 border-[#f9f9f9]">
-                                    <th class="py-4 px-6 text-[12px] font-bold text-[#0c0f0a]/40 uppercase tracking-wider">Timestamp</th>
-                                    <th class="py-4 px-6 text-[12px] font-bold text-[#0c0f0a]/40 uppercase tracking-wider">Device Name</th>
-                                    <th class="py-4 px-6 text-[12px] font-bold text-[#0c0f0a]/40 uppercase tracking-wider">Metric / Rule</th>
-                                    <th class="py-4 px-6 text-[12px] font-bold text-[#0c0f0a]/40 uppercase tracking-wider">Trigger Value</th>
-                                    <th class="py-4 px-6 text-[12px] font-bold text-[#0c0f0a]/40 uppercase tracking-wider">Threshold</th>
-                                    <th class="py-4 px-6 text-[12px] font-bold text-[#0c0f0a]/40 uppercase tracking-wider">Alert Message</th>
-                                    <th class="py-4 px-6 text-[12px] font-bold text-[#0c0f0a]/40 uppercase tracking-wider">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody id="alertsTableBody" class="text-[14px] text-[#0c0f0a] font-medium">
-                                <tr>
-                                    <td colspan="7" class="text-center text-[#0c0f0a]/40 py-8">Loading system alerts log...</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                <div class="metric-card bg-surface rounded-lg p-4 flex flex-col gap-3 relative overflow-hidden border-t-2 border-t-success">
+                    <div class="flex justify-between items-center">
+                        <span class="text-[12px] font-medium text-textMuted">Resolved Log</span>
+                        <i data-lucide="check-circle" class="w-3.5 h-3.5 text-success"></i>
+                    </div>
+                    <div class="text-[24px] font-bold font-mono tracking-tight text-success" id="resolvedCount">-</div>
+                </div>
+
+                <div class="metric-card bg-surface rounded-lg p-4 flex flex-col gap-3 relative overflow-hidden">
+                    <div class="flex justify-between items-center">
+                        <span class="text-[12px] font-medium text-textMuted">Routing Channels</span>
+                        <i data-lucide="activity" class="w-3.5 h-3.5 text-textSubtle"></i>
+                    </div>
+                    <div class="text-[13px] font-medium mt-1">
+                        <span class="text-textMain">Notification Agent:</span> <span class="text-success font-mono text-[11px]">Synced</span><br/>
+                        <span class="text-textMain">Events Ingestion:</span> <span class="text-success font-mono text-[11px]">Live</span>
                     </div>
                 </div>
-            </main>
-        </div>
+            </div>
+
+            <!-- Alerts Table -->
+            <div class="bg-surface border border-borderSubtle rounded-md overflow-hidden flex-1 flex flex-col">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-[12px]">
+                        <thead>
+                            <tr class="border-b border-borderSubtle bg-white/[0.01]">
+                                <th class="py-2.5 px-4 font-medium text-textSubtle font-mono uppercase tracking-widest text-[10px] w-10"><input type="checkbox" class="rounded bg-bg border-borderSubtle accent-primary"></th>
+                                <th class="py-2.5 px-4 font-medium text-textSubtle font-mono uppercase tracking-widest text-[10px] w-24">State</th>
+                                <th class="py-2.5 px-4 font-medium text-textSubtle font-mono uppercase tracking-widest text-[10px]">Alert Message / Resource</th>
+                                <th class="py-2.5 px-4 font-medium text-textSubtle font-mono uppercase tracking-widest text-[10px]">Value / Threshold</th>
+                                <th class="py-2.5 px-4 font-medium text-textSubtle font-mono uppercase tracking-widest text-[10px]">Timestamp</th>
+                                <th class="py-2.5 px-4 font-medium text-textSubtle font-mono uppercase tracking-widest text-[10px] text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="alertsTableBody" class="text-textMain">
+                            <tr>
+                                <td colspan="6" class="text-center text-textMuted py-8">Loading system alerts log...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
     </div>
 
-    <!-- Scripts -->
+    <!-- Toast Notifications Container -->
+    <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- Core Scripts -->
     <script src="js/utils.js"></script>
     <script src="js/config.js"></script>
     <script src="js/api.js"></script>
     <script src="js/alerts.js"></script>
+    <script src="js/sidebar.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // Set active role display from localStorage if present
-            const username = localStorage.getItem('username') || 'Admin Console';
-            const userDisplay = document.getElementById('currentUser');
-            if (userDisplay) userDisplay.textContent = username;
+        lucide.createIcons();
 
+        document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('logoutBtn').addEventListener('click', () => {
                 localStorage.removeItem('jwt_token');
                 localStorage.removeItem('username');

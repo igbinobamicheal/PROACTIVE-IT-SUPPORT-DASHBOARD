@@ -61,4 +61,53 @@ void AuthController::registerRoutes(crow::App<CORSMiddleware, AuthMiddleware>& a
             return res;
         }
     });
+
+    CROW_ROUTE(app, "/api/signup").methods(crow::HTTPMethod::POST)([](const crow::request& req) {
+        crow::response res;
+        res.set_header("Content-Type", "application/json");
+
+        try {
+            auto body = nlohmann::json::parse(req.body);
+            if (!body.contains("username") || !body.contains("password")) {
+                res.code = 400;
+                res.write(nlohmann::json{{"error", "Username and password are required"}}.dump());
+                return res;
+            }
+
+            std::string username = body["username"];
+            std::string password = body["password"];
+
+            if (username.empty() || password.empty()) {
+                res.code = 400;
+                res.write(nlohmann::json{{"error", "Username and password cannot be empty"}}.dump());
+                return res;
+            }
+
+            UserRepository userRepo;
+            auto existingUser = userRepo.findByUsername(username);
+            if (existingUser.has_value()) {
+                res.code = 409;
+                res.write(nlohmann::json{{"error", "Username already exists"}}.dump());
+                return res;
+            }
+
+            User user;
+            user.username = username;
+            user.passwordHash = BcryptUtil::hashPassword(password);
+            userRepo.create(user);
+
+            res.code = 201;
+            res.write(nlohmann::json{{"message", "User created successfully"}}.dump());
+            return res;
+
+        } catch (const nlohmann::json::parse_error& e) {
+            res.code = 400;
+            res.write(nlohmann::json{{"error", "Malformed JSON request body"}}.dump());
+            return res;
+        } catch (const std::exception& e) {
+            res.code = 500;
+            res.write(nlohmann::json{{"error", std::string("Internal server error: ") + e.what()}}.dump());
+            return res;
+        }
+    });
 }

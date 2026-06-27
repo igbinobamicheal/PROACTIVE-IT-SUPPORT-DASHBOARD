@@ -108,6 +108,7 @@ int main() {
 
         // Explicit CORS preflight OPTIONS handlers for all API routes
         CROW_ROUTE(app, "/api/login").methods(crow::HTTPMethod::OPTIONS)([]() { return crow::response(204); });
+        CROW_ROUTE(app, "/api/signup").methods(crow::HTTPMethod::OPTIONS)([]() { return crow::response(204); });
         CROW_ROUTE(app, "/api/register-device").methods(crow::HTTPMethod::OPTIONS)([]() { return crow::response(204); });
         CROW_ROUTE(app, "/api/devices").methods(crow::HTTPMethod::OPTIONS)([]() { return crow::response(204); });
         CROW_ROUTE(app, "/api/device/<int>").methods(crow::HTTPMethod::OPTIONS)([](int id) { return crow::response(204); });
