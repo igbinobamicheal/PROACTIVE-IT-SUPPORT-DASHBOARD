@@ -27,3 +27,7 @@ node_modules/
 # vcpkg manifest installation folders
 vcpkg_installed/
 vcpkg-installed/
+
+# Secret configuration files (contain credentials, JWT secrets, etc.)
+backend/config/config.json
+agent/config/config.json

@@ -87,6 +87,37 @@ int main() {
         MetricController::registerRoutes(app);
         AlertController::registerRoutes(app);
 
+        // Health check endpoint for Railway / uptime monitoring (no auth required)
+        CROW_ROUTE(app, "/api/health")
+        .methods(crow::HTTPMethod::GET)
+        ([]() {
+            crow::response res;
+            res.set_header("Content-Type", "application/json");
+            try {
+                auto conn = Database::getInstance().getConnection();
+                pqxx::nontransaction txn(*conn);
+                txn.exec("SELECT 1");
+                res.code = 200;
+                res.write(R"({"status":"ok","database":"connected"})");
+            } catch (const std::exception& e) {
+                res.code = 503;
+                res.write(R"({"status":"degraded","database":"unreachable"})");
+            }
+            return res;
+        });
+
+        // Global preflight OPTIONS handler for all paths
+        CROW_ROUTE(app, "/<path>")
+        .methods(crow::HTTPMethod::OPTIONS)
+        ([](const crow::request& req, std::string path) {
+            crow::response res;
+            res.code = 204; // No Content
+            res.set_header("Access-Control-Allow-Origin", "*");
+            res.set_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+            res.set_header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Device-Token");
+            return res;
+        });
+
         // Get server configuration
         auto& config = Config::getInstance();
         std::cout << "[Server] Running on http://" << config.serverHost << ":" << config.serverPort << std::endl;

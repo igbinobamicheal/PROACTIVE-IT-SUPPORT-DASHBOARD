@@ -89,6 +89,7 @@ void DeviceController::registerRoutes(crow::App<CORSMiddleware, AuthMiddleware>&
     ([](const crow::request& req) {
         crow::response res;
         
+#ifdef _WIN32
         try {
             auto& config = Config::getInstance();
             std::string host = req.get_header_value("Host");
@@ -227,6 +228,14 @@ void DeviceController::registerRoutes(crow::App<CORSMiddleware, AuthMiddleware>&
             res.write(nlohmann::json{{"error", std::string("Deployment failed: ") + e.what()}}.dump());
             return res;
         }
+#else
+        // Agent deployment packages require Windows (PowerShell + .exe).
+        // On Linux (Railway), return a descriptive error.
+        res.code = 501;
+        res.set_header("Content-Type", "application/json");
+        res.write(nlohmann::json{{"error", "Agent deployment packages are only available when the server is hosted on Windows."}}.dump());
+        return res;
+#endif
     });
 
     // 2. GET /api/devices (guarded by JWT)
