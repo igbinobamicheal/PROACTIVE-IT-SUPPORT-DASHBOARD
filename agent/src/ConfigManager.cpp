@@ -12,7 +12,31 @@ bool ConfigManager::load(const std::string& filepath) {
     try {
         nlohmann::json j;
         file >> j;
-        serverUrl = j.value("server_url", "http://localhost:8080");
+        std::string rawUrl = j.value("server_url", j.value("server", "http://localhost:8080"));
+        
+        // Clean URL: prepend https:// if protocol is missing
+        if (rawUrl.find("http://") != 0 && rawUrl.find("https://") != 0) {
+            rawUrl = "https://" + rawUrl;
+        }
+        
+        // Strip trailing slash if present
+        if (!rawUrl.empty() && rawUrl.back() == '/') {
+            rawUrl.pop_back();
+        }
+        
+        // Strip trailing "/api" if present
+        const std::string apiSuffix = "/api";
+        if (rawUrl.size() >= apiSuffix.size() && 
+            rawUrl.compare(rawUrl.size() - apiSuffix.size(), apiSuffix.size(), apiSuffix) == 0) {
+            rawUrl = rawUrl.substr(0, rawUrl.size() - apiSuffix.size());
+        }
+        
+        // Strip trailing slash again in case it was "/api/"
+        if (!rawUrl.empty() && rawUrl.back() == '/') {
+            rawUrl.pop_back();
+        }
+        
+        serverUrl = rawUrl;
         deviceName = j.value("device_name", "My_Agent_Device");
         deviceToken = j.value("device_token", "");
         intervalSeconds = j.value("interval_seconds", 10);

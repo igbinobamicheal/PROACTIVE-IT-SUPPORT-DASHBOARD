@@ -15,3 +15,4 @@
 - [x] Verify local configure and compilation
 - [x] Allow CORS in backend (via global CORSMiddleware)
 - [x] Point the Frontend pages to the Railway backend URL (https://proactive-it-support-dashboard-production.up.railway.app/api)
+- [x] Configure Agent to point directly to Railway backend (supporting flexible server/server_url keys and auto-cleaning /api)
