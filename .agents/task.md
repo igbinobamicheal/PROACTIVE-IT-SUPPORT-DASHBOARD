@@ -14,4 +14,4 @@
 - [x] Refactor `main.cpp` status checker to use libpqxx
 - [x] Verify local configure and compilation
 - [x] Allow CORS in backend (via global CORSMiddleware)
-- [x] Point the Frontend pages to the Railway backend URL (https://proactive-it-dashboard.up.railway.app/api)
+- [x] Point the Frontend pages to the Railway backend URL (https://proactive-it-support-dashboard-production.up.railway.app/api)
