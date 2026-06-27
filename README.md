@@ -13,12 +13,7 @@ A high-performance system monitoring solution with a C++20 Crow-based web server
 ## Prerequisites
 1. **C++20 Compiler** (MSVC 2022+ / GCC 11+)
 2. **CMake 3.15+**
-3. **vcpkg** package manager with:
-   - `crow`
-   - `libpqxx` (C++ PostgreSQL client library)
-   - `jwt-cpp`
-   - `nlohmann-json`
-   - `openssl`
+3. **vcpkg** package manager (integrated automatically via `vcpkg.json` manifest files)
 4. **PostgreSQL 15+ Server** (local database or hosted on Supabase, listening on port 5432)
 
 ## Quick Start
@@ -30,7 +25,7 @@ Execute `database/schema.sql` and `database/seed.sql` on your PostgreSQL server 
 Copy `backend/config/config.json.template` to `backend/config/config.json` and configure your database credentials.
 
 ### 3. Build & Run Backend
-Using vcpkg toolchain integration:
+Dependencies are automatically installed via **vcpkg manifest mode** (using `backend/vcpkg.json`) during the CMake configuration step:
 ```bash
 cd backend
 cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=[vcpkg_root]/scripts/buildsystems/vcpkg.cmake
@@ -39,6 +34,7 @@ cmake --build build --config Release
 ```
 
 ### 4. Build & Run Agent
+The agent's dependencies (`nlohmann-json` and `cpr`) are automatically resolved via `agent/vcpkg.json` during build configuration:
 ```bash
 cd agent
 cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=[vcpkg_root]/scripts/buildsystems/vcpkg.cmake
