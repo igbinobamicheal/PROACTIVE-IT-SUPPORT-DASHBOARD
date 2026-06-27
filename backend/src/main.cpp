@@ -96,8 +96,18 @@ int main() {
         g_statusCheckerThread = std::thread(runStatusChecker);
 
         // Start the server
-        app.port(config.serverPort)
-           .bindaddr(config.serverHost)
+        int port = config.serverPort;
+        if (const char* railwayPort = std::getenv("PORT")) {
+            try {
+                port = std::stoi(railwayPort);
+                std::cout << "[Server] Railway PORT detected: " << port << std::endl;
+            } catch (const std::exception& e) {
+                std::cerr << "[Server] Invalid PORT env var value: " << railwayPort << ", error: " << e.what() << std::endl;
+            }
+        }
+
+        app.port(port)
+           .bindaddr("0.0.0.0")
            .multithreaded()
            .run();
 
