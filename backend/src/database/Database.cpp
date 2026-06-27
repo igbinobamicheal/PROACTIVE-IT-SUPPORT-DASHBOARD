@@ -6,31 +6,37 @@
 void Database::initialize() {
     auto& config = Config::getInstance();
     
-    bool isRemote = (config.dbHost != "localhost" && config.dbHost != "127.0.0.1" && config.dbHost != "postgres" && config.dbHost != "it_monitoring_db");
-    
-    // Connect to "postgres" database first to verify/create target database
-    std::string sysConnStr = "host=" + config.dbHost + " port=" + std::to_string(config.dbPort) + " dbname=postgres user=" + config.dbUser + " password=" + config.dbPassword;
-    if (isRemote) {
-        sysConnStr += " sslmode=require";
-    }
-
-    try {
-        std::cout << "[Database] Verifying database exists..." << std::endl;
-        pqxx::connection sysConn(sysConnStr);
-        pqxx::nontransaction txn(sysConn);
-        pqxx::result res = txn.exec("SELECT 1 FROM pg_database WHERE datname = " + txn.quote(config.dbSchema));
-        if (res.empty()) {
-            std::cout << "[Database] Database '" << config.dbSchema << "' does not exist. Creating..." << std::endl;
-            txn.exec("CREATE DATABASE " + txn.quote_name(config.dbSchema));
+    const char* databaseUrl = std::getenv("DATABASE_URL");
+    if (databaseUrl && databaseUrl[0] != '\0') {
+        dbUrlStr = databaseUrl;
+        std::cout << "[Database] Using DATABASE_URL from environment." << std::endl;
+    } else {
+        bool isRemote = (config.dbHost != "localhost" && config.dbHost != "127.0.0.1" && config.dbHost != "postgres" && config.dbHost != "it_monitoring_db");
+        
+        // Connect to "postgres" database first to verify/create target database
+        std::string sysConnStr = "host=" + config.dbHost + " port=" + std::to_string(config.dbPort) + " dbname=postgres user=" + config.dbUser + " password=" + config.dbPassword;
+        if (isRemote) {
+            sysConnStr += " sslmode=require";
         }
-    } catch (const std::exception& e) {
-        std::cerr << "[Database] Warning: Failed to pre-verify/create database: " << e.what() << std::endl;
-    }
 
-    // Build the connection string for target schema
-    dbUrlStr = "host=" + config.dbHost + " port=" + std::to_string(config.dbPort) + " dbname=" + config.dbSchema + " user=" + config.dbUser + " password=" + config.dbPassword;
-    if (isRemote) {
-        dbUrlStr += " sslmode=require";
+        try {
+            std::cout << "[Database] Verifying database exists..." << std::endl;
+            pqxx::connection sysConn(sysConnStr);
+            pqxx::nontransaction txn(sysConn);
+            pqxx::result res = txn.exec("SELECT 1 FROM pg_database WHERE datname = " + txn.quote(config.dbSchema));
+            if (res.empty()) {
+                std::cout << "[Database] Database '" << config.dbSchema << "' does not exist. Creating..." << std::endl;
+                txn.exec("CREATE DATABASE " + txn.quote_name(config.dbSchema));
+            }
+        } catch (const std::exception& e) {
+            std::cerr << "[Database] Warning: Failed to pre-verify/create database: " << e.what() << std::endl;
+        }
+
+        // Build the connection string for target schema
+        dbUrlStr = "host=" + config.dbHost + " port=" + std::to_string(config.dbPort) + " dbname=" + config.dbSchema + " user=" + config.dbUser + " password=" + config.dbPassword;
+        if (isRemote) {
+            dbUrlStr += " sslmode=require";
+        }
     }
 
     try {
