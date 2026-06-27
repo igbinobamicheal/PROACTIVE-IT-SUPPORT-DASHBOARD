@@ -18,6 +18,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     wget \
     libssl-dev \
     libcurl4-openssl-dev \
+    bison \
+    flex \
+    libtool \
+    autoconf \
     && rm -rf /var/lib/apt/lists/*
 
 RUN git clone https://github.com/microsoft/vcpkg.git ${VCPKG_ROOT} \
