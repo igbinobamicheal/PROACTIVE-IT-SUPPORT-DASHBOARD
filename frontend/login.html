@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en" class="light">
 <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
@@ -17,10 +17,12 @@
             theme: {
                 extend: {
                     colors: {
-                        bg: "#050505", surface: "#0E0E10", card: "#141417",
-                        borderSubtle: "rgba(255, 255, 255, 0.08)",
-                        primary: "#8B5CF6", primaryHover: "#7C3AED",
-                        textMain: "#FAFAFA", textMuted: "#A1A1AA", textSubtle: "#52525B",
+                        bg: "#F5F5F7",
+                        surface: "rgba(255, 255, 255, 0.45)",
+                        card: "rgba(255, 255, 255, 0.65)",
+                        borderSubtle: "rgba(0, 0, 0, 0.06)",
+                        primary: "#7C3AED", primaryHover: "#6D28D9",
+                        textMain: "#0F172A", textMuted: "#334155", textSubtle: "#64748B",
                     },
                     fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] }
                 }
@@ -28,34 +30,34 @@
         }
     </script>
     <style>
-        body { background-color: #050505; color: #FAFAFA; font-family: 'Inter', sans-serif; }
+        body { background: radial-gradient(circle at 50% 50%, #FAF9FB 0%, #EFEFF3 100%); color: #0F172A; font-family: 'Inter', sans-serif; }
         .bg-pattern {
             position: absolute; inset: 0; z-index: 0; pointer-events: none;
-            background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
+            background-image: radial-gradient(rgba(15,23,42,0.03) 1px, transparent 1px);
             background-size: 24px 24px;
         }
         .form-input {
-            background: #0E0E10; border: 1px solid rgba(255,255,255,0.1); color: #FAFAFA;
+            background: #FFFFFF; border: 1px solid rgba(15,23,42,0.08); color: #0F172A;
             transition: all 0.2s ease;
         }
-        .form-input:focus { border-color: #8B5CF6; outline: none; box-shadow: 0 0 0 1px rgba(139, 92, 246, 0.2); }
+        .form-input:focus { border-color: #7C3AED; outline: none; box-shadow: 0 0 0 1px rgba(124, 58, 237, 0.2); }
         .error-banner {
-            background-color: rgba(244, 63, 94, 0.1);
-            border: 1px solid rgba(244, 63, 94, 0.2);
-            color: #F43F5E;
+            background-color: rgba(239, 68, 68, 0.08);
+            border: 1px solid rgba(239, 68, 68, 0.15);
+            color: #EF4444;
         }
     </style>
 </head>
 <body class="w-full min-h-screen m-0 p-0 overflow-hidden flex bg-bg">
 
-    <div class="hidden lg:flex flex-1 border-r border-borderSubtle bg-surface flex-col items-center justify-center p-12 relative overflow-hidden">
+    <div class="hidden lg:flex flex-1 border-r border-borderSubtle bg-white/20 flex-col items-center justify-center p-12 relative overflow-hidden">
         <div class="bg-pattern"></div>
-        <div class="absolute inset-0 bg-gradient-to-t from-bg to-transparent z-10 pointer-events-none opacity-90"></div>
+        <div class="absolute inset-0 bg-gradient-to-t from-bg to-transparent z-10 pointer-events-none opacity-50"></div>
         
-        <div class="w-full max-w-sm border border-borderSubtle bg-bg/50 backdrop-blur-md rounded-xl p-6 z-20 shadow-2xl">
+        <div class="w-full max-w-sm border border-borderSubtle bg-card backdrop-blur-md rounded-xl p-6 z-20 shadow-2xl">
             <div class="flex items-center justify-between mb-6 border-b border-borderSubtle pb-4">
                 <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 rounded bg-white/[0.04] border border-borderSubtle flex items-center justify-center">
+                    <div class="w-8 h-8 rounded bg-black/[0.02] border border-borderSubtle flex items-center justify-center">
                         <i data-lucide="activity" class="w-4 h-4 text-primary"></i>
                     </div>
                     <div>
@@ -63,31 +65,31 @@
                         <div class="text-[11px] text-textMuted font-mono">us-east-1</div>
                     </div>
                 </div>
-                <div class="flex items-center gap-1.5 px-2 py-1 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-mono uppercase tracking-wide">
-                    <div class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></div> Normal
+                <div class="flex items-center gap-1.5 px-2 py-1 rounded bg-emerald-50 border border-emerald-200/50 text-emerald-600 text-[10px] font-mono uppercase tracking-wide">
+                    <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div> Normal
                 </div>
             </div>
             
             <div class="flex flex-col gap-4">
                 <div>
                     <div class="flex justify-between text-[11px] text-textMuted mb-1 font-mono"><span class="uppercase">CPU Load</span> <span>42%</span></div>
-                    <div class="w-full h-1 bg-white/[0.05] rounded-full overflow-hidden"><div class="h-full bg-primary w-[42%]"></div></div>
+                    <div class="w-full h-1 bg-black/[0.04] rounded-full overflow-hidden"><div class="h-full bg-primary w-[42%]"></div></div>
                 </div>
                 <div>
                     <div class="flex justify-between text-[11px] text-textMuted mb-1 font-mono"><span class="uppercase">Mem Alloc</span> <span>8.4GB</span></div>
-                    <div class="w-full h-1 bg-white/[0.05] rounded-full overflow-hidden"><div class="h-full bg-zinc-400 w-[60%]"></div></div>
+                    <div class="w-full h-1 bg-black/[0.04] rounded-full overflow-hidden"><div class="h-full bg-zinc-400 w-[60%]"></div></div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="flex-1 flex flex-col justify-center px-8 sm:px-16 lg:px-24 bg-bg relative">
+    <div class="flex-1 flex flex-col justify-center px-8 sm:px-16 lg:px-24 bg-transparent relative">
         <div class="w-full max-w-sm mx-auto">
             <div class="flex items-center gap-2 mb-10 cursor-pointer" onclick="window.location.href='index.html'">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="#8B5CF6" stroke-width="2" stroke-linejoin="round"/>
-                    <path d="M2 17L12 22L22 17" stroke="#8B5CF6" stroke-width="2" stroke-linejoin="round"/>
-                    <path d="M2 12L12 17L22 12" stroke="#8B5CF6" stroke-width="2" stroke-linejoin="round"/>
+                    <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="#7C3AED" stroke-width="2" stroke-linejoin="round"/>
+                    <path d="M2 17L12 22L22 17" stroke="#7C3AED" stroke-width="2" stroke-linejoin="round"/>
+                    <path d="M2 12L12 17L22 12" stroke="#7C3AED" stroke-width="2" stroke-linejoin="round"/>
                 </svg>
                 <span class="text-[16px] font-semibold tracking-tight text-textMain">MonitorPro</span>
             </div>
@@ -103,7 +105,7 @@
                 <div class="flex flex-col gap-1.5">
                     <div class="flex justify-between items-center">
                         <label class="text-[12px] font-medium text-textMuted" for="password">Password</label>
-                        <a class="text-[11px] text-textMuted hover:text-textMain transition-colors" href="#">Forgot password?</a>
+                        <a class="text-[11px] text-textMuted hover:text-textMain transition-colors font-medium" href="#">Forgot password?</a>
                     </div>
                     <input class="form-input rounded-md px-3 py-2 text-[13px]" id="password" placeholder="••••••••" required type="password" autocomplete="current-password"/>
                 </div>
@@ -112,13 +114,13 @@
                 <div id="errorMessage" class="error-banner hidden p-3 rounded-md text-[13px] text-center font-medium mt-1"></div>
 
                 <div class="flex items-center gap-2 mt-1">
-                    <input class="rounded bg-bg border-borderSubtle accent-primary focus:ring-0 focus:ring-offset-0 cursor-pointer" id="remember" type="checkbox"/>
+                    <input class="rounded bg-white border-borderSubtle text-primary accent-primary focus:ring-0 focus:ring-offset-0 cursor-pointer" id="remember" type="checkbox"/>
                     <label class="text-[12px] font-semibold text-textMuted cursor-pointer select-none" for="remember">Persist Session</label>
                 </div>
                 
-                <button type="submit" id="loginBtn" class="w-full bg-textMain text-bg text-[13px] font-semibold py-2.5 rounded-md mt-2 hover:bg-zinc-200 transition-colors flex items-center justify-center gap-2">
+                <button type="submit" id="loginBtn" class="w-full bg-textMain text-white text-[13px] font-semibold py-2.5 rounded-md mt-2 hover:bg-slate-800 transition-colors flex items-center justify-center gap-2">
                     <span class="btn-text">Sign In</span>
-                    <span class="btn-spinner hidden w-4 h-4 border-2 border-bg border-t-transparent rounded-full animate-spin"></span>
+                    <span class="btn-spinner hidden w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
                 </button>
             </form>
 
@@ -127,7 +129,7 @@
                 <div class="relative bg-bg px-2 text-[11px] font-medium text-textSubtle uppercase tracking-widest">Or continue with</div>
             </div>
 
-            <button class="w-full bg-surface border border-borderSubtle text-[13px] font-medium py-2 rounded-md hover:bg-white/[0.04] transition-colors flex items-center justify-center gap-2 text-textMain">
+            <button class="w-full bg-surface border border-borderSubtle text-[13px] font-medium py-2 rounded-md hover:bg-black/[0.02] transition-colors flex items-center justify-center gap-2 text-textMain">
                 <i data-lucide="shield" class="w-4 h-4"></i> Single Sign-On (SAML)
             </button>
             

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en" class="light">
 <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
@@ -18,10 +18,12 @@
             theme: {
                 extend: {
                     colors: {
-                        bg: "#050505", surface: "#0E0E10", card: "#141417",
-                        borderSubtle: "rgba(255, 255, 255, 0.08)",
-                        primary: "#8B5CF6", success: "#10B981", warning: "#F59E0B", danger: "#F43F5E",
-                        textMain: "#FAFAFA", textMuted: "#A1A1AA", textSubtle: "#52525B",
+                        bg: "#F5F5F7",
+                        surface: "rgba(255, 255, 255, 0.45)",
+                        card: "rgba(255, 255, 255, 0.65)",
+                        borderSubtle: "rgba(0, 0, 0, 0.06)",
+                        primary: "#7C3AED", success: "#10B981", warning: "#F59E0B", danger: "#EF4444",
+                        textMain: "#0F172A", textMuted: "#334155", textSubtle: "#64748B",
                     },
                     fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] }
                 }
@@ -29,17 +31,17 @@
         }
     </script>
     <style>
-        body { background-color: #050505; color: #FAFAFA; font-family: 'Inter', sans-serif; }
+        body { background-color: #F5F5F7; color: #0F172A; font-family: 'Inter', sans-serif; }
         ::-webkit-scrollbar { width: 4px; height: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #27272A; border-radius: 2px; }
-        ::-webkit-scrollbar-thumb:hover { background: #52525B; }
+        ::-webkit-scrollbar-thumb { background: #D4D4D8; border-radius: 2px; }
+        ::-webkit-scrollbar-thumb:hover { background: #A1A1AA; }
         
-        .metric-card { transition: background-color 0.2s ease; border: 1px solid rgba(255,255,255,0.05); }
-        .metric-card:hover { background-color: #141417; border-color: rgba(255,255,255,0.1); }
+        .metric-card { transition: background-color 0.2s ease; border: 1px solid rgba(0,0,0,0.06); background-color: rgba(255,255,255,0.45); backdrop-filter: blur(16px); }
+        .metric-card:hover { background-color: rgba(255,255,255,0.65); border-color: rgba(0,0,0,0.1); }
         
         /* Custom progress bar styles */
-        .custom-progress { width: 60px; height: 4px; background-color: rgba(255, 255, 255, 0.05); border-radius: 2px; overflow: hidden; display: inline-block; }
+        .custom-progress { width: 60px; height: 4px; background-color: rgba(0, 0, 0, 0.06); border-radius: 2px; overflow: hidden; display: inline-block; }
         .custom-progress-bar { height: 100%; border-radius: 2px; transition: width 0.5s ease; }
     </style>
 </head>
@@ -49,11 +51,11 @@
     <nav class="bg-surface h-full w-[220px] flex-shrink-0 flex flex-col border-r border-borderSubtle z-40">
         <div class="px-5 py-4 flex items-center gap-2 mb-4">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="#8B5CF6" stroke-width="2" stroke-linejoin="round"/>
-                <path d="M2 17L12 22L22 17" stroke="#8B5CF6" stroke-width="2" stroke-linejoin="round"/>
-                <path d="M2 12L12 17L22 12" stroke="#8B5CF6" stroke-width="2" stroke-linejoin="round"/>
+                <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="#7C3AED" stroke-width="2" stroke-linejoin="round"/>
+                <path d="M2 17L12 22L22 17" stroke="#7C3AED" stroke-width="2" stroke-linejoin="round"/>
+                <path d="M2 12L12 17L22 12" stroke="#7C3AED" stroke-width="2" stroke-linejoin="round"/>
             </svg>
-            <span class="text-[14px] font-semibold tracking-tight">MonitorPro</span>
+            <span class="text-[14px] font-semibold tracking-tight text-textMain">MonitorPro</span>
         </div>
         
         <div class="flex-1 overflow-y-auto px-3 pb-4 space-y-6">
@@ -61,13 +63,13 @@
                 <div class="text-[10px] font-semibold text-textSubtle px-3 mb-2 uppercase tracking-widest">Platform</div>
                 <ul class="flex flex-col gap-0.5">
                     <li>
-                        <a href="dashboard.html" class="flex items-center gap-3 px-3 py-1.5 rounded-md bg-white/[0.06] text-textMain text-[13px] font-medium border border-borderSubtle">
+                        <a href="dashboard.html" class="flex items-center gap-3 px-3 py-1.5 rounded-md bg-primary/10 text-primary text-[13px] font-semibold border border-primary/20">
                             <i data-lucide="layout-dashboard" class="w-4 h-4 text-primary"></i> Overview
                         </a>
                     </li>
                     <li>
-                        <a href="devices.html" class="flex items-center gap-3 px-3 py-1.5 rounded-md hover:bg-white/[0.04] text-textMuted hover:text-textMain text-[13px] font-medium transition-colors border border-transparent">
-                            <i data-lucide="server" class="w-4 h-4"></i> Infrastructure
+                        <a href="devices.html" class="flex items-center gap-3 px-3 py-1.5 rounded-md hover:bg-black/[0.02] text-textMuted hover:text-textMain text-[13px] font-medium transition-colors border border-transparent">
+                            <i data-lucide="server" class="w-4 h-4 text-textSubtle"></i> Infrastructure
                         </a>
                     </li>
                 </ul>
@@ -77,8 +79,8 @@
                 <div class="text-[10px] font-semibold text-textSubtle px-3 mb-2 uppercase tracking-widest">Investigate</div>
                 <ul class="flex flex-col gap-0.5">
                     <li>
-                        <a href="alerts.html" class="flex items-center justify-between px-3 py-1.5 rounded-md hover:bg-white/[0.04] text-textMuted hover:text-textMain text-[13px] font-medium transition-colors border border-transparent">
-                            <div class="flex items-center gap-3"><i data-lucide="alert-circle" class="w-4 h-4"></i> Alerts</div>
+                        <a href="alerts.html" class="flex items-center justify-between px-3 py-1.5 rounded-md hover:bg-black/[0.02] text-textMuted hover:text-textMain text-[13px] font-medium transition-colors border border-transparent">
+                            <div class="flex items-center gap-3"><i data-lucide="alert-circle" class="w-4 h-4 text-textSubtle"></i> Alerts</div>
                         </a>
                     </li>
                 </ul>
@@ -86,30 +88,30 @@
         </div>
         
         <div class="p-3 border-t border-borderSubtle">
-            <div class="mb-3 px-3 py-2 bg-white/[0.02] border border-borderSubtle rounded-md">
+            <div class="mb-3 px-3 py-2 bg-black/[0.02] border border-borderSubtle rounded-md">
                 <div class="text-[12px] font-medium text-textMain truncate" id="currentUser">Admin Console</div>
                 <div class="text-[10px] text-textSubtle font-mono uppercase mt-0.5">Administrator</div>
             </div>
-            <button id="logoutBtn" class="flex items-center gap-3 w-full p-2 rounded-md hover:bg-white/[0.04] text-textMuted hover:text-textMain text-[13px] font-medium transition-colors text-left border border-transparent hover:border-borderSubtle">
-                <i data-lucide="log-out" class="w-4 h-4"></i> Sign Out
+            <button id="logoutBtn" class="flex items-center gap-3 w-full p-2 rounded-md hover:bg-black/[0.02] text-textMuted hover:text-textMain text-[13px] font-medium transition-colors text-left border border-transparent hover:border-borderSubtle">
+                <i data-lucide="log-out" class="w-4 h-4 text-textSubtle"></i> Sign Out
             </button>
         </div>
     </nav>
 
     <!-- Main Workspace -->
-    <div class="flex-1 flex flex-col h-full overflow-y-auto bg-bg relative">
-        <header class="bg-bg/80 backdrop-blur-md border-b border-borderSubtle flex justify-between items-center px-6 h-14 sticky top-0 z-30">
+    <div class="flex-1 flex flex-col h-full overflow-y-auto bg-transparent relative">
+        <header class="bg-bg/85 backdrop-blur-md border-b border-borderSubtle flex justify-between items-center px-6 h-14 sticky top-0 z-30">
             <div class="flex items-center gap-3 text-[13px] font-medium text-textMuted">
                 <span class="text-textMain">Overview</span>
             </div>
             
             <div class="flex items-center gap-3">
-                <button id="generateAgentBtn" class="border border-borderSubtle bg-surface text-textMain px-3 py-1.5 rounded-md text-[12px] font-medium hover:bg-white/[0.04] transition-colors flex items-center gap-2">
-                    <i data-lucide="download" class="w-3.5 h-3.5"></i> Generate Agent Package
+                <button id="generateAgentBtn" class="border border-borderSubtle bg-surface text-textMain px-3 py-1.5 rounded-md text-[12px] font-medium hover:bg-black/[0.02] transition-colors flex items-center gap-2">
+                    <i data-lucide="download" class="w-3.5 h-3.5 text-textSubtle"></i> Generate Agent Package
                 </button>
                 <div class="w-px h-4 bg-borderSubtle"></div>
-                <div class="flex items-center gap-1.5 px-2 py-1 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-mono uppercase tracking-wide">
-                    <div class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></div> Live Events Connected
+                <div class="flex items-center gap-1.5 px-2 py-1 rounded bg-emerald-50 border border-emerald-200/50 text-emerald-600 text-[10px] font-mono uppercase tracking-wide">
+                    <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div> Live Events Connected
                 </div>
             </div>
         </header>
@@ -118,13 +120,13 @@
             
             <!-- Active Alerts Banner Panel -->
             <div class="hidden" id="activeAlertsPanel">
-                <div class="bg-danger/10 border border-danger/20 rounded-lg p-4 flex flex-col gap-3 shadow-lg">
-                    <div class="flex justify-between items-center pb-2 border-b border-white/[0.05]">
+                <div class="bg-rose-50 border border-rose-200/50 text-rose-700 rounded-lg p-4 flex flex-col gap-3 shadow-lg">
+                    <div class="flex justify-between items-center pb-2 border-b border-rose-200/30">
                         <div class="flex items-center gap-2">
                             <i data-lucide="alert-triangle" class="w-4 h-4 text-danger animate-pulse"></i>
                             <h3 class="text-textMain font-semibold text-[13px]">Active Alert Violations</h3>
                         </div>
-                        <span class="bg-danger/20 text-danger text-[10px] font-mono px-2 py-0.5 rounded font-bold" id="activeAlertsBadge">0</span>
+                        <span class="bg-danger/10 text-danger text-[10px] font-mono px-2 py-0.5 rounded font-bold" id="activeAlertsBadge">0</span>
                     </div>
                     <div id="activeAlertsList" class="flex flex-col gap-2">
                         <!-- Populated Dynamically -->
@@ -138,7 +140,7 @@
 
             <!-- Stats Card Row -->
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div class="metric-card bg-surface rounded-lg p-4 flex flex-col gap-3 relative overflow-hidden">
+                <div class="metric-card rounded-lg p-4 flex flex-col gap-3 relative overflow-hidden">
                     <div class="flex justify-between items-center">
                         <span class="text-[12px] font-medium text-textMuted">Total Nodes</span>
                         <i data-lucide="server" class="w-3.5 h-3.5 text-textSubtle"></i>
@@ -146,7 +148,7 @@
                     <div class="text-[24px] font-bold font-mono tracking-tight" id="totalCount">-</div>
                 </div>
 
-                <div class="metric-card bg-surface rounded-lg p-4 flex flex-col gap-3 relative overflow-hidden">
+                <div class="metric-card rounded-lg p-4 flex flex-col gap-3 relative overflow-hidden">
                     <div class="flex justify-between items-center">
                         <span class="text-[12px] font-medium text-textMuted">Active (Online)</span>
                         <i data-lucide="check-circle" class="w-3.5 h-3.5 text-success"></i>
@@ -154,7 +156,7 @@
                     <div class="text-[24px] font-bold font-mono tracking-tight text-success" id="onlineCount">-</div>
                 </div>
 
-                <div class="metric-card bg-surface rounded-lg p-4 flex flex-col gap-3 relative overflow-hidden">
+                <div class="metric-card rounded-lg p-4 flex flex-col gap-3 relative overflow-hidden">
                     <div class="flex justify-between items-center">
                         <span class="text-[12px] font-medium text-textMuted">Active Alerts</span>
                         <i data-lucide="alert-circle" class="w-3.5 h-3.5 text-warning"></i>
@@ -162,7 +164,7 @@
                     <div class="text-[24px] font-bold font-mono tracking-tight text-warning" id="alertCount">-</div>
                 </div>
 
-                <div class="metric-card bg-surface rounded-lg p-4 flex flex-col gap-3 relative overflow-hidden">
+                <div class="metric-card rounded-lg p-4 flex flex-col gap-3 relative overflow-hidden">
                     <div class="flex justify-between items-center">
                         <span class="text-[12px] font-medium text-textMuted">Offline / Critical</span>
                         <i data-lucide="x-circle" class="w-3.5 h-3.5 text-danger"></i>
@@ -191,13 +193,13 @@
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
                 <!-- Recent Devices List -->
                 <div class="lg:col-span-2 bg-surface border border-borderSubtle rounded-lg overflow-hidden flex flex-col">
-                    <div class="p-3 border-b border-borderSubtle flex justify-between items-center bg-white/[0.01]">
+                    <div class="p-3 border-b border-borderSubtle flex justify-between items-center bg-black/[0.01]">
                         <span class="text-[13px] font-medium text-textMuted">Recent Devices</span>
                         <a href="devices.html" class="text-[11px] font-medium text-textSubtle hover:text-textMain transition-colors">View All &rarr;</a>
                     </div>
                     <table class="w-full text-left border-collapse text-[12px]">
                         <thead>
-                            <tr class="border-b border-borderSubtle bg-white/[0.005]">
+                            <tr class="border-b border-borderSubtle bg-black/[0.005]">
                                 <th class="py-2.5 px-4 font-medium text-textSubtle font-mono uppercase tracking-widest text-[10px]">Device Name</th>
                                 <th class="py-2.5 px-4 font-medium text-textSubtle font-mono uppercase tracking-widest text-[10px]">IP Address</th>
                                 <th class="py-2.5 px-4 font-medium text-textSubtle font-mono uppercase tracking-widest text-[10px]">Status</th>
@@ -214,14 +216,14 @@
 
                 <!-- Latest Live Metrics -->
                 <div class="bg-surface border border-borderSubtle rounded-lg overflow-hidden flex flex-col">
-                    <div class="p-3 border-b border-borderSubtle flex justify-between items-center bg-white/[0.01]">
+                    <div class="p-3 border-b border-borderSubtle flex justify-between items-center bg-black/[0.01]">
                         <span class="text-[13px] font-medium text-textMuted">Latest Metrics</span>
                         <span class="inline-flex items-center text-[10px] font-semibold text-primary bg-primary/10 rounded px-1.5 py-0.5 border border-primary/20"><span class="w-1 h-1 rounded-full bg-primary animate-pulse mr-1"></span> Live</span>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse text-[12px]">
                             <thead>
-                                <tr class="border-b border-borderSubtle bg-white/[0.005]">
+                                <tr class="border-b border-borderSubtle bg-black/[0.005]">
                                     <th class="py-2.5 px-4 font-medium text-textSubtle font-mono uppercase tracking-widest text-[10px]">Device</th>
                                     <th class="py-2.5 px-4 font-medium text-textSubtle font-mono uppercase tracking-widest text-[10px]">CPU</th>
                                     <th class="py-2.5 px-4 font-medium text-textSubtle font-mono uppercase tracking-widest text-[10px]">RAM</th>
@@ -263,7 +265,7 @@
         });
 
         function initializeCharts() {
-            Chart.defaults.color = '#52525B';
+            Chart.defaults.color = '#64748B';
             Chart.defaults.font.family = 'JetBrains Mono';
             Chart.defaults.font.size = 10;
 
@@ -276,7 +278,7 @@
                     y: { 
                         display: true, 
                         position: 'right',
-                        grid: { color: 'rgba(255, 255, 255, 0.02)' },
+                        grid: { color: 'rgba(15, 23, 42, 0.04)' },
                         border: { display: false }
                     }
                 },
@@ -287,8 +289,8 @@
             const ctxCpu = document.getElementById('cpuChart');
             if(ctxCpu) {
                 let gradient = ctxCpu.getContext('2d').createLinearGradient(0, 0, 0, 200);
-                gradient.addColorStop(0, 'rgba(139, 92, 246, 0.2)'); // Violet
-                gradient.addColorStop(1, 'rgba(139, 92, 246, 0)');
+                gradient.addColorStop(0, 'rgba(124, 58, 237, 0.1)'); // Violet
+                gradient.addColorStop(1, 'rgba(124, 58, 237, 0)');
 
                 new Chart(ctxCpu.getContext('2d'), {
                     type: 'line',
@@ -296,7 +298,7 @@
                         labels: Array.from({length: 24}, (_, i) => `${i}:00`),
                         datasets: [{
                             data: [45, 52, 48, 60, 55, 65, 70, 68, 62, 58, 65, 75, 80, 78, 85, 90, 88, 82, 75, 70, 65, 60, 55, 50],
-                            borderColor: '#8B5CF6',
+                            borderColor: '#7C3AED',
                             backgroundColor: gradient,
                             fill: true,
                             tension: 0.2
@@ -309,7 +311,7 @@
             const ctxRam = document.getElementById('ramChart');
             if(ctxRam) {
                 let gradient = ctxRam.getContext('2d').createLinearGradient(0, 0, 0, 200);
-                gradient.addColorStop(0, 'rgba(16, 185, 129, 0.1)'); // Emerald
+                gradient.addColorStop(0, 'rgba(16, 185, 129, 0.06)'); // Emerald
                 gradient.addColorStop(1, 'rgba(16, 185, 129, 0)');
 
                 new Chart(ctxRam.getContext('2d'), {
@@ -331,8 +333,8 @@
             const ctxDisk = document.getElementById('diskChart');
             if(ctxDisk) {
                 let gradient = ctxDisk.getContext('2d').createLinearGradient(0, 0, 0, 200);
-                gradient.addColorStop(0, 'rgba(161, 161, 170, 0.1)'); // Zinc
-                gradient.addColorStop(1, 'rgba(161, 161, 170, 0)');
+                gradient.addColorStop(0, 'rgba(100, 116, 139, 0.05)'); // Slate
+                gradient.addColorStop(1, 'rgba(100, 116, 139, 0)');
 
                 new Chart(ctxDisk.getContext('2d'), {
                     type: 'line',
@@ -340,7 +342,7 @@
                         labels: Array.from({length: 24}, (_, i) => `${i}:00`),
                         datasets: [{
                             data: [30, 31, 31, 32, 32, 33, 33, 34, 34, 34, 35, 35, 35, 36, 36, 36, 37, 37, 37, 38, 38, 38, 39, 39],
-                            borderColor: '#A1A1AA',
+                            borderColor: '#64748B',
                             backgroundColor: gradient,
                             fill: true,
                             tension: 0.1

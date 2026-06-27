@@ -133,10 +133,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         activeAlertsList.forEach(a => {
             const item = document.createElement('div');
-            item.className = 'flex items-center justify-between p-3 rounded-md border border-danger/30 bg-danger/5';
+            item.className = 'flex items-center justify-between p-3 rounded-md border border-danger/15 bg-danger/5';
             item.innerHTML = `
                 <div class="flex items-center gap-3">
-                    <span class="inline-flex items-center px-2 py-0.5 rounded bg-danger/10 text-danger text-[10px] font-bold uppercase tracking-wider border border-danger/30">${escapeHtml(a.rule_type.toUpperCase())}</span>
+                    <span class="inline-flex items-center px-2 py-0.5 rounded bg-danger/5 text-danger text-[10px] font-bold uppercase tracking-wider border border-danger/15">${escapeHtml(a.rule_type.toUpperCase())}</span>
                     <span class="text-[12px] font-semibold text-textMain">${escapeHtml(a.device_name)}</span>
                     <span class="text-[12px] text-textMuted">&mdash; ${escapeHtml(a.message)}</span>
                 </div>
@@ -165,14 +165,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         const recent = [...devicesList].reverse().slice(0, 5);
         recent.forEach(d => {
             const tr = document.createElement('tr');
-            tr.className = 'border-b border-white/[0.02] hover:bg-white/[0.02] transition-colors cursor-pointer';
+            tr.className = 'border-b border-black/[0.03] hover:bg-black/[0.015] transition-colors cursor-pointer';
             tr.onclick = () => {
                 window.location.href = `device-details.html?id=${d.id}`;
             };
             
             const statusColor = d.status === 'online' 
-                ? 'border-success/30 bg-success/10 text-success' 
-                : 'border-danger/30 bg-danger/10 text-danger';
+                ? 'border-success/20 bg-success/5 text-success' 
+                : 'border-danger/20 bg-danger/5 text-danger';
 
             tr.innerHTML = `
                 <td class="py-2.5 px-4 font-semibold text-textMain font-mono">${escapeHtml(d.name)}</td>
@@ -183,7 +183,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     </span>
                 </td>
                 <td class="py-2.5 px-4 text-right" onclick="event.stopPropagation()">
-                    <a href="device-details.html?id=${d.id}" class="inline-flex items-center px-2.5 py-1 rounded bg-white/[0.04] border border-borderSubtle text-textMain hover:bg-white/[0.08] text-[11px] font-medium transition-colors">Details</a>
+                    <a href="device-details.html?id=${d.id}" class="inline-flex items-center px-2.5 py-1 rounded bg-black/[0.02] border border-borderSubtle text-textMain hover:bg-black/[0.04] text-[11px] font-medium transition-colors">Details</a>
                 </td>
             `;
             tbody.appendChild(tr);
@@ -205,7 +205,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const m = latestMetricsMap.get(d.id);
             const tr = document.createElement('tr');
             tr.id = `metrics-row-${d.id}`;
-            tr.className = 'border-b border-white/[0.02] hover:bg-white/[0.02] transition-colors cursor-pointer';
+            tr.className = 'border-b border-black/[0.03] hover:bg-black/[0.015] transition-colors cursor-pointer';
             tr.onclick = () => {
                 window.location.href = `device-details.html?id=${d.id}`;
             };
@@ -330,7 +330,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const row = document.getElementById(`metrics-row-${data.device_id}`);
                 if (row) {
                     row.style.transition = 'none';
-                    row.style.backgroundColor = 'rgba(139, 92, 246, 0.15)';
+                    row.style.backgroundColor = 'rgba(124, 58, 237, 0.08)';
                     setTimeout(() => {
                         row.style.transition = 'background-color 1s ease';
                         row.style.backgroundColor = 'transparent';
@@ -400,7 +400,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const indicatorColor = type === 'danger' ? 'text-danger' : 'text-success';
 
         const toast = document.createElement('div');
-        toast.className = 'bg-surface text-textMain rounded-lg shadow-2xl border border-borderSubtle p-4 min-w-[320px] max-w-[420px] pointer-events-auto transform translate-x-0 opacity-100 transition-all duration-500';
+        toast.className = 'bg-card text-textMain rounded-lg shadow-lg border border-borderSubtle p-4 min-w-[320px] max-w-[420px] pointer-events-auto transform translate-x-0 opacity-100 transition-all duration-500';
         toast.innerHTML = `
             <div class="flex items-start justify-between gap-3">
                 <div class="flex-1">

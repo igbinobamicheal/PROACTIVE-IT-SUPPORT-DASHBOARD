@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en" class="light">
 <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
@@ -17,10 +17,12 @@
             theme: {
                 extend: {
                     colors: {
-                        bg: "#050505", surface: "#0E0E10", card: "#141417",
-                        borderSubtle: "rgba(255, 255, 255, 0.08)",
-                        primary: "#8B5CF6", primaryHover: "#7C3AED",
-                        textMain: "#FAFAFA", textMuted: "#A1A1AA", textSubtle: "#52525B",
+                        bg: "#F5F5F7",
+                        surface: "rgba(255, 255, 255, 0.45)",
+                        card: "rgba(255, 255, 255, 0.65)",
+                        borderSubtle: "rgba(0, 0, 0, 0.06)",
+                        primary: "#7C3AED", primaryHover: "#6D28D9",
+                        textMain: "#0F172A", textMuted: "#334155", textSubtle: "#64748B",
                     },
                     fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] }
                 }
@@ -28,37 +30,37 @@
         }
     </script>
     <style>
-        body { background-color: #050505; color: #FAFAFA; font-family: 'Inter', sans-serif; }
+        body { background: radial-gradient(circle at 50% 50%, #FAF9FB 0%, #EFEFF3 100%); color: #0F172A; font-family: 'Inter', sans-serif; }
         .bg-grid {
             position: absolute; inset: 0; z-index: 0; pointer-events: none;
             background-size: 30px 30px;
-            background-image: linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-                              linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-image: linear-gradient(to right, rgba(15, 23, 42, 0.02) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(15, 23, 42, 0.02) 1px, transparent 1px);
         }
         .form-input {
-            background: #0E0E10; border: 1px solid rgba(255,255,255,0.1); color: #FAFAFA;
+            background: #FFFFFF; border: 1px solid rgba(15,23,42,0.08); color: #0F172A;
             transition: all 0.2s ease;
         }
-        .form-input:focus { border-color: #8B5CF6; outline: none; box-shadow: 0 0 0 1px rgba(139, 92, 246, 0.2); }
+        .form-input:focus { border-color: #7C3AED; outline: none; box-shadow: 0 0 0 1px rgba(124, 58, 237, 0.2); }
         .error-banner {
-            background-color: rgba(244, 63, 94, 0.1);
-            border: 1px solid rgba(244, 63, 94, 0.2);
-            color: #F43F5E;
+            background-color: rgba(239, 68, 68, 0.08);
+            border: 1px solid rgba(239, 68, 68, 0.15);
+            color: #EF4444;
         }
     </style>
 </head>
 <body class="w-full min-h-screen m-0 p-0 overflow-hidden flex bg-bg">
 
-    <div class="hidden lg:flex flex-1 border-r border-borderSubtle bg-surface flex-col p-12 relative overflow-hidden justify-between">
+    <div class="hidden lg:flex flex-1 border-r border-borderSubtle bg-white/20 flex-col p-12 relative overflow-hidden justify-between">
         <div class="bg-grid"></div>
-        <div class="absolute inset-0 bg-gradient-to-b from-transparent to-bg z-10 pointer-events-none opacity-80"></div>
+        <div class="absolute inset-0 bg-gradient-to-b from-transparent to-bg z-10 pointer-events-none opacity-50"></div>
         
         <div class="z-20">
             <a href="index.html" class="flex items-center gap-2 cursor-pointer w-max text-textMain">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="#8B5CF6" stroke-width="2" stroke-linejoin="round"/>
-                    <path d="M2 17L12 22L22 17" stroke="#8B5CF6" stroke-width="2" stroke-linejoin="round"/>
-                    <path d="M2 12L12 17L22 12" stroke="#8B5CF6" stroke-width="2" stroke-linejoin="round"/>
+                    <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="#7C3AED" stroke-width="2" stroke-linejoin="round"/>
+                    <path d="M2 17L12 22L22 17" stroke="#7C3AED" stroke-width="2" stroke-linejoin="round"/>
+                    <path d="M2 12L12 17L22 12" stroke="#7C3AED" stroke-width="2" stroke-linejoin="round"/>
                 </svg>
                 <span class="text-[14px] font-semibold tracking-tight">MonitorPro</span>
             </a>
@@ -71,13 +73,13 @@
                 <div class="w-2.5 h-2.5 rounded-full bg-borderSubtle"></div>
                 <div class="w-2.5 h-2.5 rounded-full bg-borderSubtle"></div>
             </div>
-            <div class="text-textMuted">
-                <span class="text-primary">❯</span> curl -sL https://monitorpro.io/install.sh | bash<br/>
+            <div class="text-[#FAFAFA]/70">
+                <span class="text-[#7C3AED]">❯</span> curl -sL https://monitorpro.io/install.sh | bash<br/>
                 <span class="text-zinc-500">Downloading agent v3.0.4...</span><br/>
                 <span class="text-zinc-500">Verifying checksum... OK</span><br/>
                 <span class="text-zinc-500">Initializing MonitorPro daemon...</span><br/>
                 <span class="text-emerald-400">✔ Agent successfully connected to workspace</span><br/>
-                <span class="text-primary">❯</span> systemctl status monitorpro<br/>
+                <span class="text-[#7C3AED]">❯</span> systemctl status monitorpro<br/>
                 <span class="text-zinc-500">● monitorpro.service - MonitorPro Telemetry Agent</span><br/>
                 <span class="text-zinc-500">   Loaded: loaded</span><br/>
                 <span class="text-emerald-400">   Active: active (running)</span><br/>
@@ -91,7 +93,7 @@
         </div>
     </div>
 
-    <div class="flex-1 flex flex-col justify-center px-8 sm:px-16 lg:px-24 bg-bg relative">
+    <div class="flex-1 flex flex-col justify-center px-8 sm:px-16 lg:px-24 bg-transparent relative">
         <div class="w-full max-w-sm mx-auto">
             
             <h2 class="text-[22px] font-semibold mb-1 tracking-tight text-textMain">Create your account</h2>
@@ -116,9 +118,9 @@
                 <!-- Error Message Banner -->
                 <div id="errorMessage" class="error-banner hidden p-3 rounded-md text-[13px] text-center font-medium mt-1"></div>
                 
-                <button type="submit" id="signupBtn" class="w-full bg-textMain text-bg text-[13px] font-semibold py-2.5 rounded-md mt-2 hover:bg-zinc-200 transition-colors flex items-center justify-center gap-2">
+                <button type="submit" id="signupBtn" class="w-full bg-textMain text-white text-[13px] font-semibold py-2.5 rounded-md mt-2 hover:bg-slate-800 transition-colors flex items-center justify-center gap-2">
                     <span class="btn-text">Create Workspace</span>
-                    <span class="btn-spinner hidden w-4 h-4 border-2 border-bg border-t-transparent rounded-full animate-spin"></span>
+                    <span class="btn-spinner hidden w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
                 </button>
             </form>
 
@@ -127,7 +129,7 @@
                 <div class="relative bg-bg px-2 text-[11px] font-medium text-textSubtle uppercase tracking-widest">Or continue with</div>
             </div>
 
-            <button class="w-full bg-surface border border-borderSubtle text-[13px] font-medium py-2 rounded-md hover:bg-white/[0.04] transition-colors flex items-center justify-center gap-2 text-textMain">
+            <button class="w-full bg-surface border border-borderSubtle text-[13px] font-medium py-2 rounded-md hover:bg-black/[0.02] transition-colors flex items-center justify-center gap-2 text-textMain">
                 <i data-lucide="github" class="w-4 h-4"></i> GitHub
             </button>
 

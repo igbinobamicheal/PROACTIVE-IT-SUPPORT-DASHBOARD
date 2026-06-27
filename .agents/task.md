@@ -1,22 +1,11 @@
 # Tasks
 
-- [x] Implement backend signup endpoint
-  - [x] Add `/api/signup` POST route in `AuthController.cpp`
-  - [x] Add `/api/signup` OPTIONS route in `main.cpp`
-- [x] Add API and Auth frontend logic
-  - [x] Implement `api.signup` function in `api.js`
-  - [x] Implement form handling for `signupForm` in `auth.js`
-- [x] Create and Redesign pages
-  - [x] Create and implement `signup.html` matching the design of `reference/sign_up_page.html`
-  - [x] Redesign `index.html` using `reference/landing_page.html`
-  - [x] Redesign `login.html` using `reference/login_page.html`
-  - [x] Redesign `dashboard.html` using `reference/dashboard.html`
-  - [x] Redesign `devices.html` using `reference/device_inventory.html` and update `devices.js`
-  - [x] Redesign `device-details.html` using `reference/device_details.html` and update `device-details.js`
-  - [x] Redesign `alerts.html` using `reference/alerts_page.html` and update `alerts.js`
-  - [x] Collapsible sidebar and mobile responsiveness (`sidebar.js` integration)
-- [x] Verify functionality and aesthetics
-  - [x] Rebuild and run the backend
-  - [x] Test signup and login flows
-  - [x] Verify dashboard, devices, device-details, and alerts tables/charts update correctly
-  - [x] Generate and replace all CDN icons with local SVGs
+- [x] Overwrite sidebar styling in `sidebar.js` for light glassmorphism
+- [x] Update `index.html` to soft white light mode glassmorphism
+- [x] Update `login.html` and `signup.html` to light theme forms
+- [x] Update `dashboard.html` tokens and Chart.js options
+- [x] Update `devices.html` tokens and table styles
+- [x] Update `device-details.html` tokens and table styles
+- [x] Update `alerts.html` tokens and table styles
+- [x] Update dynamic JS badges & chart styling in `devices.js`, `device-details.js`, `alerts.js`, `dashboard.js`
+- [x] Verify functionality

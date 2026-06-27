@@ -66,11 +66,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         badge.textContent = status.toUpperCase();
         if (status === 'online') {
-            badge.className = 'inline-flex items-center px-2.5 py-0.5 rounded border border-success/30 bg-success/10 text-success text-[10px] font-bold uppercase tracking-wider shadow-sm';
-            text.innerHTML = '<span class="inline-block w-1.5 h-1.5 rounded-full bg-success shadow-[0_0_8px_rgba(16,185,129,0.6)] animate-pulse mr-2"></span><span class="text-[12px] text-textMuted font-medium">Active monitoring agent online</span>';
+            badge.className = 'inline-flex items-center px-2.5 py-0.5 rounded border border-success/20 bg-success/5 text-success text-[10px] font-bold uppercase tracking-wider shadow-sm';
+            text.innerHTML = '<span class="inline-block w-1.5 h-1.5 rounded-full bg-success shadow-[0_0_8px_rgba(16,185,129,0.3)] animate-pulse mr-2"></span><span class="text-[12px] text-textMuted font-medium">Active monitoring agent online</span>';
         } else {
-            badge.className = 'inline-flex items-center px-2.5 py-0.5 rounded border border-danger/30 bg-danger/10 text-danger text-[10px] font-bold uppercase tracking-wider shadow-sm';
-            text.innerHTML = '<span class="inline-block w-1.5 h-1.5 rounded-full bg-danger shadow-[0_0_8px_rgba(244,63,94,0.6)] mr-2"></span><span class="text-[12px] text-textMuted font-medium">Agent offline (no contact)</span>';
+            badge.className = 'inline-flex items-center px-2.5 py-0.5 rounded border border-danger/20 bg-danger/5 text-danger text-[10px] font-bold uppercase tracking-wider shadow-sm';
+            text.innerHTML = '<span class="inline-block w-1.5 h-1.5 rounded-full bg-danger shadow-[0_0_8px_rgba(239,68,68,0.3)] mr-2"></span><span class="text-[12px] text-textMuted font-medium">Agent offline (no contact)</span>';
         }
     }
 
@@ -106,13 +106,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         const container = el.parentElement;
         if (value > 85) {
             el.className = 'text-[28px] font-bold font-mono tracking-tight text-danger';
-            container.style.borderColor = 'rgba(244, 63, 94, 0.4)';
+            container.style.borderColor = 'rgba(239, 68, 68, 0.3)';
         } else if (value > 70) {
             el.className = 'text-[28px] font-bold font-mono tracking-tight text-warning';
-            container.style.borderColor = 'rgba(245, 158, 11, 0.4)';
+            container.style.borderColor = 'rgba(245, 158, 11, 0.3)';
         } else {
             el.className = 'text-[28px] font-bold font-mono tracking-tight text-textMain';
-            container.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+            container.style.borderColor = 'rgba(0, 0, 0, 0.06)';
         }
     }
 
@@ -130,7 +130,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const sortedHistory = [...history].reverse();
         sortedHistory.forEach(m => {
             const tr = document.createElement('tr');
-            tr.className = 'border-b border-white/[0.02] hover:bg-white/[0.02] transition-colors';
+            tr.className = 'border-b border-black/[0.03] hover:bg-black/[0.015] transition-colors';
             tr.innerHTML = `
                 <td class="py-3 px-4 font-semibold text-textMuted font-mono text-[11px]">${formatTimestamp(m.timestamp)}</td>
                 <td class="py-3 px-4 font-mono"><span class="${m.cpu_usage > 85 ? 'text-danger font-bold' : 'text-textMain'}" class="font-medium">${m.cpu_usage.toFixed(1)}%</span></td>
@@ -159,10 +159,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 tooltip: {
                     mode: 'index',
                     intersect: false,
-                    backgroundColor: '#0c0f0a',
-                    titleColor: '#ffffff',
-                    bodyColor: '#ffffff',
-                    borderColor: 'rgba(12, 15, 10, 0.2)',
+                    backgroundColor: '#FAF9FB',
+                    titleColor: '#0F172A',
+                    bodyColor: '#334155',
+                    borderColor: 'rgba(0, 0, 0, 0.06)',
                     borderWidth: 1,
                     titleFont: { family: 'Inter', weight: 'bold' },
                     bodyFont: { family: 'Inter' },
@@ -174,21 +174,21 @@ document.addEventListener('DOMContentLoaded', async () => {
                 y: {
                     min: 0,
                     max: 100,
-                    grid: { color: 'rgba(12, 15, 10, 0.04)' },
-                    ticks: { color: '#0c0f0a', font: { family: 'Inter', size: 10, weight: 'bold' } }
+                    grid: { color: 'rgba(15, 23, 42, 0.04)' },
+                    ticks: { color: '#64748B', font: { family: 'Inter', size: 10, weight: 'bold' } }
                 },
                 x: {
                     grid: { display: false },
-                    ticks: { color: 'rgba(12, 15, 10, 0.4)', font: { family: 'Inter', size: 10 } }
+                    ticks: { color: 'rgba(15, 23, 42, 0.4)', font: { family: 'Inter', size: 10 } }
                 }
             }
         });
 
-        // Initialize CPU Line Chart
+        // Initialize CPU Line Chart (Violet)
         const cpuCtx = document.getElementById('cpuChart').getContext('2d');
         const cpuGrad = cpuCtx.createLinearGradient(0, 0, 0, 200);
-        cpuGrad.addColorStop(0, 'rgba(255, 219, 15, 0.25)');
-        cpuGrad.addColorStop(1, 'rgba(255, 219, 15, 0.0)');
+        cpuGrad.addColorStop(0, 'rgba(124, 58, 237, 0.1)');
+        cpuGrad.addColorStop(1, 'rgba(124, 58, 237, 0.0)');
 
         cpuChart = new Chart(cpuCtx, {
             type: 'line',
@@ -196,7 +196,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 labels,
                 datasets: [{
                     data: cpuData,
-                    borderColor: '#ffdb0f',
+                    borderColor: '#7C3AED',
                     backgroundColor: cpuGrad,
                     borderWidth: 2.5,
                     fill: true,
@@ -205,14 +205,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                     pointHoverRadius: 4
                 }]
             },
-            options: chartOptions('CPU', 'rgba(255, 219, 15, 0.5)')
+            options: chartOptions('CPU', 'rgba(124, 58, 237, 0.3)')
         });
 
-        // Initialize RAM Line Chart
+        // Initialize RAM Line Chart (Emerald)
         const ramCtx = document.getElementById('ramChart').getContext('2d');
         const ramGrad = ramCtx.createLinearGradient(0, 0, 0, 200);
-        ramGrad.addColorStop(0, 'rgba(134, 117, 13, 0.25)');
-        ramGrad.addColorStop(1, 'rgba(134, 117, 13, 0.0)');
+        ramGrad.addColorStop(0, 'rgba(16, 185, 129, 0.06)');
+        ramGrad.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
 
         ramChart = new Chart(ramCtx, {
             type: 'line',
@@ -220,7 +220,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 labels,
                 datasets: [{
                     data: ramData,
-                    borderColor: '#86750d',
+                    borderColor: '#10B981',
                     backgroundColor: ramGrad,
                     borderWidth: 2.5,
                     fill: true,
@@ -229,14 +229,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                     pointHoverRadius: 4
                 }]
             },
-            options: chartOptions('RAM', 'rgba(134, 117, 13, 0.4)')
+            options: chartOptions('RAM', 'rgba(16, 185, 129, 0.3)')
         });
 
-        // Initialize Disk Line Chart
+        // Initialize Disk Line Chart (Slate)
         const diskCtx = document.getElementById('diskChart').getContext('2d');
         const diskGrad = diskCtx.createLinearGradient(0, 0, 0, 200);
-        diskGrad.addColorStop(0, 'rgba(12, 15, 10, 0.15)');
-        diskGrad.addColorStop(1, 'rgba(12, 15, 10, 0.0)');
+        diskGrad.addColorStop(0, 'rgba(100, 116, 139, 0.05)');
+        diskGrad.addColorStop(1, 'rgba(100, 116, 139, 0.0)');
 
         diskChart = new Chart(diskCtx, {
             type: 'line',
@@ -244,7 +244,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 labels,
                 datasets: [{
                     data: diskData,
-                    borderColor: '#0c0f0a',
+                    borderColor: '#64748B',
                     backgroundColor: diskGrad,
                     borderWidth: 2.5,
                     fill: true,
@@ -253,7 +253,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     pointHoverRadius: 4
                 }]
             },
-            options: chartOptions('Disk', 'rgba(12, 15, 10, 0.2)')
+            options: chartOptions('Disk', 'rgba(100, 116, 139, 0.3)')
         });
     }
 
@@ -319,7 +319,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
 
                 const tr = document.createElement('tr');
-                tr.className = 'border-b border-white/[0.02] hover:bg-white/[0.02] transition-colors';
+                tr.className = 'border-b border-black/[0.03] hover:bg-black/[0.015] transition-colors';
                 tr.innerHTML = `
                     <td class="py-3 px-4 font-semibold text-textMuted font-mono text-[11px]">${formatTimestamp(data.timestamp)}</td>
                     <td class="py-3 px-4 font-mono"><span class="${data.cpu_usage > 85 ? 'text-danger font-bold' : 'text-textMain'}" class="font-medium">${data.cpu_usage.toFixed(1)}%</span></td>
@@ -334,7 +334,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 tbody.insertBefore(tr, tbody.firstChild);
 
                 // Flash transition on the new log row
-                tr.style.backgroundColor = 'rgba(255, 219, 15, 0.15)';
+                tr.style.backgroundColor = 'rgba(124, 58, 237, 0.08)';
                 setTimeout(() => {
                     tr.style.transition = 'background-color 1s ease';
                     tr.style.backgroundColor = 'transparent';

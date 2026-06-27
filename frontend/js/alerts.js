@@ -44,10 +44,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     function updateFilterButtonUI() {
         if (!btnAll || !btnActive) return;
         if (filterActiveOnly) {
-            btnActive.className = "px-2.5 py-1 text-[11px] font-medium rounded bg-white/[0.08] text-textMain shadow-sm";
+            btnActive.className = "px-2.5 py-1 text-[11px] font-semibold rounded bg-black/[0.06] text-textMain shadow-sm";
             btnAll.className = "px-2.5 py-1 text-[11px] font-medium rounded text-textMuted hover:text-textMain transition-colors";
         } else {
-            btnAll.className = "px-2.5 py-1 text-[11px] font-medium rounded bg-white/[0.08] text-textMain shadow-sm";
+            btnAll.className = "px-2.5 py-1 text-[11px] font-semibold rounded bg-black/[0.06] text-textMain shadow-sm";
             btnActive.className = "px-2.5 py-1 text-[11px] font-medium rounded text-textMuted hover:text-textMain transition-colors";
         }
     }
@@ -97,18 +97,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         displayedAlerts.forEach(a => {
             const tr = document.createElement('tr');
             tr.id = `alert-row-${a.id}`;
-            tr.className = `border-b border-white/[0.02] hover:bg-white/[0.02] transition-colors ${a.resolved ? 'opacity-60' : 'row-critical bg-danger/[0.02]'}`;
+            tr.className = `border-b border-black/[0.03] hover:bg-black/[0.015] transition-colors ${a.resolved ? 'opacity-65' : 'row-critical bg-danger/[0.015]'}`;
 
             const stateBadge = a.resolved
-                ? `<div class="inline-flex items-center gap-1 px-2 py-0.5 rounded border border-success/30 bg-success/10 text-success text-[10px] font-bold uppercase tracking-wider">
+                ? `<div class="inline-flex items-center gap-1 px-2 py-0.5 rounded border border-success/20 bg-success/5 text-success text-[10px] font-bold uppercase tracking-wider">
                       <i data-lucide="check" class="w-3 h-3"></i> Resolved
                    </div>`
-                : `<div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded border border-danger/30 bg-danger/10 text-danger text-[10px] font-bold uppercase tracking-wider">
-                      <div class="w-1 h-1 rounded-full bg-danger animate-pulse shadow-[0_0_8px_rgba(244,63,94,0.6)]"></div> Firing
+                : `<div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded border border-danger/20 bg-danger/5 text-danger text-[10px] font-bold uppercase tracking-wider">
+                      <div class="w-1 h-1 rounded-full bg-danger animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.3)]"></div> Firing
                    </div>`;
 
             tr.innerHTML = `
-                <td class="py-3 px-4"><input type="checkbox" class="rounded bg-bg border-borderSubtle accent-primary"></td>
+                <td class="py-3 px-4"><input type="checkbox" class="rounded bg-white border-borderSubtle text-primary accent-primary cursor-pointer"></td>
                 <td class="py-3 px-4">${stateBadge}</td>
                 <td class="py-3 px-4">
                     <div class="font-medium text-textMain text-[13px] mb-0.5">${escapeHtml(a.message)}</div>
@@ -126,7 +126,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 </td>
                 <td class="py-3 px-4 text-right">
                     <div class="flex items-center justify-end gap-2">
-                        ${!a.resolved ? `<span class="text-danger text-[10px] font-mono px-1.5 py-0.5 bg-danger/10 rounded border border-danger/20">Triggered</span>` : `<span class="text-success text-[10px] font-mono px-1.5 py-0.5 bg-success/10 rounded border border-success/20">Resolved</span>`}
+                        ${!a.resolved ? `<span class="text-danger text-[10px] font-mono px-1.5 py-0.5 bg-danger/5 rounded border border-danger/15">Triggered</span>` : `<span class="text-success text-[10px] font-mono px-1.5 py-0.5 bg-success/5 rounded border border-success/15">Resolved</span>`}
                     </div>
                 </td>
             `;
@@ -174,7 +174,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         // Apply flash transition to the new row
                         const tr = document.getElementById(`alert-row-${data.id}`);
                         if (tr) {
-                            tr.style.backgroundColor = 'rgba(244, 63, 94, 0.1)';
+                            tr.style.backgroundColor = 'rgba(239, 68, 68, 0.08)';
                             setTimeout(() => {
                                 tr.style.transition = 'background-color 1s ease';
                                 tr.style.backgroundColor = 'transparent';

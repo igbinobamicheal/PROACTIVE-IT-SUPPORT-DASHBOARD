@@ -14,19 +14,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         devices.forEach(d => {
             const tr = document.createElement('tr');
-            tr.className = 'border-b border-white/[0.02] hover:bg-white/[0.02] transition-colors cursor-pointer';
+            tr.className = 'border-b border-black/[0.03] hover:bg-black/[0.015] transition-colors cursor-pointer';
             tr.onclick = () => {
                 window.location.href = `device-details.html?id=${d.id}`;
             };
             
             const statusDotColor = d.status === 'online' 
-                ? 'bg-success shadow-[0_0_8px_rgba(16,185,129,0.5)]' 
-                : 'bg-danger shadow-[0_0_8px_rgba(244,63,94,0.5)]';
+                ? 'bg-success shadow-[0_0_8px_rgba(16,185,129,0.3)]' 
+                : 'bg-danger shadow-[0_0_8px_rgba(239,68,68,0.3)]';
             const statusText = d.status === 'online' ? 'Healthy' : 'Critical';
 
             tr.innerHTML = `
                 <td class="py-3 px-4" onclick="event.stopPropagation()">
-                    <input type="checkbox" class="rounded bg-bg border-borderSubtle accent-primary">
+                    <input type="checkbox" class="rounded bg-white border-borderSubtle text-primary accent-primary cursor-pointer">
                 </td>
                 <td class="py-3 px-4">
                     <div class="font-mono font-semibold text-textMain">${escapeHtml(d.name)}</div>
@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     <span class="text-[10px] text-textSubtle uppercase">agent node</span>
                 </td>
                 <td class="py-3 px-4" onclick="event.stopPropagation()">
-                    <a href="device-details.html?id=${d.id}" class="inline-flex items-center px-2.5 py-1 rounded bg-white/[0.04] border border-borderSubtle text-textMain hover:bg-white/[0.08] text-[11px] font-medium transition-colors">
+                    <a href="device-details.html?id=${d.id}" class="inline-flex items-center px-2.5 py-1 rounded bg-black/[0.02] border border-borderSubtle text-textMain hover:bg-black/[0.04] text-[11px] font-medium transition-colors">
                         View Metrics
                     </a>
                 </td>
