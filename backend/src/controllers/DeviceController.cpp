@@ -82,165 +82,103 @@ void DeviceController::registerRoutes(crow::App<CORSMiddleware, AuthMiddleware>&
         }
     });
 
-    // 1b. GET /api/deploy/agent (guarded by JWT)
+    // 1b. GET /api/deploy/agent — serves a PowerShell install script (works on Linux/Railway)
     CROW_ROUTE(app, "/api/deploy/agent")
     .methods(crow::HTTPMethod::GET)
     .CROW_MIDDLEWARES(app, AuthMiddleware)
     ([](const crow::request& req) {
         crow::response res;
-        
-#ifdef _WIN32
         try {
             auto& config = Config::getInstance();
-            std::string host = req.get_header_value("Host");
-            if (host.empty()) {
-                host = "localhost:8080";
-            }
-            
-            std::string proto = req.get_header_value("X-Forwarded-Proto");
-            if (proto.empty()) {
-                proto = "http";
-            }
-            
-            // Construct agent's config.json content
-            nlohmann::json agentConfig = {
-                {"server_url", proto + "://" + host},
-                {"registration_key", config.registrationKey}
-            };
-            
-            // Write config.json to backend/uploads
-            std::string uploadsDir = "../uploads"; // relative to backend/config
-            std::string configPath = uploadsDir + "/config.json";
-            
-            // Ensure uploads directory exists (just in case)
-            std::string mkdirCmd = "powershell -Command \"New-Item -ItemType Directory -Force -Path '" + uploadsDir + "'\"";
-            std::system(mkdirCmd.c_str());
-            
-            std::ofstream configFile(configPath);
-            if (!configFile.is_open()) {
-                res.code = 500;
-                res.set_header("Content-Type", "application/json");
-                res.write(nlohmann::json{{"error", "Failed to create config.json in uploads directory"}}.dump());
-                return res;
-            }
-            configFile << agentConfig.dump(4);
-            configFile.close();
-            
-            // Find proactive_it_agent.exe
-            std::string agentSource = "";
-            if (std::ifstream("../../agent/build/Release/proactive_it_agent.exe")) {
-                agentSource = "../../agent/build/Release/proactive_it_agent.exe";
-            } else if (std::ifstream("../../agent/build/Debug/proactive_it_agent.exe")) {
-                agentSource = "../../agent/build/Debug/proactive_it_agent.exe";
-            } else if (std::ifstream("proactive_it_agent.exe")) {
-                agentSource = "proactive_it_agent.exe";
-            }
-            
-            if (agentSource.empty()) {
-                std::remove(configPath.c_str());
-                res.code = 500;
-                res.set_header("Content-Type", "application/json");
-                res.write(nlohmann::json{{"error", "Agent executable not found. Make sure the agent is compiled first."}}.dump());
-                return res;
-            }
-            
-            // Copy agent.exe to uploads/agent.exe
-            std::string agentDest = uploadsDir + "/agent.exe";
-            std::ifstream src(agentSource, std::ios::binary);
-            std::ofstream dst(agentDest, std::ios::binary);
-            if (!src.is_open() || !dst.is_open()) {
-                std::remove(configPath.c_str());
-                res.code = 500;
-                res.set_header("Content-Type", "application/json");
-                res.write(nlohmann::json{{"error", "Failed to copy agent executable to packaging folder"}}.dump());
-                return res;
-            }
-            dst << src.rdbuf();
-            src.close();
-            dst.close();
 
-            // Dynamic DLL copying using C++17 <filesystem>
-            std::vector<std::string> copiedDlls;
-            try {
-                namespace fs = std::filesystem;
-                std::string sourceDir = agentSource.substr(0, agentSource.find_last_of("/\\"));
-                if (sourceDir.empty()) sourceDir = ".";
-                
-                for (const auto& entry : fs::directory_iterator(sourceDir)) {
-                    if (entry.is_regular_file() && entry.path().extension() == ".dll") {
-                        std::string dllName = entry.path().filename().string();
-                        std::string destPath = uploadsDir + "/" + dllName;
-                        fs::copy_file(entry.path(), destPath, fs::copy_options::overwrite_existing);
-                        copiedDlls.push_back(destPath);
-                    }
+            // Determine the public backend URL from forwarded headers (set by Railway)
+            std::string proto = req.get_header_value("X-Forwarded-Proto");
+            if (proto.empty()) proto = "https";
+            std::string host = req.get_header_value("X-Forwarded-Host");
+            if (host.empty()) host = req.get_header_value("Host");
+            if (host.empty()) host = "localhost:8080";
+
+            std::string serverUrl = proto + "://" + host;
+            std::string registrationKey = config.registrationKey;
+
+            // Read AGENT_DOWNLOAD_URL from environment (set in Railway variables)
+            const char* agentUrlEnv = std::getenv("AGENT_DOWNLOAD_URL");
+            std::string agentDownloadUrl = agentUrlEnv ? agentUrlEnv : "";
+
+            if (agentDownloadUrl.empty()) {
+                res.code = 503;
+                res.set_header("Content-Type", "application/json");
+                res.write(nlohmann::json{{"error", "AGENT_DOWNLOAD_URL environment variable is not set. Upload the agent .exe to GitHub Releases and set this variable in Railway."}}.dump());
+                return res;
+            }
+
+            // Build the PowerShell install script dynamically
+            std::string ps1 = R"raw(
+$ErrorActionPreference = "Stop"
+$InstallDir = "$env:ProgramData\ProactiveITAgent"
+$ExePath    = "$InstallDir\proactive_it_agent.exe"
+$CfgPath    = "$InstallDir\config.json"
+
+Write-Host "=== Proactive IT Agent Installer ===" -ForegroundColor Cyan
+
+if (-not (Test-Path $InstallDir)) {
+    New-Item -ItemType Directory -Force -Path $InstallDir | Out-Null
+    Write-Host "[+] Created install directory: $InstallDir"
+}
+
+Write-Host "[*] Downloading agent from: {{AGENT_DOWNLOAD_URL}}"
+Invoke-WebRequest -Uri "{{AGENT_DOWNLOAD_URL}}" -OutFile $ExePath -UseBasicParsing
+Write-Host "[+] Agent downloaded."
+
+$config = @{
+    server           = "{{SERVER_URL}}/api"
+    device_name      = $env:COMPUTERNAME
+    device_token     = ""
+    interval_seconds = 10
+    registration_key = "{{REGISTRATION_KEY}}"
+} | ConvertTo-Json
+Set-Content -Path $CfgPath -Value $config -Encoding UTF8
+Write-Host "[+] Config written: $CfgPath"
+
+$taskName = "ProactiveITAgent"
+$action   = New-ScheduledTaskAction -Execute $ExePath -WorkingDirectory $InstallDir
+$trigger  = New-ScheduledTaskTrigger -AtStartup
+$settings = New-ScheduledTaskSettingsSet -ExecutionTimeLimit (New-TimeSpan -Hours 0) -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1)
+$principal = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccount -RunLevel Highest
+Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Settings $settings -Principal $principal -Force | Out-Null
+Write-Host "[+] Scheduled task registered: $taskName (runs as SYSTEM on startup)"
+
+Write-Host "[*] Starting agent now..."
+Start-ScheduledTask -TaskName $taskName
+Write-Host "[+] Agent started! It will appear in your dashboard within 15 seconds." -ForegroundColor Green
+Write-Host ""
+Write-Host "To uninstall: Unregister-ScheduledTask -TaskName ProactiveITAgent -Confirm:$false; Remove-Item -Recurse $InstallDir"
+)raw";
+
+            auto replaceAll = [](std::string& str, const std::string& from, const std::string& to) {
+                size_t start_pos = 0;
+                while((start_pos = str.find(from, start_pos)) != std::string::npos) {
+                    str.replace(start_pos, from.length(), to);
+                    start_pos += to.length();
                 }
-            } catch (const std::exception& ex) {
-                std::cerr << "[Deployment] Warning: Failed to scan/copy agent DLL dependencies: " << ex.what() << std::endl;
-            }
-            
-            // Create ZIP package using PowerShell (native on Windows)
-            std::string zipPath = uploadsDir + "/agent_package.zip";
-            // Clean up any old zip
-            std::remove(zipPath.c_str());
-            
-            // Build the powershell Compress-Archive file list
-            std::string fileList = "'" + agentDest + "', '" + configPath + "'";
-            for (const auto& dll : copiedDlls) {
-                fileList += ", '" + dll + "'";
-            }
-            
-            std::string cmd = "powershell -Command \"Compress-Archive -Path " + fileList + " -DestinationPath '" + zipPath + "' -Force\"";
-            int ret = std::system(cmd.c_str());
-            
-            // Cleanup copied source files immediately
-            std::remove(configPath.c_str());
-            std::remove(agentDest.c_str());
-            for (const auto& dll : copiedDlls) {
-                std::remove(dll.c_str());
-            }
-            
-            if (ret != 0) {
-                res.code = 500;
-                res.set_header("Content-Type", "application/json");
-                res.write(nlohmann::json{{"error", "Failed to compress package: Command returned " + std::to_string(ret)}}.dump());
-                return res;
-            }
-            
-            // Read zip file into response
-            std::ifstream zipFile(zipPath, std::ios::binary);
-            if (!zipFile.is_open()) {
-                res.code = 500;
-                res.set_header("Content-Type", "application/json");
-                res.write(nlohmann::json{{"error", "Failed to open generated ZIP file"}}.dump());
-                return res;
-            }
-            
-            std::string zipData((std::istreambuf_iterator<char>(zipFile)), std::istreambuf_iterator<char>());
-            zipFile.close();
-            
-            // Clean up ZIP file from disk
-            std::remove(zipPath.c_str());
-            
+            };
+
+            replaceAll(ps1, "{{AGENT_DOWNLOAD_URL}}", agentDownloadUrl);
+            replaceAll(ps1, "{{SERVER_URL}}", serverUrl);
+            replaceAll(ps1, "{{REGISTRATION_KEY}}", registrationKey);
+
             res.code = 200;
-            res.set_header("Content-Type", "application/zip");
-            res.set_header("Content-Disposition", "attachment; filename=\"agent_package.zip\"");
-            res.write(zipData);
+            res.set_header("Content-Type", "text/plain; charset=utf-8");
+            res.set_header("Content-Disposition", "inline; filename=\"install-agent.ps1\"");
+            res.write(ps1);
             return res;
-            
+
         } catch (const std::exception& e) {
             res.code = 500;
             res.set_header("Content-Type", "application/json");
-            res.write(nlohmann::json{{"error", std::string("Deployment failed: ") + e.what()}}.dump());
+            res.write(nlohmann::json{{"error", std::string("Failed to generate install script: ") + e.what()}}.dump());
             return res;
         }
-#else
-        // Agent deployment packages require Windows (PowerShell + .exe).
-        // On Linux (Railway), return a descriptive error.
-        res.code = 501;
-        res.set_header("Content-Type", "application/json");
-        res.write(nlohmann::json{{"error", "Agent deployment packages are only available when the server is hosted on Windows."}}.dump());
-        return res;
-#endif
     });
 
     // 2. GET /api/devices (guarded by JWT)
