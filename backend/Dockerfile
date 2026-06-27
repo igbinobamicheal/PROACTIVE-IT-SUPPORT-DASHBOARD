@@ -25,15 +25,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 RUN git clone https://github.com/microsoft/vcpkg.git ${VCPKG_ROOT} \
-    && ${VCPKG_ROOT}/bootstrap-vcpkg.sh \
-    && ${VCPKG_ROOT}/vcpkg install \
-        crow \
-        libpqxx \
-        jwt-cpp \
-        nlohmann-json \
-        openssl
+    && ${VCPKG_ROOT}/bootstrap-vcpkg.sh
 
 WORKDIR /app
+
+# Copy manifest file first to leverage Docker layer caching for dependencies
+COPY vcpkg.json .
+
+# Pre-build dependencies using vcpkg manifest mode
+RUN ${VCPKG_ROOT}/vcpkg install
 
 COPY . .
 

@@ -1,0 +1,11 @@
+{
+  "name": "proactive-it-dashboard-backend",
+  "version-string": "1.0.0",
+  "dependencies": [
+    "crow",
+    "libpqxx",
+    "jwt-cpp",
+    "nlohmann-json",
+    "openssl"
+  ]
+}

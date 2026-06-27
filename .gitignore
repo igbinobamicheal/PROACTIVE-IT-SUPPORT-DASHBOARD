@@ -23,3 +23,7 @@ node_modules/
 # Logs & temp files
 *.log
 *.tmp
+
+# vcpkg manifest installation folders
+vcpkg_installed/
+vcpkg-installed/
