@@ -1,30 +1,30 @@
 # Proactive IT Support Dashboard
 
-A high-performance system monitoring solution with a C++17 Crow-based web server, MySQL 8 storage, a C++ monitoring agent, and a modern glassmorphic web UI frontend.
+A high-performance system monitoring solution with a C++20 Crow-based web server, PostgreSQL 15+ storage (fully compatible with Supabase), a C++ monitoring agent, and a modern glassmorphic web UI frontend.
 
 ## Project Structure
-- `/backend`: The REST web server compiled with C++17, utilizing Crow, JWT authentication, and MySQL X DevAPI.
+- `/backend`: The REST web server compiled with C++20, utilizing Crow, JWT authentication, and PostgreSQL (libpqxx).
 - `/agent`: C++ metric collection agent that posts local host metrics (CPU, RAM, Disk, Uptime) to the backend.
-- `/database`: Schema initialization and seed scripts for MySQL 8.
+- `/database`: Schema initialization and seed scripts for PostgreSQL.
 - `/frontend`: Modern glassmorphic web interface showing real-time agent statuses and ingested metrics.
 - `/docs`: Architecture, API specifications, and deployment documentation.
 - `/scripts`: Automation batch scripts for building and launching components.
 
 ## Prerequisites
-1. **C++17 Compiler** (MSVC 2022+ / GCC 9+)
+1. **C++20 Compiler** (MSVC 2022+ / GCC 11+)
 2. **CMake 3.15+**
 3. **vcpkg** package manager with:
    - `crow`
-   - `mysql-connector-cpp` (X DevAPI)
+   - `libpqxx` (C++ PostgreSQL client library)
    - `jwt-cpp`
    - `nlohmann-json`
    - `openssl`
-4. **MySQL 8.0 Server** (listening with X Protocol active on port 33060)
+4. **PostgreSQL 15+ Server** (local database or hosted on Supabase, listening on port 5432)
 
 ## Quick Start
 
 ### 1. Database Setup
-Execute `database/schema.sql` and `database/seed.sql` on your MySQL server to set up the `it_monitoring` database and seed a default admin account.
+Execute `database/schema.sql` and `database/seed.sql` on your PostgreSQL server to set up the database schemas and seed a default admin account.
 
 ### 2. Configure Backend
 Copy `backend/config/config.json.template` to `backend/config/config.json` and configure your database credentials.
@@ -47,17 +47,17 @@ cmake --build build --config Release
 ```
 On first start, provide the administrator JWT token (obtained via POST `/api/login` using username `admin` and password `admin123`) to register the agent device.
 
-## Render Backend Environment Variables
+## Cloud Backend Environment Variables
 
-When deploying the backend on Render, add these in **Service** -> **Environment**:
+When deploying the backend on cloud hosting (Render, Railway, etc.), add these in your **Environment Variables**:
 
 | Key | Value |
 |-----|-------|
-| `DB_HOST` | Your MySQL host, for example `mysql.example.com` |
-| `DB_PORT` | `33060` for MySQL X Protocol |
-| `DB_USER` | Your MySQL username |
-| `DB_PASSWORD` | Your MySQL password |
-| `DB_NAME` | `it_monitoring` |
+| `DB_HOST` | Your PostgreSQL host (e.g. `db.supabase.co` for Supabase) |
+| `DB_PORT` | `5432` (or the appropriate connection port) |
+| `DB_USER` | Your PostgreSQL username (e.g. `postgres`) |
+| `DB_PASSWORD` | Your PostgreSQL password |
+| `DB_NAME` | Your database name (e.g. `postgres` or `it_monitoring`) |
 | `JWT_SECRET` | A long random secret string |
 | `REGISTRATION_KEY` | A long random key shared with agents |
 | `SERVER_HOST` | `0.0.0.0` |
