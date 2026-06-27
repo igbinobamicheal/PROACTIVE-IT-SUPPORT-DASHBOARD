@@ -106,17 +106,16 @@ int main() {
             return res;
         });
 
-        // Global preflight OPTIONS handler for all paths
-        CROW_ROUTE(app, "/<path>")
-        .methods(crow::HTTPMethod::OPTIONS)
-        ([](const crow::request& req, std::string path) {
-            crow::response res;
-            res.code = 204; // No Content
-            res.set_header("Access-Control-Allow-Origin", "*");
-            res.set_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-            res.set_header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Device-Token");
-            return res;
-        });
+        // Explicit CORS preflight OPTIONS handlers for all API routes
+        CROW_ROUTE(app, "/api/login").methods(crow::HTTPMethod::OPTIONS)([]() { return crow::response(204); });
+        CROW_ROUTE(app, "/api/register-device").methods(crow::HTTPMethod::OPTIONS)([]() { return crow::response(204); });
+        CROW_ROUTE(app, "/api/devices").methods(crow::HTTPMethod::OPTIONS)([]() { return crow::response(204); });
+        CROW_ROUTE(app, "/api/device/<int>").methods(crow::HTTPMethod::OPTIONS)([](int id) { return crow::response(204); });
+        CROW_ROUTE(app, "/api/device/<int>/metrics").methods(crow::HTTPMethod::OPTIONS)([](int id) { return crow::response(204); });
+        CROW_ROUTE(app, "/api/alerts").methods(crow::HTTPMethod::OPTIONS)([]() { return crow::response(204); });
+        CROW_ROUTE(app, "/api/events").methods(crow::HTTPMethod::OPTIONS)([]() { return crow::response(204); });
+        CROW_ROUTE(app, "/api/metrics").methods(crow::HTTPMethod::OPTIONS)([]() { return crow::response(204); });
+        CROW_ROUTE(app, "/api/deploy/agent").methods(crow::HTTPMethod::OPTIONS)([]() { return crow::response(204); });
 
         // Get server configuration
         auto& config = Config::getInstance();
