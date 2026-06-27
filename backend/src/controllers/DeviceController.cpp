@@ -97,9 +97,14 @@ void DeviceController::registerRoutes(crow::App<CORSMiddleware, AuthMiddleware>&
                 host = "localhost:8080";
             }
             
+            std::string proto = req.get_header_value("X-Forwarded-Proto");
+            if (proto.empty()) {
+                proto = "http";
+            }
+            
             // Construct agent's config.json content
             nlohmann::json agentConfig = {
-                {"server_url", "http://" + host},
+                {"server_url", proto + "://" + host},
                 {"registration_key", config.registrationKey}
             };
             

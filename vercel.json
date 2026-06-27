@@ -1,5 +1,5 @@
 {
-  "buildCommand": null,
+  "buildCommand": "node generate-config.js",
   "outputDirectory": "frontend",
   "rewrites": [
     { "source": "/dashboard", "destination": "/dashboard.html" },
