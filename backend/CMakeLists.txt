@@ -7,6 +7,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Find dependencies using vcpkg
 find_package(Crow CONFIG REQUIRED)
 
+# Load unofficial-libmysql dependency (required by unofficial-mysql-connector-cpp-jdbc)
+find_package(unofficial-libmysql CONFIG REQUIRED)
+
 # Find MySQL Connector/C++ (supporting both official and vcpkg unofficial packages)
 find_package(mysql-concpp CONFIG QUIET)
 if(NOT mysql-concpp_FOUND)
@@ -60,7 +63,11 @@ target_compile_definitions(proactive_it_dashboard PRIVATE
 
 # Link libraries
 # Determine MySQL target to link
-if(TARGET mysql::concpp)
+if(TARGET mysql::concpp-jdbc)
+    set(MYSQL_LIBRARIES mysql::concpp-jdbc)
+elseif(TARGET unofficial::mysql-connector-cpp::connector-jdbc)
+    set(MYSQL_LIBRARIES unofficial::mysql-connector-cpp::connector-jdbc)
+elseif(TARGET mysql::concpp)
     set(MYSQL_LIBRARIES mysql::concpp)
 elseif(TARGET unofficial::mysql-connector-cpp::connector)
     set(MYSQL_LIBRARIES unofficial::mysql-connector-cpp::connector)
