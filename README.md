@@ -25,20 +25,20 @@ Execute `database/schema.sql` and `database/seed.sql` on your PostgreSQL server 
 Copy `backend/config/config.json.template` to `backend/config/config.json` and configure your database credentials.
 
 ### 3. Build & Run Backend
-Dependencies are automatically installed via **vcpkg manifest mode** (using `backend/vcpkg.json`) during the CMake configuration step:
+Dependencies are automatically installed via **vcpkg manifest mode** (using `backend/vcpkg.json`) during the CMake configuration step. We define build options using CMake presets:
 ```bash
 cd backend
-cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=[vcpkg_root]/scripts/buildsystems/vcpkg.cmake
-cmake --build build --config Release
+cmake --preset default
+cmake --build --preset default
 ./build/Release/proactive_it_dashboard
 ```
 
 ### 4. Build & Run Agent
-The agent's dependencies (`nlohmann-json` and `cpr`) are automatically resolved via `agent/vcpkg.json` during build configuration:
+The agent's dependencies (`nlohmann-json` and `cpr`) are automatically resolved via `agent/vcpkg.json`. Build using CMake presets:
 ```bash
 cd agent
-cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=[vcpkg_root]/scripts/buildsystems/vcpkg.cmake
-cmake --build build --config Release
+cmake --preset default
+cmake --build --preset default
 ./build/Release/proactive_it_agent
 ```
 On first start, provide the administrator JWT token (obtained via POST `/api/login` using username `admin` and password `admin123`) to register the agent device.
