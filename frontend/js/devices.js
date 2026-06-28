@@ -38,6 +38,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             openAddDeviceModal();
         });
     }
+
+    // 4. Auto-open wizard modal if requested via query string
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('add') === 'true') {
+        openAddDeviceModal();
+    }
 });
 
 // Load Registered Devices

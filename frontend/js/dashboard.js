@@ -10,51 +10,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const userDisplay = document.getElementById('currentUser');
     if (userDisplay) userDisplay.textContent = username;
 
-    // Generate Agent Package Button Handler
-    const generateBtn = document.getElementById('generateAgentBtn');
-    if (generateBtn) {
-        generateBtn.addEventListener('click', async () => {
-            try {
-                generateBtn.disabled = true;
-                generateBtn.innerHTML = `<span class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin inline-block mr-2"></span>Generating...`;
 
-                const response = await fetch(`${api.getBaseOrigin()}/api/deploy/agent`, {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-
-                if (!response.ok) {
-                    let errMsg = 'Failed to generate agent package';
-                    try {
-                        const errData = await response.json();
-                        errMsg = errData.error || errMsg;
-                    } catch (e) {}
-                    throw new Error(errMsg);
-                }
-
-                const blob = await response.blob();
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'agent_package.zip';
-                document.body.appendChild(a);
-                a.click();
-                a.remove();
-                window.URL.revokeObjectURL(url);
-
-                showToast('Success', 'Agent deployment package downloaded successfully.', 'success');
-            } catch (err) {
-                console.error(err);
-                showToast('Deployment Error', err.message, 'danger');
-            } finally {
-                generateBtn.disabled = false;
-                generateBtn.innerHTML = `<i data-lucide="download" class="w-3.5 h-3.5"></i> Generate Agent Package`;
-                if (window.lucide) window.lucide.createIcons();
-            }
-        });
-    }
 
     let devicesList = [];
     let activeAlertsList = [];
