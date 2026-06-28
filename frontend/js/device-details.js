@@ -109,10 +109,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             container.style.borderColor = 'rgba(239, 68, 68, 0.3)';
         } else if (value > 70) {
             el.className = 'text-[28px] font-bold font-mono tracking-tight text-warning';
-            container.style.borderColor = 'rgba(245, 158, 11, 0.3)';
+            container.style.borderColor = 'rgba(184, 124, 59, 0.3)';
         } else {
             el.className = 'text-[28px] font-bold font-mono tracking-tight text-textMain';
-            container.style.borderColor = 'rgba(0, 0, 0, 0.06)';
+            container.style.borderColor = 'rgba(30, 26, 23, 0.08)';
         }
     }
 
@@ -159,10 +159,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 tooltip: {
                     mode: 'index',
                     intersect: false,
-                    backgroundColor: '#FAF9FB',
-                    titleColor: '#0F172A',
-                    bodyColor: '#334155',
-                    borderColor: 'rgba(0, 0, 0, 0.06)',
+                    backgroundColor: '#ECEAE5',
+                    titleColor: '#1E1A17',
+                    bodyColor: '#4A4540',
+                    borderColor: 'rgba(30, 26, 23, 0.08)',
                     borderWidth: 1,
                     titleFont: { family: 'Inter', weight: 'bold' },
                     bodyFont: { family: 'Inter' },
@@ -174,21 +174,21 @@ document.addEventListener('DOMContentLoaded', async () => {
                 y: {
                     min: 0,
                     max: 100,
-                    grid: { color: 'rgba(15, 23, 42, 0.04)' },
-                    ticks: { color: '#64748B', font: { family: 'Inter', size: 10, weight: 'bold' } }
+                    grid: { color: 'rgba(30, 26, 23, 0.04)' },
+                    ticks: { color: '#7C7770', font: { family: 'Inter', size: 10, weight: 'bold' } }
                 },
                 x: {
                     grid: { display: false },
-                    ticks: { color: 'rgba(15, 23, 42, 0.4)', font: { family: 'Inter', size: 10 } }
+                    ticks: { color: 'rgba(30, 26, 23, 0.4)', font: { family: 'Inter', size: 10 } }
                 }
             }
         });
 
-        // Initialize CPU Line Chart (Violet)
+        // Initialize CPU Line Chart (Amber)
         const cpuCtx = document.getElementById('cpuChart').getContext('2d');
         const cpuGrad = cpuCtx.createLinearGradient(0, 0, 0, 200);
-        cpuGrad.addColorStop(0, 'rgba(124, 58, 237, 0.1)');
-        cpuGrad.addColorStop(1, 'rgba(124, 58, 237, 0.0)');
+        cpuGrad.addColorStop(0, 'rgba(184, 124, 59, 0.1)');
+        cpuGrad.addColorStop(1, 'rgba(184, 124, 59, 0.0)');
 
         cpuChart = new Chart(cpuCtx, {
             type: 'line',
@@ -196,7 +196,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 labels,
                 datasets: [{
                     data: cpuData,
-                    borderColor: '#7C3AED',
+                    borderColor: '#B87C3B',
                     backgroundColor: cpuGrad,
                     borderWidth: 2.5,
                     fill: true,
@@ -205,7 +205,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     pointHoverRadius: 4
                 }]
             },
-            options: chartOptions('CPU', 'rgba(124, 58, 237, 0.3)')
+            options: chartOptions('CPU', 'rgba(184, 124, 59, 0.3)')
         });
 
         // Initialize RAM Line Chart (Emerald)
@@ -334,7 +334,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 tbody.insertBefore(tr, tbody.firstChild);
 
                 // Flash transition on the new log row
-                tr.style.backgroundColor = 'rgba(124, 58, 237, 0.08)';
+                tr.style.backgroundColor = 'rgba(184, 124, 59, 0.08)';
                 setTimeout(() => {
                     tr.style.transition = 'background-color 1s ease';
                     tr.style.backgroundColor = 'transparent';

@@ -17,12 +17,12 @@
             theme: {
                 extend: {
                     colors: {
-                        bg: "#F5F5F7",
-                        surface: "rgba(255, 255, 255, 0.45)",
-                        card: "rgba(255, 255, 255, 0.65)",
-                        borderSubtle: "rgba(0, 0, 0, 0.06)",
-                        primary: "#7C3AED", primaryHover: "#6D28D9",
-                        textMain: "#0F172A", textMuted: "#334155", textSubtle: "#64748B",
+                        bg: "#ECEAE5",
+                        surface: "rgba(255, 255, 255, 0.62)",
+                        card: "rgba(255, 255, 255, 0.62)",
+                        borderSubtle: "rgba(30, 26, 23, 0.08)",
+                        primary: "#B87C3B", primaryHover: "#9c642c",
+                        textMain: "#1E1A17", textMuted: "#4A4540", textSubtle: "#7C7770",
                     },
                     fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] }
                 }
@@ -30,31 +30,46 @@
         }
     </script>
     <style>
-        body { background: radial-gradient(circle at 50% 50%, #FAF9FB 0%, #EFEFF3 100%); color: #0F172A; font-family: 'Inter', sans-serif; }
+        body { background-color: #ECEAE5; color: #1E1A17; font-family: 'Inter', sans-serif; }
         .bg-pattern {
             position: absolute; inset: 0; z-index: 0; pointer-events: none;
-            background-image: radial-gradient(rgba(15,23,42,0.03) 1px, transparent 1px);
+            background-image: radial-gradient(rgba(30,26,23,0.03) 1px, transparent 1px);
             background-size: 24px 24px;
         }
         .form-input {
-            background: #FFFFFF; border: 1px solid rgba(15,23,42,0.08); color: #0F172A;
+            background: #FFFFFF; border: 1px solid rgba(30,26,23,0.08); color: #1E1A17;
             transition: all 0.2s ease;
         }
-        .form-input:focus { border-color: #7C3AED; outline: none; box-shadow: 0 0 0 1px rgba(124, 58, 237, 0.2); }
+        .form-input:focus { border-color: #B87C3B; outline: none; box-shadow: 0 0 0 1px rgba(184, 124, 59, 0.2); }
         .error-banner {
             background-color: rgba(239, 68, 68, 0.08);
             border: 1px solid rgba(239, 68, 68, 0.15);
             color: #EF4444;
         }
+        
+        .glass-panel {
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.45) !important;
+            background-color: rgba(255, 255, 255, 0.62) !important;
+            box-shadow: 0 8px 32px 0 rgba(30, 26, 23, 0.03);
+        }
     </style>
 </head>
-<body class="w-full min-h-screen m-0 p-0 overflow-hidden flex bg-bg">
+<body class="w-full min-h-screen m-0 p-0 overflow-hidden flex bg-bg relative">
+
+    <!-- Background Radial Gradients for glassmorphism depth -->
+    <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden bg-[#ECEAE5]">
+        <div class="absolute -top-[20%] -left-[10%] w-[50%] aspect-square rounded-full bg-gradient-to-br from-[#B87C3B]/8 to-transparent blur-[120px]"></div>
+        <div class="absolute -bottom-[20%] -right-[10%] w-[60%] aspect-square rounded-full bg-gradient-to-tl from-[#B87C3B]/6 to-transparent blur-[140px]"></div>
+        <div class="absolute top-[30%] left-[50%] w-[40%] aspect-square rounded-full bg-gradient-to-r from-[#B87C3B]/4 to-transparent blur-[100px]"></div>
+    </div>
 
     <div class="hidden lg:flex flex-1 border-r border-borderSubtle bg-white/20 flex-col items-center justify-center p-12 relative overflow-hidden">
         <div class="bg-pattern"></div>
         <div class="absolute inset-0 bg-gradient-to-t from-bg to-transparent z-10 pointer-events-none opacity-50"></div>
         
-        <div class="w-full max-w-sm border border-borderSubtle bg-card backdrop-blur-md rounded-xl p-6 z-20 shadow-2xl">
+        <div class="w-full max-w-sm border border-borderSubtle bg-card backdrop-blur-md rounded-xl p-6 z-20 shadow-2xl glass-panel">
             <div class="flex items-center justify-between mb-6 border-b border-borderSubtle pb-4">
                 <div class="flex items-center gap-3">
                     <div class="w-8 h-8 rounded bg-black/[0.02] border border-borderSubtle flex items-center justify-center">
@@ -83,13 +98,13 @@
         </div>
     </div>
 
-    <div class="flex-1 flex flex-col justify-center px-8 sm:px-16 lg:px-24 bg-transparent relative">
+    <div class="flex-1 flex flex-col justify-center px-8 sm:px-16 lg:px-24 bg-transparent relative z-10">
         <div class="w-full max-w-sm mx-auto">
             <div class="flex items-center gap-2 mb-10 cursor-pointer" onclick="window.location.href='index.html'">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="#7C3AED" stroke-width="2" stroke-linejoin="round"/>
-                    <path d="M2 17L12 22L22 17" stroke="#7C3AED" stroke-width="2" stroke-linejoin="round"/>
-                    <path d="M2 12L12 17L22 12" stroke="#7C3AED" stroke-width="2" stroke-linejoin="round"/>
+                    <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="#B87C3B" stroke-width="2" stroke-linejoin="round"/>
+                    <path d="M2 17L12 22L22 17" stroke="#B87C3B" stroke-width="2" stroke-linejoin="round"/>
+                    <path d="M2 12L12 17L22 12" stroke="#B87C3B" stroke-width="2" stroke-linejoin="round"/>
                 </svg>
                 <span class="text-[16px] font-semibold tracking-tight text-textMain">MonitorPro</span>
             </div>

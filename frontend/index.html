@@ -17,25 +17,25 @@
             theme: {
                 extend: {
                     colors: {
-                        bg: "#F5F5F7",
-                        surface: "rgba(255, 255, 255, 0.45)",
-                        card: "rgba(255, 255, 255, 0.65)",
-                        borderSubtle: "rgba(0, 0, 0, 0.06)",
-                        primary: "#7C3AED", /* Premium Violet */
-                        primaryHover: "#6D28D9",
+                        bg: "#ECEAE5",
+                        surface: "rgba(255, 255, 255, 0.62)",
+                        card: "rgba(255, 255, 255, 0.62)",
+                        borderSubtle: "rgba(30, 26, 23, 0.08)",
+                        primary: "#B87C3B", /* Rich Amber */
+                        primaryHover: "#9c642c",
                         success: "#10B981",
-                        warning: "#F59E0B",
+                        warning: "#B87C3B",
                         danger: "#EF4444",
-                        textMain: "#0F172A",
-                        textMuted: "#334155",
-                        textSubtle: "#64748B",
+                        textMain: "#1E1A17",
+                        textMuted: "#4A4540",
+                        textSubtle: "#7C7770",
                     },
                     fontFamily: {
                         sans: ['Inter', 'sans-serif'],
                         mono: ['JetBrains Mono', 'monospace'],
                     },
                     backgroundImage: {
-                        'glow-radial': 'radial-gradient(circle at 50% 0%, rgba(124, 58, 237, 0.06) 0%, rgba(245, 245, 247, 0) 65%)',
+                        'glow-radial': 'radial-gradient(circle at 50% 0%, rgba(184, 124, 59, 0.08) 0%, rgba(236, 234, 229, 0) 65%)',
                     }
                 }
             }
@@ -43,30 +43,30 @@
     </script>
     
     <style>
-        html { scroll-behavior: smooth; background-color: #F5F5F7; color: #0F172A; }
+        html { scroll-behavior: smooth; background-color: #ECEAE5; color: #1E1A17; }
         body { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
         
         ::-webkit-scrollbar { width: 4px; height: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #D4D4D8; border-radius: 2px; }
-        ::-webkit-scrollbar-thumb:hover { background: #A1A1AA; }
+        ::-webkit-scrollbar-thumb { background: #C4C2BC; border-radius: 2px; }
+        ::-webkit-scrollbar-thumb:hover { background: #A4A29C; }
         
         .bg-grid {
             position: absolute; inset: 0; z-index: -1; pointer-events: none;
             background-size: 40px 40px;
-            background-image: linear-gradient(to right, rgba(15, 23, 42, 0.02) 1px, transparent 1px),
-                              linear-gradient(to bottom, rgba(15, 23, 42, 0.02) 1px, transparent 1px);
+            background-image: linear-gradient(to right, rgba(30, 26, 23, 0.02) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(30, 26, 23, 0.02) 1px, transparent 1px);
             mask-image: linear-gradient(to bottom, black 20%, transparent 80%);
             -webkit-mask-image: linear-gradient(to bottom, black 20%, transparent 80%);
         }
-
+ 
         .glass-nav {
-            background: rgba(245, 245, 247, 0.65);
+            background: rgba(236, 234, 229, 0.65);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+            border-bottom: 1px solid rgba(30, 26, 23, 0.06);
         }
-
+ 
         .anim-float { animation: float 6s ease-in-out infinite; }
         @keyframes float {
             0%, 100% { transform: translateY(0); }
@@ -75,16 +75,16 @@
     </style>
 </head>
 <body class="w-full min-h-screen m-0 p-0 overflow-x-hidden relative bg-bg">
-
+ 
     <div class="fixed inset-0 bg-glow-radial z-[-2] pointer-events-none"></div>
     <div class="bg-grid"></div>
-
+ 
     <header class="fixed w-full top-0 z-50 flex justify-between items-center px-6 md:px-12 h-16 glass-nav transition-all">
         <div class="flex items-center gap-2 cursor-pointer" onclick="window.scrollTo(0,0)">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="#7C3AED" stroke-width="2" stroke-linejoin="round"/>
-                <path d="M2 17L12 22L22 17" stroke="#7C3AED" stroke-width="2" stroke-linejoin="round"/>
-                <path d="M2 12L12 17L22 12" stroke="#7C3AED" stroke-width="2" stroke-linejoin="round"/>
+                <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="#B87C3B" stroke-width="2" stroke-linejoin="round"/>
+                <path d="M2 17L12 22L22 17" stroke="#B87C3B" stroke-width="2" stroke-linejoin="round"/>
+                <path d="M2 12L12 17L22 12" stroke="#B87C3B" stroke-width="2" stroke-linejoin="round"/>
             </svg>
             <span class="text-[15px] font-semibold tracking-tight text-textMain">MonitorPro</span>
         </div>
@@ -101,7 +101,7 @@
             </a>
         </div>
     </header>
-
+ 
     <main class="pt-32 pb-24 flex flex-col w-full flex-1 max-w-[1200px] mx-auto px-6 relative z-10">
         <div class="flex flex-col items-center text-center gap-6 max-w-4xl mx-auto mt-12">
             <a href="#" class="inline-flex items-center gap-2 rounded-full px-3 py-1 border border-borderSubtle bg-black/[0.02] text-[12px] font-medium text-textMuted hover:bg-black/[0.04] transition-colors cursor-pointer">
@@ -110,7 +110,7 @@
             </a>
             
             <h1 class="text-[56px] md:text-[72px] leading-[1.05] font-bold tracking-tight text-textMain">
-                Absolute <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-500">Observability</span>
+                Absolute <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-[#9c642c]">Observability</span>
             </h1>
             
             <p class="text-[18px] text-textMuted leading-relaxed max-w-2xl font-medium mt-2">
@@ -118,7 +118,7 @@
             </p>
             
             <div class="flex items-center gap-4 mt-4">
-                <a href="signup.html" id="heroGetStarted" class="bg-primary text-white font-semibold text-[14px] px-6 py-3 rounded-md hover:bg-primaryHover transition-colors shadow-[0_4px_20px_rgba(124,58,237,0.15)]">
+                <a href="signup.html" id="heroGetStarted" class="bg-primary text-white font-semibold text-[14px] px-6 py-3 rounded-md hover:bg-primaryHover transition-colors shadow-[0_4px_20px_rgba(184,124,59,0.15)]">
                     Start for free
                 </a>
                 <a href="dashboard.html" class="bg-surface border border-borderSubtle text-textMain font-medium text-[14px] px-6 py-3 rounded-md hover:bg-black/[0.02] transition-colors">
@@ -138,11 +138,11 @@
                 <svg viewBox="0 0 800 400" class="w-full h-full opacity-80">
                     <defs>
                         <linearGradient id="purpleGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                            <stop offset="0%" stop-color="#7C3AED" />
-                            <stop offset="100%" stop-color="#2563EB" />
+                            <stop offset="0%" stop-color="#B87C3B" />
+                            <stop offset="100%" stop-color="#9C642C" />
                         </linearGradient>
                     </defs>
-                    <g fill="none" stroke="rgba(15,23,42,0.03)" stroke-width="1">
+                    <g fill="none" stroke="rgba(30,26,23,0.03)" stroke-width="1">
                         <!-- Background mapping -->
                         <path d="M 100 0 L 100 400 M 200 0 L 200 400 M 300 0 L 300 400 M 400 0 L 400 400 M 500 0 L 500 400 M 600 0 L 600 400 M 700 0 L 700 400" />
                         <path d="M 0 100 L 800 100 M 0 200 L 800 200 M 0 300 L 800 300" />
@@ -150,16 +150,16 @@
                         <!-- Sine waves representing data streams -->
                         <path d="M 0 200 Q 100 100, 200 200 T 400 200 T 600 200 T 800 200" stroke="url(#purpleGrad)" stroke-width="2" />
                         <path d="M 0 200 Q 100 300, 200 200 T 400 200 T 600 200 T 800 200" stroke="url(#purpleGrad)" stroke-width="2" opacity="0.2"/>
-                        <path d="M 0 200 Q 150 150, 300 250 T 600 150 T 800 200" stroke="rgba(15,23,42,0.1)" stroke-width="1.5" stroke-dasharray="4 4" />
+                        <path d="M 0 200 Q 150 150, 300 250 T 600 150 T 800 200" stroke="rgba(30,26,23,0.1)" stroke-width="1.5" stroke-dasharray="4 4" />
                     </g>
                     <!-- Nodes -->
-                    <circle cx="200" cy="200" r="5" fill="#0F172A" />
-                    <circle cx="400" cy="200" r="7" fill="#7C3AED">
+                    <circle cx="200" cy="200" r="5" fill="#1E1A17" />
+                    <circle cx="400" cy="200" r="7" fill="#B87C3B">
                         <animate attributeName="r" values="7;9;7" dur="2s" repeatCount="indefinite" />
                     </circle>
-                    <circle cx="600" cy="200" r="5" fill="#0F172A" />
-                    <circle cx="300" cy="250" r="4" fill="#64748B" />
-                    <circle cx="600" cy="150" r="4" fill="#64748B" />
+                    <circle cx="600" cy="200" r="5" fill="#1E1A17" />
+                    <circle cx="300" cy="250" r="4" fill="#7C7770" />
+                    <circle cx="600" cy="150" r="4" fill="#7C7770" />
                 </svg>
             </div>
         </div>

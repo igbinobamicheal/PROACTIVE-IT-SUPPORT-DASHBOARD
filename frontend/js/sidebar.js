@@ -37,9 +37,9 @@
                     transform: translateX(-100%) !important;
                     width: 240px !important;
                     z-index: 50 !important;
-                    box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08);
-                    background-color: #FAF9FB !important;
-                    border-right: 1px solid rgba(0, 0, 0, 0.06);
+                    box-shadow: 0 10px 25px -5px rgba(30, 26, 23, 0.15);
+                    background-color: #151310 !important;
+                    border-right: 1px solid rgba(255, 255, 255, 0.05) !important;
                 }
                 #sidebar.mobile-open {
                     transform: translateX(0) !important;
@@ -79,7 +79,7 @@
         // 4. Inject Mobile Backdrop Overlay
         const overlay = document.createElement('div');
         overlay.id = 'sidebarOverlay';
-        overlay.className = 'fixed inset-0 bg-slate-900/15 backdrop-blur-[2px] z-40 hidden transition-opacity duration-300 opacity-0';
+        overlay.className = 'fixed inset-0 bg-[#1E1A17]/25 backdrop-blur-[2px] z-40 hidden transition-opacity duration-300 opacity-0';
         document.body.appendChild(overlay);
 
         // 5. Run local SVG icons parsing to display newly injected icons

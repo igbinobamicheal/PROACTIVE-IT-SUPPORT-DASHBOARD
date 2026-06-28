@@ -330,7 +330,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const row = document.getElementById(`metrics-row-${data.device_id}`);
                 if (row) {
                     row.style.transition = 'none';
-                    row.style.backgroundColor = 'rgba(124, 58, 237, 0.08)';
+                    row.style.backgroundColor = 'rgba(184, 124, 59, 0.08)';
                     setTimeout(() => {
                         row.style.transition = 'background-color 1s ease';
                         row.style.backgroundColor = 'transparent';

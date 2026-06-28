@@ -17,12 +17,12 @@
             theme: {
                 extend: {
                     colors: {
-                        bg: "#F5F5F7",
-                        surface: "rgba(255, 255, 255, 0.45)",
-                        card: "rgba(255, 255, 255, 0.65)",
-                        borderSubtle: "rgba(0, 0, 0, 0.06)",
-                        primary: "#7C3AED", success: "#10B981", warning: "#F59E0B", danger: "#EF4444",
-                        textMain: "#0F172A", textMuted: "#334155", textSubtle: "#64748B",
+                        bg: "#ECEAE5",
+                        surface: "rgba(255, 255, 255, 0.62)",
+                        card: "rgba(255, 255, 255, 0.62)",
+                        borderSubtle: "rgba(30, 26, 23, 0.08)",
+                        primary: "#B87C3B", primaryHover: "#9c642c", success: "#10B981", warning: "#B87C3B", danger: "#EF4444",
+                        textMain: "#1E1A17", textMuted: "#4A4540", textSubtle: "#7C7770",
                     },
                     fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] }
                 }
@@ -30,27 +30,27 @@
         }
     </script>
     <style>
-        body { background-color: #F5F5F7; color: #0F172A; font-family: 'Inter', sans-serif; }
+        body { background-color: #ECEAE5; color: #1E1A17; font-family: 'Inter', sans-serif; }
         ::-webkit-scrollbar { width: 4px; height: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #D4D4D8; border-radius: 2px; }
-        ::-webkit-scrollbar-thumb:hover { background: #A1A1AA; }
+        ::-webkit-scrollbar-thumb { background: #C4C2BC; border-radius: 2px; }
+        ::-webkit-scrollbar-thumb:hover { background: #A4A29C; }
         
-        .metric-card { border: 1px solid rgba(0,0,0,0.06); background-color: rgba(255,255,255,0.45); backdrop-filter: blur(16px); }
+        .metric-card { border: 1px solid rgba(255,255,255,0.45); background-color: rgba(255,255,255,0.62); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); box-shadow: 0 8px 32px 0 rgba(30, 26, 23, 0.03); }
         .code-block { font-family: 'JetBrains Mono', 'Courier New', monospace; font-size: 13px; line-height: 1.6; }
     </style>
 </head>
-<body class="w-full h-screen overflow-hidden flex bg-bg">
+<body class="w-full h-screen overflow-hidden flex bg-bg relative">
 
     <!-- Sidebar -->
-    <nav class="bg-surface h-full w-[220px] flex-shrink-0 flex flex-col border-r border-borderSubtle z-40">
+    <nav class="bg-[#151310] h-full w-[220px] flex-shrink-0 flex flex-col border-r border-white/5 z-40 text-zinc-400">
         <div class="px-5 py-4 flex items-center gap-2 mb-4">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="#7C3AED" stroke-width="2" stroke-linejoin="round"/>
-                <path d="M2 17L12 22L22 17" stroke="#7C3AED" stroke-width="2" stroke-linejoin="round"/>
-                <path d="M2 12L12 17L22 12" stroke="#7C3AED" stroke-width="2" stroke-linejoin="round"/>
+                <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="#B87C3B" stroke-width="2" stroke-linejoin="round"/>
+                <path d="M2 17L12 22L22 17" stroke="#B87C3B" stroke-width="2" stroke-linejoin="round"/>
+                <path d="M2 12L12 17L22 12" stroke="#B87C3B" stroke-width="2" stroke-linejoin="round"/>
             </svg>
-            <span class="text-[14px] font-semibold tracking-tight text-textMain">MonitorPro</span>
+            <span class="text-[14px] font-semibold tracking-tight text-white">MonitorPro</span>
         </div>
         
         <div class="flex-1 overflow-y-auto px-3 pb-4 space-y-6">
@@ -58,17 +58,17 @@
                 <div class="text-[10px] font-semibold text-textSubtle px-3 mb-2 uppercase tracking-widest">Platform</div>
                 <ul class="flex flex-col gap-0.5">
                     <li>
-                        <a href="dashboard.html" class="flex items-center gap-3 px-3 py-1.5 rounded-md hover:bg-black/[0.02] text-textMuted hover:text-textMain text-[13px] font-medium transition-colors border border-transparent">
-                            <i data-lucide="layout-dashboard" class="w-4 h-4 text-textSubtle"></i> Overview
+                        <a href="dashboard.html" class="flex items-center gap-3 pl-3 pr-4 py-2 border-l-2 border-transparent text-zinc-400 hover:text-white hover:bg-white/[0.01] text-[13px] font-medium transition-all">
+                            <i data-lucide="layout-dashboard" class="w-4 h-4 text-zinc-500"></i> Overview
                         </a>
                     </li>
                     <li>
-                        <a href="devices.html" class="flex items-center gap-3 px-3 py-1.5 rounded-md hover:bg-black/[0.02] text-textMuted hover:text-textMain text-[13px] font-medium transition-colors border border-transparent">
-                            <i data-lucide="server" class="w-4 h-4 text-textSubtle"></i> Infrastructure
+                        <a href="devices.html" class="flex items-center gap-3 pl-3 pr-4 py-2 border-l-2 border-transparent text-zinc-400 hover:text-white hover:bg-white/[0.01] text-[13px] font-medium transition-all">
+                            <i data-lucide="server" class="w-4 h-4 text-zinc-500"></i> Infrastructure
                         </a>
                     </li>
                     <li>
-                        <a href="deploy-agent.html" class="flex items-center gap-3 px-3 py-1.5 rounded-md bg-primary/10 text-primary text-[13px] font-semibold border border-primary/20">
+                        <a href="deploy-agent.html" class="flex items-center gap-3 pl-3 pr-4 py-2 border-l-2 border-primary text-primary text-[13px] font-semibold bg-white/[0.02]">
                             <i data-lucide="rocket" class="w-4 h-4 text-primary"></i> Deploy Agent
                         </a>
                     </li>
@@ -76,30 +76,37 @@
             </div>
 
             <div>
-                <div class="text-[10px] font-semibold text-textSubtle px-3 mb-2 uppercase tracking-widest">Investigate</div>
+                <div class="text-[10px] font-semibold text-zinc-500 px-3 mb-2 uppercase tracking-widest">Investigate</div>
                 <ul class="flex flex-col gap-0.5">
                     <li>
-                        <a href="alerts.html" class="flex items-center justify-between px-3 py-1.5 rounded-md hover:bg-black/[0.02] text-textMuted hover:text-textMain text-[13px] font-medium transition-colors border border-transparent">
-                            <div class="flex items-center gap-3"><i data-lucide="alert-circle" class="w-4 h-4 text-textSubtle"></i> Alerts</div>
+                        <a href="alerts.html" class="flex items-center justify-between pl-3 pr-4 py-2 border-l-2 border-transparent text-zinc-400 hover:text-white hover:bg-white/[0.01] text-[13px] font-medium transition-all">
+                            <div class="flex items-center gap-3"><i data-lucide="alert-circle" class="w-4 h-4 text-zinc-500"></i> Alerts</div>
                         </a>
                     </li>
                 </ul>
             </div>
         </div>
         
-        <div class="p-3 border-t border-borderSubtle">
-            <div class="mb-3 px-3 py-2 bg-black/[0.02] border border-borderSubtle rounded-md">
-                <div class="text-[12px] font-medium text-textMain truncate" id="currentUser">Admin Console</div>
-                <div class="text-[10px] text-textSubtle font-mono uppercase mt-0.5">Administrator</div>
+        <div class="p-3 border-t border-white/5">
+            <div class="mb-3 px-3 py-2 bg-white/[0.02] border border-white/5 rounded-md">
+                <div class="text-[12px] font-medium text-white truncate" id="currentUser">Admin Console</div>
+                <div class="text-[10px] text-zinc-500 font-mono uppercase mt-0.5">Administrator</div>
             </div>
-            <button id="logoutBtn" class="flex items-center gap-3 w-full p-2 rounded-md hover:bg-black/[0.02] text-textMuted hover:text-textMain text-[13px] font-medium transition-colors text-left border border-transparent hover:border-borderSubtle">
-                <i data-lucide="log-out" class="w-4 h-4 text-textSubtle"></i> Sign Out
+            <button id="logoutBtn" class="flex items-center gap-3 w-full p-2 rounded-md hover:bg-white/[0.02] text-zinc-400 hover:text-white text-[13px] font-medium transition-all text-left border border-transparent hover:border-white/5">
+                <i data-lucide="log-out" class="w-4 h-4 text-zinc-500"></i> Sign Out
             </button>
         </div>
     </nav>
 
     <!-- Main Workspace -->
     <div class="flex-1 flex flex-col h-full overflow-y-auto bg-transparent relative">
+        <!-- Background Radial Gradients for glassmorphism depth -->
+        <div class="fixed inset-0 pointer-events-none z-[-1] overflow-hidden bg-[#ECEAE5]">
+            <div class="absolute -top-[20%] -left-[10%] w-[50%] aspect-square rounded-full bg-gradient-to-br from-[#B87C3B]/8 to-transparent blur-[120px]"></div>
+            <div class="absolute -bottom-[20%] -right-[10%] w-[60%] aspect-square rounded-full bg-gradient-to-tl from-[#B87C3B]/6 to-transparent blur-[140px]"></div>
+            <div class="absolute top-[30%] left-[50%] w-[40%] aspect-square rounded-full bg-gradient-to-r from-[#B87C3B]/4 to-transparent blur-[100px]"></div>
+        </div>
+
         <header class="bg-bg/85 backdrop-blur-md border-b border-borderSubtle flex justify-between items-center px-6 h-14 sticky top-0 z-30">
             <div class="flex items-center gap-3 text-[13px] font-medium text-textMuted">
                 <a href="dashboard.html" class="hover:text-textMain transition-colors">Overview</a>
@@ -150,7 +157,7 @@
                 </div>
 
                 <div class="bg-[#0C0F0A] border border-black/10 rounded-md p-4 relative overflow-hidden">
-                    <code id="installCommand" class="code-block text-[#ffdb0f] break-all whitespace-pre-wrap select-all font-mono">
+                    <code id="installCommand" class="code-block text-[#B87C3B] break-all whitespace-pre-wrap select-all font-mono">
                     </code>
                 </div>
                 <p class="text-[11px] text-textSubtle leading-relaxed flex items-center gap-1.5">
