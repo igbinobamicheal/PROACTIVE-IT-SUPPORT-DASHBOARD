@@ -100,3 +100,5 @@ const api = {
         return this.request('/registration-tokens/revoke', 'POST', { token });
     }
 };
+
+window.api = api;
