@@ -86,5 +86,17 @@ const api = {
 
     getAlerts(activeOnly = false) {
         return this.request(`/alerts${activeOnly ? '?active=true' : ''}`, 'GET');
+    },
+
+    getRegistrationTokens() {
+        return this.request('/registration-tokens', 'GET');
+    },
+
+    createRegistrationToken() {
+        return this.request('/registration-tokens', 'POST');
+    },
+
+    revokeRegistrationToken(token) {
+        return this.request('/registration-tokens/revoke', 'POST', { token });
     }
 };

@@ -62,6 +62,20 @@ void Database::initialize() {
                  "  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
                  ");");
 
+        txn.exec("ALTER TABLE devices ADD COLUMN IF NOT EXISTS machine_guid VARCHAR(255) UNIQUE;");
+        txn.exec("ALTER TABLE devices ADD COLUMN IF NOT EXISTS mac_address VARCHAR(50);");
+        txn.exec("ALTER TABLE devices ADD COLUMN IF NOT EXISTS windows_version VARCHAR(255);");
+        txn.exec("ALTER TABLE devices ADD COLUMN IF NOT EXISTS last_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP;");
+
+        // 2b. Registration Tokens Table
+        txn.exec("CREATE TABLE IF NOT EXISTS registration_tokens ("
+                 "  id SERIAL PRIMARY KEY,"
+                 "  token VARCHAR(255) NOT NULL UNIQUE,"
+                 "  expires_at TIMESTAMP NOT NULL,"
+                 "  used BOOLEAN DEFAULT FALSE,"
+                 "  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
+                 ");");
+
         // 3. Metrics Table
         txn.exec("CREATE TABLE IF NOT EXISTS metrics ("
                  "  id SERIAL PRIMARY KEY,"
@@ -177,13 +191,23 @@ void Database::prepareConnection(pqxx::connection& conn) {
 
     // 2. Devices queries
     conn.prepare("create_device", "INSERT INTO devices (name, token, ip_address, status) VALUES ($1, $2, $3, $4) RETURNING id");
-    conn.prepare("find_all_devices", "SELECT id, name, token, ip_address, status, TO_CHAR(created_at, 'YYYY-MM-DD HH24:MI:SS') AS created_at FROM devices");
-    conn.prepare("find_device_by_id", "SELECT id, name, token, ip_address, status, TO_CHAR(created_at, 'YYYY-MM-DD HH24:MI:SS') AS created_at FROM devices WHERE id = $1");
-    conn.prepare("find_device_by_token", "SELECT id, name, token, ip_address, status, TO_CHAR(created_at, 'YYYY-MM-DD HH24:MI:SS') AS created_at FROM devices WHERE token = $1");
+    conn.prepare("create_device_v2", "INSERT INTO devices (name, token, ip_address, status, machine_guid, mac_address, windows_version) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id");
+    conn.prepare("find_all_devices", "SELECT id, name, token, ip_address, status, machine_guid, mac_address, windows_version, TO_CHAR(created_at, 'YYYY-MM-DD HH24:MI:SS') AS created_at FROM devices");
+    conn.prepare("find_device_by_id", "SELECT id, name, token, ip_address, status, machine_guid, mac_address, windows_version, TO_CHAR(created_at, 'YYYY-MM-DD HH24:MI:SS') AS created_at FROM devices WHERE id = $1");
+    conn.prepare("find_device_by_token", "SELECT id, name, token, ip_address, status, machine_guid, mac_address, windows_version, TO_CHAR(created_at, 'YYYY-MM-DD HH24:MI:SS') AS created_at FROM devices WHERE token = $1");
+    conn.prepare("find_device_by_guid", "SELECT id, name, token, ip_address, status, machine_guid, mac_address, windows_version, TO_CHAR(created_at, 'YYYY-MM-DD HH24:MI:SS') AS created_at FROM devices WHERE machine_guid = $1");
+    conn.prepare("update_device_details", "UPDATE devices SET name = $1, ip_address = $2, mac_address = $3, windows_version = $4, token = $5, status = $6 WHERE id = $7");
+
+    // 2b. Registration Token queries
+    conn.prepare("create_registration_token", "INSERT INTO registration_tokens (token, expires_at) VALUES ($1, $2) RETURNING id");
+    conn.prepare("find_registration_token", "SELECT id, token, used, (expires_at < NOW()) AS is_expired FROM registration_tokens WHERE token = $1");
+    conn.prepare("use_registration_token", "UPDATE registration_tokens SET used = TRUE WHERE token = $1");
+    conn.prepare("find_all_registration_tokens", "SELECT id, token, used, (expires_at < NOW()) AS is_expired FROM registration_tokens ORDER BY created_at DESC");
+    conn.prepare("revoke_registration_token", "UPDATE registration_tokens SET expires_at = NOW() WHERE token = $1");
 
     // 3. Metrics queries
     conn.prepare("create_metric", "INSERT INTO metrics (device_id, cpu_usage, ram_usage, disk_usage, network_in, network_out, uptime) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id");
-    conn.prepare("update_device_status", "UPDATE devices SET status = $1 WHERE id = $2");
+    conn.prepare("update_device_status", "UPDATE devices SET status = $1, last_seen = NOW() WHERE id = $2");
     conn.prepare("find_latest_metric", "SELECT id, device_id, cpu_usage, ram_usage, disk_usage, network_in, network_out, uptime, TO_CHAR(timestamp, 'YYYY-MM-DD HH24:MI:SS') AS timestamp FROM metrics WHERE device_id = $1 ORDER BY timestamp DESC LIMIT 1");
     conn.prepare("find_metric_history", "SELECT id, device_id, cpu_usage, ram_usage, disk_usage, network_in, network_out, uptime, TO_CHAR(timestamp, 'YYYY-MM-DD HH24:MI:SS') AS timestamp FROM metrics WHERE device_id = $1 ORDER BY timestamp DESC LIMIT $2");
 
@@ -195,5 +219,5 @@ void Database::prepareConnection(pqxx::connection& conn) {
     conn.prepare("resolve_alert", "UPDATE alerts SET resolved = TRUE WHERE device_id = $1 AND rule_type = $2 AND resolved = FALSE");
     
     // 5. StatusChecker queries
-    conn.prepare("find_timed_out_devices", "SELECT id, name, ip_address FROM devices WHERE status = 'online' AND id NOT IN (SELECT DISTINCT device_id FROM metrics WHERE timestamp >= NOW() - INTERVAL '30 seconds')");
+    conn.prepare("find_timed_out_devices", "SELECT id, name, ip_address FROM devices WHERE status = 'online' AND last_seen < NOW() - INTERVAL '30 seconds'");
 }

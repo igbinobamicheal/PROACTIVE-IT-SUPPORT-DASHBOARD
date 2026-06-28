@@ -1,9 +1,12 @@
 #include "controllers/DeviceController.hpp"
 #include "repositories/DeviceRepository.hpp"
+#include "repositories/RegistrationTokenRepository.hpp"
 #include "repositories/MetricRepository.hpp"
 #include "config/Config.hpp"
 #include "utils/JWTUtil.hpp"
 #include "utils/EventBroker.hpp"
+#include "database/Database.hpp"
+#include <pqxx/pqxx>
 #include <nlohmann/json.hpp>
 #include <iostream>
 #include <fstream>
@@ -12,8 +15,142 @@
 #include <string>
 #include <filesystem>
 #include <queue>
+#include <random>
+#include <sstream>
+#include <iomanip>
+#include <chrono>
+
+namespace {
+std::string generateUUID() {
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dis(0, 15);
+    std::uniform_int_distribution<> dis2(8, 11);
+
+    std::stringstream ss;
+    ss << std::hex;
+    for (int i = 0; i < 8; i++) ss << dis(gen);
+    ss << "-";
+    for (int i = 0; i < 4; i++) ss << dis(gen);
+    ss << "-4"; // UUIDv4 version
+    for (int i = 0; i < 3; i++) ss << dis(gen);
+    ss << "-";
+    ss << dis2(gen); // UUIDv4 variant
+    for (int i = 0; i < 3; i++) ss << dis(gen);
+    ss << "-";
+    for (int i = 0; i < 12; i++) ss << dis(gen);
+    return ss.str();
+}
+
+std::string getFormattedExpiry(int minutesFromNow) {
+    auto now = std::chrono::system_clock::now() + std::chrono::minutes(minutesFromNow);
+    auto time_t_now = std::chrono::system_clock::to_time_t(now);
+    std::tm tm_now;
+#if defined(_MSC_VER)
+    localtime_s(&tm_now, &time_t_now);
+#else
+    localtime_r(&time_t_now, &tm_now);
+#endif
+    std::stringstream ss;
+    ss << std::put_time(&tm_now, "%Y-%m-%d %H:%M:%S");
+    return ss.str();
+}
+} // namespace
 
 void DeviceController::registerRoutes(crow::App<CORSMiddleware, AuthMiddleware>& app) {
+    // 0. POST /api/registration-tokens (guarded by AuthMiddleware)
+    CROW_ROUTE(app, "/api/registration-tokens")
+    .methods(crow::HTTPMethod::POST)
+    .CROW_MIDDLEWARES(app, AuthMiddleware)
+    ([]() {
+        crow::response res;
+        res.set_header("Content-Type", "application/json");
+        try {
+            std::string token = generateUUID();
+            std::string expiresAt = getFormattedExpiry(15);
+            
+            RegistrationTokenRepository repo;
+            repo.create(token, expiresAt);
+            
+            nlohmann::json response = {
+                {"token", token},
+                {"expires_at", expiresAt}
+            };
+            
+            res.code = 201;
+            res.write(response.dump());
+            return res;
+        } catch (const std::exception& e) {
+            res.code = 500;
+            res.write(nlohmann::json{{"error", std::string("Failed to generate registration token: ") + e.what()}}.dump());
+            return res;
+        }
+    });
+
+    // 0b. GET /api/registration-tokens (guarded by AuthMiddleware)
+    CROW_ROUTE(app, "/api/registration-tokens")
+    .methods(crow::HTTPMethod::GET)
+    .CROW_MIDDLEWARES(app, AuthMiddleware)
+    ([]() {
+        crow::response res;
+        res.set_header("Content-Type", "application/json");
+        try {
+            RegistrationTokenRepository repo;
+            auto tokens = repo.findAll();
+            
+            nlohmann::json arr = nlohmann::json::array();
+            for (const auto& t : tokens) {
+                nlohmann::json item;
+                item["id"] = t.id;
+                item["token"] = t.token;
+                item["used"] = t.used;
+                item["is_expired"] = t.isExpired;
+                arr.push_back(item);
+            }
+            
+            res.code = 200;
+            res.write(arr.dump());
+            return res;
+        } catch (const std::exception& e) {
+            res.code = 500;
+            res.write(nlohmann::json{{"error", std::string("Failed to fetch registration tokens: ") + e.what()}}.dump());
+            return res;
+        }
+    });
+
+    // 0c. POST /api/registration-tokens/revoke (guarded by AuthMiddleware)
+    CROW_ROUTE(app, "/api/registration-tokens/revoke")
+    .methods(crow::HTTPMethod::POST)
+    .CROW_MIDDLEWARES(app, AuthMiddleware)
+    ([](const crow::request& req) {
+        crow::response res;
+        res.set_header("Content-Type", "application/json");
+        try {
+            auto body = nlohmann::json::parse(req.body);
+            if (!body.contains("token")) {
+                res.code = 400;
+                res.write(nlohmann::json{{"error", "Missing token in request body"}}.dump());
+                return res;
+            }
+            
+            std::string tokenStr = body["token"];
+            RegistrationTokenRepository repo;
+            repo.revokeToken(tokenStr);
+            
+            res.code = 200;
+            res.write(nlohmann::json{{"message", "Token revoked successfully"}}.dump());
+            return res;
+        } catch (const nlohmann::json::parse_error& e) {
+            res.code = 400;
+            res.write(nlohmann::json{{"error", "Malformed JSON request body"}}.dump());
+            return res;
+        } catch (const std::exception& e) {
+            res.code = 500;
+            res.write(nlohmann::json{{"error", std::string("Failed to revoke token: ") + e.what()}}.dump());
+            return res;
+        }
+    });
+
     // 1. POST /api/register-device (unguarded by AuthMiddleware, verified internally)
     CROW_ROUTE(app, "/api/register-device")
     .methods(crow::HTTPMethod::POST)
@@ -24,51 +161,96 @@ void DeviceController::registerRoutes(crow::App<CORSMiddleware, AuthMiddleware>&
         try {
             auto body = nlohmann::json::parse(req.body);
             
-            // Check authorization: either a valid registration key or admin JWT
-            bool isAuthorized = false;
-            
-            // A. Check for registration key in body
-            if (body.contains("registration_key")) {
-                std::string key = body["registration_key"];
-                if (key == Config::getInstance().registrationKey) {
-                    isAuthorized = true;
-                }
-            }
-            
-            // B. Check for user JWT in Authorization header
-            if (!isAuthorized) {
-                std::string authHeader = req.get_header_value("Authorization");
-                if (!authHeader.empty() && authHeader.find("Bearer ") == 0) {
-                    std::string token = authHeader.substr(7);
-                    std::string username = JWTUtil::verifyToken(token, Config::getInstance().jwtSecret);
-                    if (!username.empty()) {
-                        isAuthorized = true;
-                    }
-                }
-            }
-            
-            if (!isAuthorized) {
-                res.code = 401;
-                res.write(nlohmann::json{{"error", "Unauthorized: Valid Authorization token or registration_key is required"}}.dump());
-                return res;
-            }
-
-            if (!body.contains("name") || !body.contains("ip_address")) {
+            if (!body.contains("registration_token") || !body.contains("name") || 
+                !body.contains("machine_guid") || !body.contains("mac_address") || 
+                !body.contains("windows_version")) {
                 res.code = 400;
-                res.write(nlohmann::json{{"error", "Device name and ip_address are required"}}.dump());
+                res.write(nlohmann::json{{"error", "Missing required fields (registration_token, name, machine_guid, mac_address, windows_version)"}}.dump());
                 return res;
             }
 
-            Device dev;
-            dev.name = body["name"];
-            dev.ipAddress = body["ip_address"];
-            dev.status = "offline"; // Initial status is offline until first metric is received
+            std::string regToken = body["registration_token"];
+            RegistrationTokenRepository tokenRepo;
+            auto rtOpt = tokenRepo.findByToken(regToken);
+            
+            if (!rtOpt.has_value()) {
+                res.code = 401;
+                res.write(nlohmann::json{{"error", "Unauthorized: Invalid registration token"}}.dump());
+                return res;
+            }
+
+            auto rt = rtOpt.value();
+            if (rt.used) {
+                res.code = 401;
+                res.write(nlohmann::json{{"error", "Unauthorized: Registration token has already been used"}}.dump());
+                return res;
+            }
+
+            if (rt.isExpired) {
+                res.code = 401;
+                res.write(nlohmann::json{{"error", "Unauthorized: Registration token has expired"}}.dump());
+                return res;
+            }
+
+            // Invalidate the token immediately
+            tokenRepo.useToken(regToken);
+
+            std::string ip = req.remote_ip_address;
+            if (ip.empty() || ip == "127.0.0.1" || ip == "::1") {
+                if (body.contains("ip_address")) {
+                    ip = body["ip_address"];
+                } else {
+                    ip = "127.0.0.1";
+                }
+            }
 
             DeviceRepository devRepo;
-            devRepo.create(dev);
+            std::string guid = body["machine_guid"];
+            auto existingDevOpt = devRepo.findByGuid(guid);
+
+            Device dev;
+            if (existingDevOpt.has_value()) {
+                // Update existing device
+                dev = existingDevOpt.value();
+                dev.name = body["name"];
+                dev.ipAddress = ip;
+                dev.macAddress = body["mac_address"];
+                dev.windowsVersion = body["windows_version"];
+                dev.status = "offline";
+                
+                // Generate a new unique device token (credentials refresh)
+                std::random_device rd;
+                std::mt19937 generator(rd());
+                std::uniform_int_distribution<uint64_t> distribution;
+                std::stringstream ss;
+                ss << std::hex << std::setfill('0');
+                ss << std::setw(16) << distribution(generator);
+                ss << std::setw(16) << distribution(generator);
+                ss << std::setw(16) << distribution(generator);
+                ss << std::setw(16) << distribution(generator);
+                dev.token = ss.str();
+                
+                devRepo.update(dev);
+            } else {
+                // Create a new device
+                dev.name = body["name"];
+                dev.ipAddress = ip;
+                dev.machineGuid = guid;
+                dev.macAddress = body["mac_address"];
+                dev.windowsVersion = body["windows_version"];
+                dev.status = "offline";
+                
+                devRepo.create(dev); // Sets ID and Token automatically
+            }
 
             res.code = 201;
-            res.write(nlohmann::json(dev).dump());
+            res.write(nlohmann::json{
+                {"id", dev.id},
+                {"name", dev.name},
+                {"token", dev.token},
+                {"ip_address", dev.ipAddress},
+                {"status", dev.status}
+            }.dump());
             return res;
 
         } catch (const nlohmann::json::parse_error& e) {
@@ -82,16 +264,48 @@ void DeviceController::registerRoutes(crow::App<CORSMiddleware, AuthMiddleware>&
         }
     });
 
-    // 1b. GET /api/deploy/agent — serves a PowerShell install script (works on Linux/Railway)
+    // 1b. GET /api/deploy/agent — serves a PowerShell install script (verified by token query param)
     CROW_ROUTE(app, "/api/deploy/agent")
     .methods(crow::HTTPMethod::GET)
-    .CROW_MIDDLEWARES(app, AuthMiddleware)
     ([](const crow::request& req) {
         crow::response res;
         try {
-            auto& config = Config::getInstance();
+            // Get registration token from query string
+            const char* tokenParam = req.url_params.get("token");
+            if (!tokenParam || tokenParam[0] == '\0') {
+                res.code = 401;
+                res.set_header("Content-Type", "application/json");
+                res.write(nlohmann::json{{"error", "Missing token parameter in query string"}}.dump());
+                return res;
+            }
 
-            // Determine the public backend URL from forwarded headers (set by Railway)
+            std::string regToken(tokenParam);
+            RegistrationTokenRepository tokenRepo;
+            auto rtOpt = tokenRepo.findByToken(regToken);
+
+            if (!rtOpt.has_value()) {
+                res.code = 401;
+                res.set_header("Content-Type", "application/json");
+                res.write(nlohmann::json{{"error", "Unauthorized: Invalid registration token"}}.dump());
+                return res;
+            }
+
+            auto rt = rtOpt.value();
+            if (rt.used) {
+                res.code = 401;
+                res.set_header("Content-Type", "application/json");
+                res.write(nlohmann::json{{"error", "Unauthorized: Registration token has already been used"}}.dump());
+                return res;
+            }
+
+            if (rt.isExpired) {
+                res.code = 401;
+                res.set_header("Content-Type", "application/json");
+                res.write(nlohmann::json{{"error", "Unauthorized: Registration token has expired"}}.dump());
+                return res;
+            }
+
+            // Determine the public backend URL
             std::string proto = req.get_header_value("X-Forwarded-Proto");
             if (proto.empty()) proto = "https";
             std::string host = req.get_header_value("X-Forwarded-Host");
@@ -99,25 +313,23 @@ void DeviceController::registerRoutes(crow::App<CORSMiddleware, AuthMiddleware>&
             if (host.empty()) host = "localhost:8080";
 
             std::string serverUrl = proto + "://" + host;
-            std::string registrationKey = config.registrationKey;
 
-            // Read AGENT_DOWNLOAD_URL from environment (set in Railway variables)
+            // Read AGENT_DOWNLOAD_URL from environment
             const char* agentUrlEnv = std::getenv("AGENT_DOWNLOAD_URL");
             std::string agentDownloadUrl = agentUrlEnv ? agentUrlEnv : "";
 
             if (agentDownloadUrl.empty()) {
                 res.code = 503;
                 res.set_header("Content-Type", "application/json");
-                res.write(nlohmann::json{{"error", "AGENT_DOWNLOAD_URL environment variable is not set. Upload the agent .exe to GitHub Releases and set this variable in Railway."}}.dump());
+                res.write(nlohmann::json{{"error", "AGENT_DOWNLOAD_URL environment variable is not set. Upload the agent .exe to GitHub Releases and set this variable."}}.dump());
                 return res;
             }
 
             // Build the PowerShell install script dynamically
             std::string ps1 = R"raw(
 $ErrorActionPreference = "Stop"
-$InstallDir = "$env:ProgramData\ProactiveITAgent"
+$InstallDir = "C:\Program Files\ProactiveITAgent"
 $ExePath    = "$InstallDir\proactive_it_agent.exe"
-$CfgPath    = "$InstallDir\config.json"
 
 Write-Host "=== Proactive IT Agent Installer ===" -ForegroundColor Cyan
 
@@ -130,29 +342,19 @@ Write-Host "[*] Downloading agent from: {{AGENT_DOWNLOAD_URL}}"
 Invoke-WebRequest -Uri "{{AGENT_DOWNLOAD_URL}}" -OutFile $ExePath -UseBasicParsing
 Write-Host "[+] Agent downloaded."
 
-$config = @{
-    server           = "{{SERVER_URL}}/api"
-    device_name      = $env:COMPUTERNAME
-    device_token     = ""
-    interval_seconds = 10
-    registration_key = "{{REGISTRATION_KEY}}"
-} | ConvertTo-Json
-Set-Content -Path $CfgPath -Value $config -Encoding UTF8
-Write-Host "[+] Config written: $CfgPath"
+Write-Host "[*] Registering device with dashboard..."
+& $ExePath --register "{{SERVER_URL}}" "{{REGISTRATION_TOKEN}}"
+Write-Host "[+] Device registered and credentials saved."
 
-$taskName = "ProactiveITAgent"
-$action   = New-ScheduledTaskAction -Execute $ExePath -WorkingDirectory $InstallDir
-$trigger  = New-ScheduledTaskTrigger -AtStartup
-$settings = New-ScheduledTaskSettingsSet -ExecutionTimeLimit (New-TimeSpan -Hours 0) -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1)
-$principal = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccount -RunLevel Highest
-Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Settings $settings -Principal $principal -Force | Out-Null
-Write-Host "[+] Scheduled task registered: $taskName (runs as SYSTEM on startup)"
+Write-Host "[*] Installing Windows Service..."
+& $ExePath --install
+Write-Host "[+] Windows Service installed successfully."
 
-Write-Host "[*] Starting agent now..."
-Start-ScheduledTask -TaskName $taskName
+Write-Host "[*] Starting monitoring service now..."
+Start-Service ProactiveITAgent
 Write-Host "[+] Agent started! It will appear in your dashboard within 15 seconds." -ForegroundColor Green
 Write-Host ""
-Write-Host "To uninstall: Unregister-ScheduledTask -TaskName ProactiveITAgent -Confirm:$false; Remove-Item -Recurse $InstallDir"
+Write-Host "To uninstall: & '$ExePath' --uninstall; Remove-Item -Recurse -Force $InstallDir"
 )raw";
 
             auto replaceAll = [](std::string& str, const std::string& from, const std::string& to) {
@@ -165,7 +367,7 @@ Write-Host "To uninstall: Unregister-ScheduledTask -TaskName ProactiveITAgent -C
 
             replaceAll(ps1, "{{AGENT_DOWNLOAD_URL}}", agentDownloadUrl);
             replaceAll(ps1, "{{SERVER_URL}}", serverUrl);
-            replaceAll(ps1, "{{REGISTRATION_KEY}}", registrationKey);
+            replaceAll(ps1, "{{REGISTRATION_TOKEN}}", regToken);
 
             res.code = 200;
             res.set_header("Content-Type", "text/plain; charset=utf-8");
@@ -177,6 +379,127 @@ Write-Host "To uninstall: Unregister-ScheduledTask -TaskName ProactiveITAgent -C
             res.code = 500;
             res.set_header("Content-Type", "application/json");
             res.write(nlohmann::json{{"error", std::string("Failed to generate install script: ") + e.what()}}.dump());
+            return res;
+        }
+    });
+
+    // 1c. GET /api/deploy/installer — serves the compiled Windows Installer executable
+    CROW_ROUTE(app, "/api/deploy/installer")
+    .methods(crow::HTTPMethod::GET)
+    ([]() {
+        crow::response res;
+        try {
+            const char* urlEnv = std::getenv("AGENT_DOWNLOAD_URL");
+            std::string downloadUrl = urlEnv ? urlEnv : "";
+            if (downloadUrl.empty()) {
+                std::string localPath = "installer/windows/Output/ProactiveITAgentSetup.exe";
+                if (std::filesystem::exists(localPath)) {
+                    res.set_static_file_info(localPath);
+                    res.code = 200;
+                    return res;
+                }
+                
+                // Fallback to checking local Release build of setup
+                std::string localPathRelease = "installer/windows/ProactiveITAgentSetup.exe";
+                if (std::filesystem::exists(localPathRelease)) {
+                    res.set_static_file_info(localPathRelease);
+                    res.code = 200;
+                    return res;
+                }
+
+                res.code = 503;
+                res.set_header("Content-Type", "application/json");
+                res.write(nlohmann::json{{"error", "Agent installer download URL is not set and local installer file is missing."}}.dump());
+                return res;
+            }
+            res.code = 307;
+            res.set_header("Location", downloadUrl);
+            return res;
+        } catch (const std::exception& e) {
+            res.code = 500;
+            res.set_header("Content-Type", "application/json");
+            res.write(nlohmann::json{{"error", std::string("Failed to process installer download: ") + e.what()}}.dump());
+            return res;
+        }
+    });
+
+    // 1d. POST /api/heartbeat (unguarded by user JWT, verified internally)
+    CROW_ROUTE(app, "/api/heartbeat")
+    .methods(crow::HTTPMethod::POST)
+    ([](const crow::request& req) {
+        crow::response res;
+        res.set_header("Content-Type", "application/json");
+
+        std::string deviceToken = req.get_header_value("X-Device-Token");
+        if (deviceToken.empty()) {
+            res.code = 401;
+            res.write(nlohmann::json{{"error", "Missing X-Device-Token header"}}.dump());
+            return res;
+        }
+
+        try {
+            DeviceRepository devRepo;
+            auto devOpt = devRepo.findByToken(deviceToken);
+            if (!devOpt.has_value()) {
+                res.code = 401;
+                res.write(nlohmann::json{{"error", "Invalid device token"}}.dump());
+                return res;
+            }
+
+            auto dev = devOpt.value();
+            bool wentOnline = (dev.status == "offline");
+
+            // Update status and last_seen
+            {
+                auto dbConn = Database::getInstance().getConnection();
+                pqxx::work txn(*dbConn);
+                txn.exec_prepared("update_device_status", "online", dev.id);
+                txn.commit();
+            }
+
+            // Publish online event if status changed
+            if (wentOnline) {
+                nlohmann::json onlineEvent = {
+                    {"device_id", dev.id},
+                    {"device_name", dev.name},
+                    {"ip_address", dev.ipAddress},
+                    {"timestamp", EventBroker::getCurrentTimestamp()}
+                };
+                EventBroker::getInstance().publish("device_online", onlineEvent.dump());
+            }
+
+            res.code = 200;
+            res.write(nlohmann::json{{"message", "Heartbeat received successfully"}}.dump());
+            return res;
+        } catch (const std::exception& e) {
+            res.code = 500;
+            res.write(nlohmann::json{{"error", std::string("Internal server error: ") + e.what()}}.dump());
+            return res;
+        }
+    });
+
+    // 1e. GET /api/agent/latest — returns the latest version, download url, and checksum of the agent
+    CROW_ROUTE(app, "/api/agent/latest")
+    .methods(crow::HTTPMethod::GET)
+    ([]() {
+        crow::response res;
+        res.set_header("Content-Type", "application/json");
+        try {
+            const char* versionEnv = std::getenv("LATEST_AGENT_VERSION");
+            const char* urlEnv = std::getenv("AGENT_DOWNLOAD_URL");
+            const char* checksumEnv = std::getenv("LATEST_AGENT_CHECKSUM");
+
+            nlohmann::json j;
+            j["latest_version"] = versionEnv ? versionEnv : "2.0.0";
+            j["download_url"] = urlEnv ? urlEnv : "";
+            j["checksum"] = checksumEnv ? checksumEnv : "";
+
+            res.code = 200;
+            res.write(j.dump());
+            return res;
+        } catch (const std::exception& e) {
+            res.code = 500;
+            res.write(nlohmann::json{{"error", std::string("Failed to fetch latest agent info: ") + e.what()}}.dump());
             return res;
         }
     });
