@@ -52,6 +52,15 @@ void Database::initialize() {
                  "  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
                  ");");
 
+        // 1b. Device Users Table
+        txn.exec("CREATE TABLE IF NOT EXISTS device_users ("
+                 "  id SERIAL PRIMARY KEY,"
+                 "  full_name VARCHAR(255) NOT NULL,"
+                 "  email VARCHAR(255) NOT NULL UNIQUE,"
+                 "  department VARCHAR(255),"
+                 "  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
+                 ");");
+
         // 2. Devices Table
         txn.exec("CREATE TABLE IF NOT EXISTS devices ("
                  "  id SERIAL PRIMARY KEY,"
@@ -66,6 +75,19 @@ void Database::initialize() {
         txn.exec("ALTER TABLE devices ADD COLUMN IF NOT EXISTS mac_address VARCHAR(50);");
         txn.exec("ALTER TABLE devices ADD COLUMN IF NOT EXISTS windows_version VARCHAR(255);");
         txn.exec("ALTER TABLE devices ADD COLUMN IF NOT EXISTS last_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP;");
+        txn.exec("ALTER TABLE devices ADD COLUMN IF NOT EXISTS assigned_user_id INT REFERENCES device_users(id) ON DELETE SET NULL;");
+
+        // Seed default device users if table is empty
+        pqxx::result usersCheck = txn.exec("SELECT COUNT(*) FROM device_users");
+        if (usersCheck[0][0].as<int>() == 0) {
+            std::cout << "[Database] Seeding sample device users..." << std::endl;
+            txn.exec("INSERT INTO device_users (full_name, email, department) VALUES "
+                     "('Alice Smith', 'alice.smith@company.com', 'Engineering'), "
+                     "('Bob Jones', 'bob.jones@company.com', 'Product Management'), "
+                     "('Charlie Brown', 'charlie.brown@company.com', 'Finance'), "
+                     "('David Miller', 'david.miller@company.com', 'Sales'), "
+                     "('Eva Wilson', 'eva.wilson@company.com', 'Human Resources')");
+        }
 
         // 2b. Registration Tokens Table
         txn.exec("CREATE TABLE IF NOT EXISTS registration_tokens ("
@@ -192,10 +214,10 @@ void Database::prepareConnection(pqxx::connection& conn) {
     // 2. Devices queries
     conn.prepare("create_device", "INSERT INTO devices (name, token, ip_address, status) VALUES ($1, $2, $3, $4) RETURNING id");
     conn.prepare("create_device_v2", "INSERT INTO devices (name, token, ip_address, status, machine_guid, mac_address, windows_version) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id");
-    conn.prepare("find_all_devices", "SELECT id, name, token, ip_address, status, machine_guid, mac_address, windows_version, TO_CHAR(created_at, 'YYYY-MM-DD HH24:MI:SS') AS created_at FROM devices");
-    conn.prepare("find_device_by_id", "SELECT id, name, token, ip_address, status, machine_guid, mac_address, windows_version, TO_CHAR(created_at, 'YYYY-MM-DD HH24:MI:SS') AS created_at FROM devices WHERE id = $1");
-    conn.prepare("find_device_by_token", "SELECT id, name, token, ip_address, status, machine_guid, mac_address, windows_version, TO_CHAR(created_at, 'YYYY-MM-DD HH24:MI:SS') AS created_at FROM devices WHERE token = $1");
-    conn.prepare("find_device_by_guid", "SELECT id, name, token, ip_address, status, machine_guid, mac_address, windows_version, TO_CHAR(created_at, 'YYYY-MM-DD HH24:MI:SS') AS created_at FROM devices WHERE machine_guid = $1");
+    conn.prepare("find_all_devices", "SELECT d.id, d.name, d.token, d.ip_address, d.status, d.machine_guid, d.mac_address, d.windows_version, TO_CHAR(d.created_at, 'YYYY-MM-DD HH24:MI:SS') AS created_at, d.assigned_user_id, u.full_name AS assigned_user_name, u.email AS assigned_user_email, u.department AS assigned_user_dept FROM devices d LEFT JOIN device_users u ON d.assigned_user_id = u.id");
+    conn.prepare("find_device_by_id", "SELECT d.id, d.name, d.token, d.ip_address, d.status, d.machine_guid, d.mac_address, d.windows_version, TO_CHAR(d.created_at, 'YYYY-MM-DD HH24:MI:SS') AS created_at, d.assigned_user_id, u.full_name AS assigned_user_name, u.email AS assigned_user_email, u.department AS assigned_user_dept FROM devices d LEFT JOIN device_users u ON d.assigned_user_id = u.id WHERE d.id = $1");
+    conn.prepare("find_device_by_token", "SELECT d.id, d.name, d.token, d.ip_address, d.status, d.machine_guid, d.mac_address, d.windows_version, TO_CHAR(d.created_at, 'YYYY-MM-DD HH24:MI:SS') AS created_at, d.assigned_user_id, u.full_name AS assigned_user_name, u.email AS assigned_user_email, u.department AS assigned_user_dept FROM devices d LEFT JOIN device_users u ON d.assigned_user_id = u.id WHERE d.token = $1");
+    conn.prepare("find_device_by_guid", "SELECT d.id, d.name, d.token, d.ip_address, d.status, d.machine_guid, d.mac_address, d.windows_version, TO_CHAR(d.created_at, 'YYYY-MM-DD HH24:MI:SS') AS created_at, d.assigned_user_id, u.full_name AS assigned_user_name, u.email AS assigned_user_email, u.department AS assigned_user_dept FROM devices d LEFT JOIN device_users u ON d.assigned_user_id = u.id WHERE d.machine_guid = $1");
     conn.prepare("update_device_details", "UPDATE devices SET name = $1, ip_address = $2, mac_address = $3, windows_version = $4, token = $5, status = $6 WHERE id = $7");
 
     // 2b. Registration Token queries
@@ -220,4 +242,23 @@ void Database::prepareConnection(pqxx::connection& conn) {
     
     // 5. StatusChecker queries
     conn.prepare("find_timed_out_devices", "SELECT id, name, ip_address FROM devices WHERE status = 'online' AND last_seen < NOW() - INTERVAL '30 seconds'");
+
+    // 6. Device User queries
+    conn.prepare("create_device_user", "INSERT INTO device_users (full_name, email, department) VALUES ($1, $2, $3) RETURNING id");
+    conn.prepare("find_all_device_users", "SELECT id, full_name, email, department FROM device_users ORDER BY full_name ASC");
+    conn.prepare("find_device_user_by_id", "SELECT id, full_name, email, department FROM device_users WHERE id = $1");
+    conn.prepare("find_device_user_by_email", "SELECT id, full_name, email, department FROM device_users WHERE email = $1");
+    conn.prepare("assign_device_user", "UPDATE devices SET assigned_user_id = $1 WHERE id = $2");
+    
+    // 7. Global metrics trend query
+    conn.prepare("find_global_trends", 
+                 "SELECT "
+                 "  TO_CHAR(date_trunc('hour', timestamp), 'YYYY-MM-DD HH24:MI:SS') AS hour_bucket, "
+                 "  COALESCE(AVG(cpu_usage), 0.0) AS avg_cpu, "
+                 "  COALESCE(AVG(ram_usage), 0.0) AS avg_ram, "
+                 "  COALESCE(AVG(disk_usage), 0.0) AS avg_disk "
+                 "FROM metrics "
+                 "WHERE timestamp >= NOW() - INTERVAL '24 hours' "
+                 "GROUP BY date_trunc('hour', timestamp) "
+                 "ORDER BY date_trunc('hour', timestamp) ASC");
 }

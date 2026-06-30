@@ -14,6 +14,7 @@ public:
     std::optional<Device> findByToken(const std::string& token);
     std::optional<Device> findByGuid(const std::string& machineGuid);
     void update(const Device& device);
+    void assignUser(int deviceId, std::optional<int> userId);
 };
 
 #endif // DEVICE_REPOSITORY_HPP

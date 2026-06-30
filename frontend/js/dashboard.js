@@ -16,6 +16,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     let activeAlertsList = [];
     const latestMetricsMap = new Map(); // deviceId -> latest metrics object
 
+    let cpuChart = null;
+    let ramChart = null;
+    let diskChart = null;
+
     // Initial Load
     try {
         await refreshDashboard();
@@ -37,6 +41,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.error('Failed to fetch active alerts:', err);
         }
 
+        // Fetch global trends
+        try {
+            const trends = await api.getMetricTrends();
+            updateCharts(trends || []);
+        } catch (err) {
+            console.error('Failed to fetch global trends:', err);
+        }
+
         // Fetch latest metrics for online devices
         const onlineDevices = devicesList.filter(d => d.status === 'online');
         await Promise.all(onlineDevices.map(async (d) => {
@@ -51,6 +63,113 @@ document.addEventListener('DOMContentLoaded', async () => {
         }));
 
         updateUI();
+    }
+
+    function updateCharts(trends) {
+        const hasData = trends && trends.length > 0;
+        
+        // Show/hide empty state overlays
+        toggleEmptyState('cpuChart', !hasData);
+        toggleEmptyState('ramChart', !hasData);
+        toggleEmptyState('diskChart', !hasData);
+        
+        if (!hasData) return;
+
+        // Format labels: extract HH:MM from hour_bucket (format: YYYY-MM-DD HH:MM:SS)
+        const labels = trends.map(t => {
+            const parts = t.hour_bucket.split(' ');
+            if (parts.length > 1) {
+                return parts[1].substring(0, 5); // "HH:MM"
+            }
+            return t.hour_bucket;
+        });
+
+        const cpuData = trends.map(t => t.avg_cpu);
+        const ramData = trends.map(t => t.avg_ram);
+        const diskData = trends.map(t => t.avg_disk);
+
+        if (!cpuChart) {
+            cpuChart = createLineChart('cpuChart', labels, cpuData, '#B87C3B', 'rgba(184, 124, 59, 0.1)');
+        } else {
+            cpuChart.data.labels = labels;
+            cpuChart.data.datasets[0].data = cpuData;
+            cpuChart.update();
+        }
+
+        if (!ramChart) {
+            ramChart = createLineChart('ramChart', labels, ramData, '#10B981', 'rgba(16, 185, 129, 0.06)');
+        } else {
+            ramChart.data.labels = labels;
+            ramChart.data.datasets[0].data = ramData;
+            ramChart.update();
+        }
+
+        if (!diskChart) {
+            diskChart = createLineChart('diskChart', labels, diskData, '#64748B', 'rgba(100, 116, 139, 0.05)');
+        } else {
+            diskChart.data.labels = labels;
+            diskChart.data.datasets[0].data = diskData;
+            diskChart.update();
+        }
+    }
+
+    function toggleEmptyState(chartId, showEmpty) {
+        const canvas = document.getElementById(chartId);
+        const emptyEl = document.getElementById(`${chartId}Empty`);
+        if (!canvas || !emptyEl) return;
+        
+        if (showEmpty) {
+            canvas.classList.add('hidden');
+            emptyEl.classList.remove('hidden');
+        } else {
+            canvas.classList.remove('hidden');
+            emptyEl.classList.add('hidden');
+        }
+    }
+
+    function createLineChart(canvasId, labels, data, color, fillGradStart) {
+        const ctx = document.getElementById(canvasId);
+        if (!ctx) return null;
+        
+        const gradient = ctx.getContext('2d').createLinearGradient(0, 0, 0, 200);
+        gradient.addColorStop(0, fillGradStart);
+        gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+
+        Chart.defaults.color = '#7C7770';
+        Chart.defaults.font.family = 'JetBrains Mono';
+        Chart.defaults.font.size = 10;
+
+        return new Chart(ctx.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    borderColor: color,
+                    backgroundColor: gradient,
+                    fill: true,
+                    tension: 0.2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { display: true, grid: { display: false }, border: { display: false }, ticks: { maxTicksLimit: 6 } },
+                    y: { 
+                        display: true, 
+                        position: 'right',
+                        grid: { color: 'rgba(30, 26, 23, 0.04)' },
+                        border: { display: false },
+                        min: 0,
+                        max: 100
+                    }
+                },
+                elements: { point: { radius: 0, hoverRadius: 4 }, line: { borderWidth: 1.5 } },
+                interaction: { intersect: false, mode: 'index' }
+            }
+        });
     }
 
     function updateUI() {
@@ -131,7 +250,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                 : 'border-danger/20 bg-danger/5 text-danger';
 
             tr.innerHTML = `
-                <td class="py-2.5 px-4 font-semibold text-textMain font-mono">${escapeHtml(d.name)}</td>
+                <td class="py-2.5 px-4 font-semibold text-textMain font-mono">
+                    <div>${escapeHtml(d.name)}</div>
+                    <div class="text-[10px] text-textSubtle font-sans mt-0.5 font-normal">
+                        ${d.assigned_user_name ? `Assigned to: ${escapeHtml(d.assigned_user_name)}` : '<span class="italic">Unassigned</span>'}
+                    </div>
+                </td>
                 <td class="py-2.5 px-4 text-textMuted font-mono">${escapeHtml(d.ip_address)}</td>
                 <td class="py-2.5 px-4">
                     <span class="inline-flex items-center px-2 py-0.5 rounded ${statusColor} text-[10px] font-bold uppercase tracking-wider border">

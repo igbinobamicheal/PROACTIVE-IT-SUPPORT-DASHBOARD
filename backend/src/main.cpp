@@ -117,6 +117,9 @@ int main() {
         CROW_ROUTE(app, "/api/events").methods(crow::HTTPMethod::OPTIONS)([]() { return crow::response(204); });
         CROW_ROUTE(app, "/api/metrics").methods(crow::HTTPMethod::OPTIONS)([]() { return crow::response(204); });
         CROW_ROUTE(app, "/api/deploy/agent").methods(crow::HTTPMethod::OPTIONS)([]() { return crow::response(204); });
+        CROW_ROUTE(app, "/api/device-users").methods(crow::HTTPMethod::OPTIONS)([]() { return crow::response(204); });
+        CROW_ROUTE(app, "/api/device/<int>/assign").methods(crow::HTTPMethod::OPTIONS)([](int id) { return crow::response(204); });
+        CROW_ROUTE(app, "/api/metrics/trends").methods(crow::HTTPMethod::OPTIONS)([]() { return crow::response(204); });
 
         // Get server configuration
         auto& config = Config::getInstance();

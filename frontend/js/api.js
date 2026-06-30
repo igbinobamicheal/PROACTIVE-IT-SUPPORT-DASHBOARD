@@ -98,6 +98,22 @@ const api = {
 
     revokeRegistrationToken(token) {
         return this.request('/registration-tokens/revoke', 'POST', { token });
+    },
+
+    getDeviceUsers() {
+        return this.request('/device-users', 'GET');
+    },
+
+    createDeviceUser(fullName, email, department = '') {
+        return this.request('/device-users', 'POST', { full_name: fullName, email, department });
+    },
+
+    assignDeviceUser(deviceId, userId) {
+        return this.request(`/device/${deviceId}/assign`, 'POST', { user_id: userId });
+    },
+
+    getMetricTrends() {
+        return this.request('/metrics/trends', 'GET');
     }
 };
 

@@ -89,3 +89,24 @@ std::vector<Metric> MetricRepository::findHistoryForDevice(int deviceId, int lim
     }
     return history;
 }
+
+std::vector<MetricTrend> MetricRepository::getGlobalTrends() {
+    std::vector<MetricTrend> trends;
+    try {
+        auto conn = Database::getInstance().getConnection();
+        pqxx::nontransaction txn(*conn);
+        pqxx::result res = txn.exec_prepared("find_global_trends");
+        
+        for (auto const &row : res) {
+            MetricTrend t;
+            t.hourBucket = row["hour_bucket"].as<std::string>();
+            t.avgCpu = row["avg_cpu"].as<double>();
+            t.avgRam = row["avg_ram"].as<double>();
+            t.avgDisk = row["avg_disk"].as<double>();
+            trends.push_back(t);
+        }
+    } catch (const std::exception& e) {
+        std::cerr << "[MetricRepository] Error in getGlobalTrends: " << e.what() << std::endl;
+    }
+    return trends;
+}

@@ -195,17 +195,35 @@
 
             <!-- Main Charts Panel -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:h-[280px]">
-                <div class="bg-surface border border-borderSubtle rounded-lg p-4 h-[220px] lg:h-full flex flex-col glass-panel shadow-sm">
+                <div class="bg-surface border border-borderSubtle rounded-lg p-4 h-[220px] lg:h-full flex flex-col glass-panel shadow-sm relative">
                     <span class="text-[13px] font-medium text-textMuted mb-4">CPU Trend (24h)</span>
-                    <div class="flex-1 relative w-full"><canvas id="cpuChart"></canvas></div>
+                    <div class="flex-1 relative w-full">
+                        <canvas id="cpuChart"></canvas>
+                        <div id="cpuChartEmpty" class="absolute inset-0 flex flex-col items-center justify-center bg-surface/90 text-center p-4 rounded-md hidden">
+                            <i data-lucide="bar-chart-2" class="w-8 h-8 text-textSubtle mb-2"></i>
+                            <span class="text-[12px] text-textSubtle font-medium">No CPU metrics collected yet.</span>
+                        </div>
+                    </div>
                 </div>
-                <div class="bg-surface border border-borderSubtle rounded-lg p-4 h-[220px] lg:h-full flex flex-col glass-panel shadow-sm">
+                <div class="bg-surface border border-borderSubtle rounded-lg p-4 h-[220px] lg:h-full flex flex-col glass-panel shadow-sm relative">
                     <span class="text-[13px] font-medium text-textMuted mb-4">Memory Allocation</span>
-                    <div class="flex-1 relative w-full"><canvas id="ramChart"></canvas></div>
+                    <div class="flex-1 relative w-full">
+                        <canvas id="ramChart"></canvas>
+                        <div id="ramChartEmpty" class="absolute inset-0 flex flex-col items-center justify-center bg-surface/90 text-center p-4 rounded-md hidden">
+                            <i data-lucide="bar-chart-2" class="w-8 h-8 text-textSubtle mb-2"></i>
+                            <span class="text-[12px] text-textSubtle font-medium">No Memory metrics collected yet.</span>
+                        </div>
+                    </div>
                 </div>
-                <div class="bg-surface border border-borderSubtle rounded-lg p-4 h-[220px] lg:h-full flex flex-col glass-panel shadow-sm">
+                <div class="bg-surface border border-borderSubtle rounded-lg p-4 h-[220px] lg:h-full flex flex-col glass-panel shadow-sm relative">
                     <span class="text-[13px] font-medium text-textMuted mb-4">Disk Usage Trend</span>
-                    <div class="flex-1 relative w-full"><canvas id="diskChart"></canvas></div>
+                    <div class="flex-1 relative w-full">
+                        <canvas id="diskChart"></canvas>
+                        <div id="diskChartEmpty" class="absolute inset-0 flex flex-col items-center justify-center bg-surface/90 text-center p-4 rounded-md hidden">
+                            <i data-lucide="bar-chart-2" class="w-8 h-8 text-textSubtle mb-2"></i>
+                            <span class="text-[12px] text-textSubtle font-medium">No Disk metrics collected yet.</span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -217,21 +235,23 @@
                         <span class="text-[13px] font-medium text-textMuted">Recent Devices</span>
                         <a href="devices.html" class="text-[11px] font-medium text-textSubtle hover:text-textMain transition-colors">View All &rarr;</a>
                     </div>
-                    <table class="w-full text-left border-collapse text-[12px]">
-                        <thead>
-                            <tr class="border-b border-borderSubtle bg-black/[0.005]">
-                                <th class="py-2.5 px-4 font-medium text-textSubtle font-mono uppercase tracking-widest text-[10px]">Device Name</th>
-                                <th class="py-2.5 px-4 font-medium text-textSubtle font-mono uppercase tracking-widest text-[10px]">IP Address</th>
-                                <th class="py-2.5 px-4 font-medium text-textSubtle font-mono uppercase tracking-widest text-[10px]">Status</th>
-                                <th class="py-2.5 px-4 font-medium text-textSubtle font-mono uppercase tracking-widest text-[10px] text-right">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody id="recentDevicesBody" class="text-textMain">
-                            <tr>
-                                <td colspan="4" class="text-center text-textMuted py-4">Loading registered monitoring agents...</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <div class="overflow-x-auto w-full">
+                        <table class="w-full text-left border-collapse text-[12px]">
+                            <thead>
+                                <tr class="border-b border-borderSubtle bg-black/[0.005]">
+                                    <th class="py-2.5 px-4 font-medium text-textSubtle font-mono uppercase tracking-widest text-[10px]">Device Name</th>
+                                    <th class="py-2.5 px-4 font-medium text-textSubtle font-mono uppercase tracking-widest text-[10px]">IP Address</th>
+                                    <th class="py-2.5 px-4 font-medium text-textSubtle font-mono uppercase tracking-widest text-[10px]">Status</th>
+                                    <th class="py-2.5 px-4 font-medium text-textSubtle font-mono uppercase tracking-widest text-[10px] text-right">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recentDevicesBody" class="text-textMain">
+                                <tr>
+                                    <td colspan="4" class="text-center text-textMuted py-4">Loading registered monitoring agents...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
                 <!-- Latest Live Metrics -->
@@ -269,109 +289,20 @@
     <script src="js/utils.js"></script>
     <script src="js/config.js"></script>
     <script src="js/api.js"></script>
+    <script src="js/session.js"></script>
     <script src="js/dashboard.js"></script>
     <script src="js/sidebar.js"></script>
     <script>
         lucide.createIcons();
 
         document.addEventListener('DOMContentLoaded', () => {
-            initializeCharts();
-            
             document.getElementById('logoutBtn').addEventListener('click', () => {
                 localStorage.removeItem('jwt_token');
                 localStorage.removeItem('username');
+                localStorage.removeItem('session_last_activity');
                 window.location.href = 'login.html';
             });
         });
-
-        function initializeCharts() {
-            Chart.defaults.color = '#7C7770';
-            Chart.defaults.font.family = 'JetBrains Mono';
-            Chart.defaults.font.size = 10;
-
-            const chartOptions = {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: {
-                    x: { display: true, grid: { display: false }, border: { display: false }, ticks: { maxTicksLimit: 6 } },
-                    y: { 
-                        display: true, 
-                        position: 'right',
-                        grid: { color: 'rgba(30, 26, 23, 0.04)' },
-                        border: { display: false }
-                    }
-                },
-                elements: { point: { radius: 0, hoverRadius: 4 }, line: { borderWidth: 1.5 } },
-                interaction: { intersect: false, mode: 'index' }
-            };
-
-            const ctxCpu = document.getElementById('cpuChart');
-            if(ctxCpu) {
-                let gradient = ctxCpu.getContext('2d').createLinearGradient(0, 0, 0, 200);
-                gradient.addColorStop(0, 'rgba(184, 124, 59, 0.1)'); // Amber
-                gradient.addColorStop(1, 'rgba(184, 124, 59, 0)');
-
-                new Chart(ctxCpu.getContext('2d'), {
-                    type: 'line',
-                    data: {
-                        labels: Array.from({length: 24}, (_, i) => `${i}:00`),
-                        datasets: [{
-                            data: [45, 52, 48, 60, 55, 65, 70, 68, 62, 58, 65, 75, 80, 78, 85, 90, 88, 82, 75, 70, 65, 60, 55, 50],
-                            borderColor: '#B87C3B',
-                            backgroundColor: gradient,
-                            fill: true,
-                            tension: 0.2
-                        }]
-                    },
-                    options: chartOptions
-                });
-            }
-
-            const ctxRam = document.getElementById('ramChart');
-            if(ctxRam) {
-                let gradient = ctxRam.getContext('2d').createLinearGradient(0, 0, 0, 200);
-                gradient.addColorStop(0, 'rgba(16, 185, 129, 0.06)'); // Emerald
-                gradient.addColorStop(1, 'rgba(16, 185, 129, 0)');
-
-                new Chart(ctxRam.getContext('2d'), {
-                    type: 'line',
-                    data: {
-                        labels: Array.from({length: 24}, (_, i) => `${i}:00`),
-                        datasets: [{
-                            data: [60, 62, 61, 65, 68, 70, 72, 75, 74, 76, 78, 80, 82, 85, 84, 86, 88, 85, 82, 80, 78, 75, 70, 65],
-                            borderColor: '#10B981',
-                            backgroundColor: gradient,
-                            fill: true,
-                            tension: 0.2
-                        }]
-                    },
-                    options: chartOptions
-                });
-            }
-
-            const ctxDisk = document.getElementById('diskChart');
-            if(ctxDisk) {
-                let gradient = ctxDisk.getContext('2d').createLinearGradient(0, 0, 0, 200);
-                gradient.addColorStop(0, 'rgba(100, 116, 139, 0.05)'); // Slate
-                gradient.addColorStop(1, 'rgba(100, 116, 139, 0)');
-
-                new Chart(ctxDisk.getContext('2d'), {
-                    type: 'line',
-                    data: {
-                        labels: Array.from({length: 24}, (_, i) => `${i}:00`),
-                        datasets: [{
-                            data: [30, 31, 31, 32, 32, 33, 33, 34, 34, 34, 35, 35, 35, 36, 36, 36, 37, 37, 37, 38, 38, 38, 39, 39],
-                            borderColor: '#64748B',
-                            backgroundColor: gradient,
-                            fill: true,
-                            tension: 0.1
-                        }]
-                    },
-                    options: chartOptions
-                });
-            }
-        }
     </script>
 </body>
 </html>

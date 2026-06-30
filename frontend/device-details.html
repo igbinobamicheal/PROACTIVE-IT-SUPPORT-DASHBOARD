@@ -155,6 +155,22 @@
                 </div>
             </div>
 
+            <!-- User Assignment Card -->
+            <div class="bg-surface border border-borderSubtle rounded-lg p-5 flex flex-col gap-4 shadow-sm glass-panel">
+                <div class="flex justify-between items-center pb-2 border-b border-borderSubtle">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="user" class="w-4 h-4 text-primary"></i>
+                        <h3 class="text-textMain font-semibold text-[13px]">Assigned Device User</h3>
+                    </div>
+                    <div class="flex items-center gap-2" id="assignmentActions">
+                        <!-- Buttons will be injected dynamically -->
+                    </div>
+                </div>
+                <div id="assignedUserInfo" class="grid grid-cols-1 md:grid-cols-3 gap-4 text-[13px] text-textMain">
+                    <!-- Loaded dynamically -->
+                </div>
+            </div>
+
             <!-- Real-Time Metrics -->
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-2">
                 <div class="bg-surface border border-borderSubtle rounded-lg p-4 flex flex-col gap-1 shadow-sm glass-panel">
@@ -225,6 +241,7 @@
     <script src="js/utils.js"></script>
     <script src="js/config.js"></script>
     <script src="js/api.js"></script>
+    <script src="js/session.js"></script>
     <script src="js/device-details.js"></script>
     <script src="js/sidebar.js"></script>
     <script>
@@ -234,9 +251,53 @@
             document.getElementById('logoutBtn').addEventListener('click', () => {
                 localStorage.removeItem('jwt_token');
                 localStorage.removeItem('username');
+                localStorage.removeItem('session_last_activity');
                 window.location.href = 'login.html';
             });
         });
     </script>
+    <!-- Assignment Modal -->
+    <div id="assignmentModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+        <div class="bg-surface/95 border border-white/50 backdrop-blur-2xl w-[450px] rounded-xl p-6 shadow-2xl glass-panel relative flex flex-col gap-4 text-textMain animate-in fade-in zoom-in-95 duration-200">
+            <button id="closeModalBtn" class="absolute top-4 right-4 text-textSubtle hover:text-textMain transition-colors">
+                <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+            <h3 class="text-textMain font-bold text-[15px] tracking-tight" id="modalTitle">Assign User to Device</h3>
+            
+            <!-- Tabs -->
+            <div class="flex border-b border-borderSubtle gap-4 text-[12px] font-semibold">
+                <button id="tabSelectExisting" class="pb-2 border-b-2 border-primary text-primary transition-all">Select Existing</button>
+                <button id="tabCreateNew" class="pb-2 border-b-2 border-transparent text-textSubtle hover:text-textMain transition-all">Create New User</button>
+            </div>
+            
+            <!-- Select Existing Form -->
+            <div id="formSelectExisting" class="flex flex-col gap-4">
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-[10px] font-mono uppercase tracking-wider text-textMuted">Select Employee</label>
+                    <select id="userDropdown" class="bg-bg border border-borderSubtle rounded-md px-3 py-2 text-[12.5px] focus:outline-none focus:border-primary text-textMain">
+                        <!-- Loaded dynamically -->
+                    </select>
+                </div>
+                <button id="submitAssignExisting" class="bg-primary hover:bg-primaryHover text-white py-2 rounded-md text-[12px] font-semibold transition-colors mt-2 shadow-sm">Assign User</button>
+            </div>
+
+            <!-- Create New User Form -->
+            <div id="formCreateNew" class="flex flex-col gap-4 hidden">
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-[10px] font-mono uppercase tracking-wider text-textMuted">Full Name</label>
+                    <input type="text" id="newFullName" placeholder="e.g. Alice Smith" class="bg-bg border border-borderSubtle rounded-md px-3 py-2 text-[12.5px] focus:outline-none focus:border-primary text-textMain"/>
+                </div>
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-[10px] font-mono uppercase tracking-wider text-textMuted">Email Address</label>
+                    <input type="email" id="newEmail" placeholder="e.g. alice.smith@company.com" class="bg-bg border border-borderSubtle rounded-md px-3 py-2 text-[12.5px] focus:outline-none focus:border-primary text-textMain"/>
+                </div>
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-[10px] font-mono uppercase tracking-wider text-textMuted">Department</label>
+                    <input type="text" id="newDepartment" placeholder="e.g. Engineering" class="bg-bg border border-borderSubtle rounded-md px-3 py-2 text-[12.5px] focus:outline-none focus:border-primary text-textMain"/>
+                </div>
+                <button id="submitCreateAndAssign" class="bg-primary hover:bg-primaryHover text-white py-2 rounded-md text-[12px] font-semibold transition-colors mt-2 shadow-sm">Create & Assign User</button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

@@ -84,6 +84,12 @@ async function loadDevices() {
                     <div class="text-[10px] text-textSubtle mt-0.5">ID: ${d.id}</div>
                 </td>
                 <td class="py-3 px-4">
+                    ${d.assigned_user_name 
+                        ? `<div class="font-semibold text-textMain">${escapeHtml(d.assigned_user_name)}</div>
+                           <div class="text-[10px] text-textSubtle">${escapeHtml(d.assigned_user_email)}</div>`
+                        : `<span class="text-textSubtle italic">Unassigned</span>`}
+                </td>
+                <td class="py-3 px-4">
                     <span class="flex items-center gap-2 text-textMuted">
                         <div class="w-1.5 h-1.5 rounded-full ${statusDotColor}"></div>
                         ${statusText}

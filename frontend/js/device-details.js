@@ -35,6 +35,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('infoIp').textContent = dev.ip_address;
         document.getElementById('infoToken').textContent = dev.token;
         updateStatusBadge(dev.status);
+        renderUserAssignment(dev);
 
         // 2. Fetch history and initialize charts/table
         const history = await api.getDeviceMetrics(deviceId);
@@ -288,6 +289,21 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         });
 
+        // Listen for user assignment changes
+        eventSource.addEventListener('device_user_assigned', (e) => {
+            const data = JSON.parse(e.data);
+            if (data.device_id === deviceId) {
+                console.log('[SSE] Device user assignment update received:', data);
+                const updatedDev = {
+                    assigned_user_id: data.assigned_user_id,
+                    assigned_user_name: data.assigned_user_name,
+                    assigned_user_email: data.assigned_user_email,
+                    assigned_user_dept: data.assigned_user_dept
+                };
+                renderUserAssignment(updatedDev);
+            }
+        });
+
         // Listen for new metrics
         eventSource.addEventListener('metric', (e) => {
             const data = JSON.parse(e.data);
@@ -388,5 +404,192 @@ document.addEventListener('DOMContentLoaded', async () => {
             return parts[1];
         }
         return ts;
+    }
+
+    // User Assignment UI Rendering & Interactions
+    function renderUserAssignment(dev) {
+        const actionsContainer = document.getElementById('assignmentActions');
+        const infoContainer = document.getElementById('assignedUserInfo');
+        if (!actionsContainer || !infoContainer) return;
+
+        actionsContainer.innerHTML = '';
+        infoContainer.innerHTML = '';
+
+        if (dev.assigned_user_name) {
+            // Display User info
+            infoContainer.innerHTML = `
+                <div class="flex flex-col gap-0.5">
+                    <span class="text-[10px] font-mono uppercase tracking-wider text-textSubtle">Full Name</span>
+                    <span class="font-semibold text-textMain">${escapeHtml(dev.assigned_user_name)}</span>
+                </div>
+                <div class="flex flex-col gap-0.5">
+                    <span class="text-[10px] font-mono uppercase tracking-wider text-textSubtle">Email Address</span>
+                    <span class="font-semibold text-textMain">${escapeHtml(dev.assigned_user_email)}</span>
+                </div>
+                <div class="flex flex-col gap-0.5">
+                    <span class="text-[10px] font-mono uppercase tracking-wider text-textSubtle">Department</span>
+                    <span class="font-semibold text-textMain">${dev.assigned_user_dept ? escapeHtml(dev.assigned_user_dept) : 'N/A'}</span>
+                </div>
+            `;
+
+            // Display Change User and Remove Assignment buttons
+            actionsContainer.innerHTML = `
+                <button id="btnChangeUser" class="border border-borderSubtle bg-surface text-textMain hover:bg-black/[0.02] px-2.5 py-1 rounded text-[11px] font-medium transition-colors flex items-center gap-1">
+                    <i data-lucide="user-cog" class="w-3.5 h-3.5 text-textSubtle"></i> Change User
+                </button>
+                <button id="btnUnassignUser" class="border border-danger/20 bg-danger/5 hover:bg-danger/10 text-danger px-2.5 py-1 rounded text-[11px] font-medium transition-colors flex items-center gap-1">
+                    <i data-lucide="user-minus" class="w-3.5 h-3.5 text-danger"></i> Remove Assignment
+                </button>
+            `;
+
+            document.getElementById('btnChangeUser').addEventListener('click', () => openAssignmentModal());
+            document.getElementById('btnUnassignUser').addEventListener('click', () => handleUnassign());
+        } else {
+            // Empty state
+            infoContainer.innerHTML = `
+                <div class="col-span-3 text-textSubtle text-[12.5px] italic flex items-center gap-2">
+                    <i data-lucide="info" class="w-4 h-4 text-textSubtle"></i> No user is currently assigned to this device.
+                </div>
+            `;
+
+            // Display Assign User button
+            actionsContainer.innerHTML = `
+                <button id="btnAssignUser" class="bg-primary hover:bg-primaryHover text-white px-2.5 py-1 rounded text-[11px] font-semibold transition-colors flex items-center gap-1 shadow-sm">
+                    <i data-lucide="user-plus" class="w-3.5 h-3.5 flex items-center"></i> Assign User
+                </button>
+            `;
+
+            document.getElementById('btnAssignUser').addEventListener('click', () => openAssignmentModal());
+        }
+
+        if (window.lucide) {
+            window.lucide.createIcons();
+        }
+    }
+
+    // Modal & Assignment Actions
+    const modalEl = document.getElementById('assignmentModal');
+    const closeBtn = document.getElementById('closeModalBtn');
+    const tabSelectExisting = document.getElementById('tabSelectExisting');
+    const tabCreateNew = document.getElementById('tabCreateNew');
+    const formSelectExisting = document.getElementById('formSelectExisting');
+    const formCreateNew = document.getElementById('formCreateNew');
+    
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => closeAssignmentModal());
+    }
+
+    if (tabSelectExisting && tabCreateNew) {
+        tabSelectExisting.addEventListener('click', () => {
+            tabSelectExisting.className = 'pb-2 border-b-2 border-primary text-primary transition-all';
+            tabCreateNew.className = 'pb-2 border-b-2 border-transparent text-textSubtle hover:text-textMain transition-all';
+            formSelectExisting.classList.remove('hidden');
+            formCreateNew.classList.add('hidden');
+        });
+
+        tabCreateNew.addEventListener('click', () => {
+            tabCreateNew.className = 'pb-2 border-b-2 border-primary text-primary transition-all';
+            tabSelectExisting.className = 'pb-2 border-b-2 border-transparent text-textSubtle hover:text-textMain transition-all';
+            formCreateNew.classList.remove('hidden');
+            formSelectExisting.classList.add('hidden');
+        });
+    }
+
+    async function openAssignmentModal() {
+        modalEl.classList.remove('hidden');
+        
+        // Reset forms
+        document.getElementById('newFullName').value = '';
+        document.getElementById('newEmail').value = '';
+        document.getElementById('newDepartment').value = '';
+        
+        tabSelectExisting.click();
+
+        try {
+            const users = await api.getDeviceUsers();
+            const dropdown = document.getElementById('userDropdown');
+            dropdown.innerHTML = '';
+            
+            if (!users || users.length === 0) {
+                dropdown.innerHTML = '<option value="">-- No users registered yet --</option>';
+            } else {
+                users.forEach(u => {
+                    const opt = document.createElement('option');
+                    opt.value = u.id;
+                    opt.textContent = `${u.full_name} (${u.email}) [${u.department || 'No Dept'}]`;
+                    dropdown.appendChild(opt);
+                });
+            }
+        } catch (e) {
+            console.error('Failed to load device users:', e);
+        }
+    }
+
+    function closeAssignmentModal() {
+        modalEl.classList.add('hidden');
+    }
+
+    document.getElementById('submitAssignExisting').addEventListener('click', async () => {
+        const userId = document.getElementById('userDropdown').value;
+        if (!userId) {
+            alert('Please select a user to assign.');
+            return;
+        }
+
+        try {
+            const updated = await api.assignDeviceUser(deviceId, parseInt(userId));
+            if (updated) {
+                renderUserAssignment(updated);
+                closeAssignmentModal();
+            }
+        } catch (e) {
+            alert('Failed to assign user: ' + e.message);
+        }
+    });
+
+    document.getElementById('submitCreateAndAssign').addEventListener('click', async () => {
+        const fullName = document.getElementById('newFullName').value.trim();
+        const email = document.getElementById('newEmail').value.trim();
+        const dept = document.getElementById('newDepartment').value.trim();
+
+        if (!fullName || !email) {
+            alert('Full Name and Email are required to create a user.');
+            return;
+        }
+
+        try {
+            const newUser = await api.createDeviceUser(fullName, email, dept);
+            if (newUser && newUser.id) {
+                const updated = await api.assignDeviceUser(deviceId, newUser.id);
+                if (updated) {
+                    renderUserAssignment(updated);
+                    closeAssignmentModal();
+                }
+            }
+        } catch (e) {
+            alert('Failed to create and assign user: ' + e.message);
+        }
+    });
+
+    async function handleUnassign() {
+        if (!confirm('Are you sure you want to remove the assigned user from this device?')) {
+            return;
+        }
+        try {
+            const updated = await api.assignDeviceUser(deviceId, null);
+            renderUserAssignment(updated);
+        } catch (e) {
+            alert('Failed to unassign user: ' + e.message);
+        }
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
     }
 });

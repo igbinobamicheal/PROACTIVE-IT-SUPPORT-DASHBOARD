@@ -4,6 +4,14 @@
 #include "models/Metric.hpp"
 #include <optional>
 #include <vector>
+#include <string>
+
+struct MetricTrend {
+    std::string hourBucket;
+    double avgCpu;
+    double avgRam;
+    double avgDisk;
+};
 
 class MetricRepository {
 public:
@@ -28,6 +36,7 @@ public:
      * @return A vector of historical Metric records.
      */
     std::vector<Metric> findHistoryForDevice(int deviceId, int limit);
+    std::vector<MetricTrend> getGlobalTrends();
 };
 
 

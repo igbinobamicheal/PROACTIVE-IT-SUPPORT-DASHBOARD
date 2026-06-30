@@ -184,4 +184,34 @@ void MetricController::registerRoutes(crow::App<CORSMiddleware, AuthMiddleware>&
             return res;
         }
     });
+
+    // GET /api/metrics/trends (guarded by JWT)
+    CROW_ROUTE(app, "/api/metrics/trends")
+    .methods(crow::HTTPMethod::GET)
+    .CROW_MIDDLEWARES(app, AuthMiddleware)
+    ([]() {
+        crow::response res;
+        res.set_header("Content-Type", "application/json");
+        try {
+            MetricRepository repo;
+            auto trends = repo.getGlobalTrends();
+            
+            nlohmann::json arr = nlohmann::json::array();
+            for (const auto& t : trends) {
+                arr.push_back({
+                    {"hour_bucket", t.hourBucket},
+                    {"avg_cpu", t.avgCpu},
+                    {"avg_ram", t.avgRam},
+                    {"avg_disk", t.avgDisk}
+                });
+            }
+            res.code = 200;
+            res.write(arr.dump());
+            return res;
+        } catch (const std::exception& e) {
+            res.code = 500;
+            res.write(nlohmann::json{{"error", std::string("Internal server error: ") + e.what()}}.dump());
+            return res;
+        }
+    });
 }

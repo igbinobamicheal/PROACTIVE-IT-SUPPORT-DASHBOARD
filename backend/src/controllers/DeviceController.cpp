@@ -2,6 +2,7 @@
 #include "repositories/DeviceRepository.hpp"
 #include "repositories/RegistrationTokenRepository.hpp"
 #include "repositories/MetricRepository.hpp"
+#include "repositories/DeviceUserRepository.hpp"
 #include "config/Config.hpp"
 #include "utils/JWTUtil.hpp"
 #include "utils/EventBroker.hpp"
@@ -619,6 +620,141 @@ Write-Host "To uninstall: & '$ExePath' --uninstall; Remove-Item -Recurse -Force 
             res.write(": keepalive\n\n");
         }
         res.end();
+    });
+
+    // 6. GET /api/device-users (guarded by JWT)
+    CROW_ROUTE(app, "/api/device-users")
+    .methods(crow::HTTPMethod::GET)
+    .CROW_MIDDLEWARES(app, AuthMiddleware)
+    ([]() {
+        crow::response res;
+        res.set_header("Content-Type", "application/json");
+        try {
+            DeviceUserRepository repo;
+            auto users = repo.findAll();
+            nlohmann::json arr = nlohmann::json::array();
+            for (const auto& u : users) {
+                arr.push_back(u);
+            }
+            res.code = 200;
+            res.write(arr.dump());
+            return res;
+        } catch (const std::exception& e) {
+            res.code = 500;
+            res.write(nlohmann::json{{"error", std::string("Internal server error: ") + e.what()}}.dump());
+            return res;
+        }
+    });
+
+    // 7. POST /api/device-users (guarded by JWT)
+    CROW_ROUTE(app, "/api/device-users")
+    .methods(crow::HTTPMethod::POST)
+    .CROW_MIDDLEWARES(app, AuthMiddleware)
+    ([](const crow::request& req) {
+        crow::response res;
+        res.set_header("Content-Type", "application/json");
+        try {
+            auto body = nlohmann::json::parse(req.body);
+            if (!body.contains("full_name") || !body.contains("email")) {
+                res.code = 400;
+                res.write(nlohmann::json{{"error", "Missing full_name or email"}}.dump());
+                return res;
+            }
+
+            DeviceUser u;
+            u.fullName = body["full_name"];
+            u.email = body["email"];
+            if (body.contains("department")) {
+                u.department = body["department"];
+            }
+
+            DeviceUserRepository repo;
+            // Check if user already exists
+            auto existing = repo.findByEmail(u.email);
+            if (existing.has_value()) {
+                res.code = 409;
+                res.write(nlohmann::json{{"error", "User with this email already exists"}}.dump());
+                return res;
+            }
+
+            repo.create(u);
+            res.code = 201;
+            res.write(nlohmann::json(u).dump());
+            return res;
+        } catch (const nlohmann::json::parse_error& e) {
+            res.code = 400;
+            res.write(nlohmann::json{{"error", "Malformed JSON request body"}}.dump());
+            return res;
+        } catch (const std::exception& e) {
+            res.code = 500;
+            res.write(nlohmann::json{{"error", std::string("Internal server error: ") + e.what()}}.dump());
+            return res;
+        }
+    });
+
+    // 8. POST /api/device/<id>/assign (guarded by JWT)
+    CROW_ROUTE(app, "/api/device/<int>/assign")
+    .methods(crow::HTTPMethod::POST)
+    .CROW_MIDDLEWARES(app, AuthMiddleware)
+    ([](const crow::request& req, int deviceId) {
+        crow::response res;
+        res.set_header("Content-Type", "application/json");
+        try {
+            auto body = nlohmann::json::parse(req.body);
+            std::optional<int> userId;
+            if (body.contains("user_id") && !body["user_id"].is_null()) {
+                userId = body["user_id"].get<int>();
+            }
+
+            DeviceRepository devRepo;
+            auto devOpt = devRepo.findById(deviceId);
+            if (!devOpt.has_value()) {
+                res.code = 404;
+                res.write(nlohmann::json{{"error", "Device not found"}}.dump());
+                return res;
+            }
+
+            if (userId.has_value()) {
+                DeviceUserRepository userRepo;
+                auto userOpt = userRepo.findById(userId.value());
+                if (!userOpt.has_value()) {
+                    res.code = 404;
+                    res.write(nlohmann::json{{"error", "Assigned user not found"}}.dump());
+                    return res;
+                }
+            }
+
+            devRepo.assignUser(deviceId, userId);
+
+            // Fetch the updated device to return
+            auto updatedDevOpt = devRepo.findById(deviceId);
+            res.code = 200;
+            if (updatedDevOpt.has_value()) {
+                // Publish update event so UI updates immediately via SSE
+                nlohmann::json devJson = updatedDevOpt.value();
+                nlohmann::json updateEvent = {
+                    {"device_id", deviceId},
+                    {"assigned_user_id", userId.has_value() ? nlohmann::json(userId.value()) : nlohmann::json(nullptr)},
+                    {"assigned_user_name", userId.has_value() ? nlohmann::json(updatedDevOpt.value().assignedUserFullName.value()) : nlohmann::json(nullptr)},
+                    {"assigned_user_email", userId.has_value() ? nlohmann::json(updatedDevOpt.value().assignedUserEmail.value()) : nlohmann::json(nullptr)},
+                    {"assigned_user_dept", userId.has_value() ? nlohmann::json(updatedDevOpt.value().assignedUserDepartment.value()) : nlohmann::json(nullptr)}
+                };
+                EventBroker::getInstance().publish("device_user_assigned", updateEvent.dump());
+
+                res.write(devJson.dump());
+            } else {
+                res.write(nlohmann::json{{"message", "Device assignment updated successfully"}}.dump());
+            }
+            return res;
+        } catch (const nlohmann::json::parse_error& e) {
+            res.code = 400;
+            res.write(nlohmann::json{{"error", "Malformed JSON request body"}}.dump());
+            return res;
+        } catch (const std::exception& e) {
+            res.code = 500;
+            res.write(nlohmann::json{{"error", std::string("Internal server error: ") + e.what()}}.dump());
+            return res;
+        }
     });
 }
 

@@ -29,6 +29,7 @@ set(APP_SOURCES
     src/database/Database.cpp
     src/repositories/UserRepository.cpp
     src/repositories/DeviceRepository.cpp
+    src/repositories/DeviceUserRepository.cpp
     src/repositories/RegistrationTokenRepository.cpp
     src/repositories/MetricRepository.cpp
     src/repositories/AlertRepository.cpp

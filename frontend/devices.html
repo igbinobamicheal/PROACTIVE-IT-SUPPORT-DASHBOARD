@@ -164,6 +164,7 @@
                                         <input type="checkbox" class="rounded bg-white border-borderSubtle text-primary accent-primary cursor-pointer">
                                     </th>
                                     <th class="py-2.5 px-4 font-medium text-textSubtle font-mono uppercase tracking-widest text-[10px]">ID / Name</th>
+                                    <th class="py-2.5 px-4 font-medium text-textSubtle font-mono uppercase tracking-widest text-[10px]">Assigned User</th>
                                     <th class="py-2.5 px-4 font-medium text-textSubtle font-mono uppercase tracking-widest text-[10px]">Status</th>
                                     <th class="py-2.5 px-4 font-medium text-textSubtle font-mono uppercase tracking-widest text-[10px]">IP / OS / MAC</th>
                                     <th class="py-2.5 px-4 font-medium text-textSubtle font-mono uppercase tracking-widest text-[10px]">Actions</th>
@@ -171,7 +172,7 @@
                             </thead>
                             <tbody id="devicesTableBody">
                                 <tr>
-                                    <td colspan="5" class="text-center text-textMuted py-8">Loading registered monitoring agents...</td>
+                                    <td colspan="6" class="text-center text-textMuted py-8">Loading registered monitoring agents...</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -301,6 +302,7 @@
     <script src="js/utils.js?v=2.0.0"></script>
     <script src="js/config.js?v=2.0.0"></script>
     <script src="js/api.js?v=2.1.0"></script>
+    <script src="js/session.js"></script>
     <script src="js/devices.js?v=2.0.0"></script>
     <script src="js/sidebar.js"></script>
     <script>
@@ -310,6 +312,7 @@
             document.getElementById('logoutBtn').addEventListener('click', () => {
                 localStorage.removeItem('jwt_token');
                 localStorage.removeItem('username');
+                localStorage.removeItem('session_last_activity');
                 window.location.href = 'login.html';
             });
 

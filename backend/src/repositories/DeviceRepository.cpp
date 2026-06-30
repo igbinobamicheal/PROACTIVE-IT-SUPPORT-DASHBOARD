@@ -20,6 +20,41 @@ static std::string generateDeviceToken() {
     return ss.str();
 }
 
+Device populateDeviceFromRow(pqxx::row_ref row) {
+    Device d;
+    d.id = row["id"].as<int>();
+    d.name = row["name"].as<std::string>();
+    d.token = row["token"].as<std::string>();
+    d.ipAddress = row["ip_address"].as<std::string>();
+    d.status = row["status"].as<std::string>();
+    
+    if (!row["machine_guid"].is_null()) {
+        d.machineGuid = row["machine_guid"].as<std::string>();
+    }
+    if (!row["mac_address"].is_null()) {
+        d.macAddress = row["mac_address"].as<std::string>();
+    }
+    if (!row["windows_version"].is_null()) {
+        d.windowsVersion = row["windows_version"].as<std::string>();
+    }
+    if (!row["created_at"].is_null()) {
+        d.createdAt = row["created_at"].as<std::string>();
+    }
+    if (!row["assigned_user_id"].is_null()) {
+        d.assignedUserId = row["assigned_user_id"].as<int>();
+    }
+    if (!row["assigned_user_name"].is_null()) {
+        d.assignedUserFullName = row["assigned_user_name"].as<std::string>();
+    }
+    if (!row["assigned_user_email"].is_null()) {
+        d.assignedUserEmail = row["assigned_user_email"].as<std::string>();
+    }
+    if (!row["assigned_user_dept"].is_null()) {
+        d.assignedUserDepartment = row["assigned_user_dept"].as<std::string>();
+    }
+    return d;
+}
+
 void DeviceRepository::create(Device& device) {
     try {
         device.token = generateDeviceToken();
@@ -62,26 +97,7 @@ std::vector<Device> DeviceRepository::findAll() {
         pqxx::result res = txn.exec_prepared("find_all_devices");
         
         for (auto const &row : res) {
-            Device d;
-            d.id = row["id"].as<int>();
-            d.name = row["name"].as<std::string>();
-            d.token = row["token"].as<std::string>();
-            d.ipAddress = row["ip_address"].as<std::string>();
-            d.status = row["status"].as<std::string>();
-            
-            if (!row["machine_guid"].is_null()) {
-                d.machineGuid = row["machine_guid"].as<std::string>();
-            }
-            if (!row["mac_address"].is_null()) {
-                d.macAddress = row["mac_address"].as<std::string>();
-            }
-            if (!row["windows_version"].is_null()) {
-                d.windowsVersion = row["windows_version"].as<std::string>();
-            }
-            if (!row["created_at"].is_null()) {
-                d.createdAt = row["created_at"].as<std::string>();
-            }
-            devices.push_back(d);
+            devices.push_back(populateDeviceFromRow(row));
         }
     } catch (const std::exception& e) {
         std::cerr << "[DeviceRepository] Error in findAll: " << e.what() << std::endl;
@@ -95,26 +111,7 @@ std::optional<Device> DeviceRepository::findById(int id) {
         pqxx::nontransaction txn(*conn);
         pqxx::result res = txn.exec_prepared("find_device_by_id", id);
         if (!res.empty()) {
-            Device d;
-            d.id = res[0]["id"].as<int>();
-            d.name = res[0]["name"].as<std::string>();
-            d.token = res[0]["token"].as<std::string>();
-            d.ipAddress = res[0]["ip_address"].as<std::string>();
-            d.status = res[0]["status"].as<std::string>();
-            
-            if (!res[0]["machine_guid"].is_null()) {
-                d.machineGuid = res[0]["machine_guid"].as<std::string>();
-            }
-            if (!res[0]["mac_address"].is_null()) {
-                d.macAddress = res[0]["mac_address"].as<std::string>();
-            }
-            if (!res[0]["windows_version"].is_null()) {
-                d.windowsVersion = res[0]["windows_version"].as<std::string>();
-            }
-            if (!res[0]["created_at"].is_null()) {
-                d.createdAt = res[0]["created_at"].as<std::string>();
-            }
-            return d;
+            return populateDeviceFromRow(res[0]);
         }
     } catch (const std::exception& e) {
         std::cerr << "[DeviceRepository] Error in findById: " << e.what() << std::endl;
@@ -128,26 +125,7 @@ std::optional<Device> DeviceRepository::findByToken(const std::string& token) {
         pqxx::nontransaction txn(*conn);
         pqxx::result res = txn.exec_prepared("find_device_by_token", token);
         if (!res.empty()) {
-            Device d;
-            d.id = res[0]["id"].as<int>();
-            d.name = res[0]["name"].as<std::string>();
-            d.token = res[0]["token"].as<std::string>();
-            d.ipAddress = res[0]["ip_address"].as<std::string>();
-            d.status = res[0]["status"].as<std::string>();
-            
-            if (!res[0]["machine_guid"].is_null()) {
-                d.machineGuid = res[0]["machine_guid"].as<std::string>();
-            }
-            if (!res[0]["mac_address"].is_null()) {
-                d.macAddress = res[0]["mac_address"].as<std::string>();
-            }
-            if (!res[0]["windows_version"].is_null()) {
-                d.windowsVersion = res[0]["windows_version"].as<std::string>();
-            }
-            if (!res[0]["created_at"].is_null()) {
-                d.createdAt = res[0]["created_at"].as<std::string>();
-            }
-            return d;
+            return populateDeviceFromRow(res[0]);
         }
     } catch (const std::exception& e) {
         std::cerr << "[DeviceRepository] Error in findByToken: " << e.what() << std::endl;
@@ -161,26 +139,7 @@ std::optional<Device> DeviceRepository::findByGuid(const std::string& machineGui
         pqxx::nontransaction txn(*conn);
         pqxx::result res = txn.exec_prepared("find_device_by_guid", machineGuid);
         if (!res.empty()) {
-            Device d;
-            d.id = res[0]["id"].as<int>();
-            d.name = res[0]["name"].as<std::string>();
-            d.token = res[0]["token"].as<std::string>();
-            d.ipAddress = res[0]["ip_address"].as<std::string>();
-            d.status = res[0]["status"].as<std::string>();
-            
-            if (!res[0]["machine_guid"].is_null()) {
-                d.machineGuid = res[0]["machine_guid"].as<std::string>();
-            }
-            if (!res[0]["mac_address"].is_null()) {
-                d.macAddress = res[0]["mac_address"].as<std::string>();
-            }
-            if (!res[0]["windows_version"].is_null()) {
-                d.windowsVersion = res[0]["windows_version"].as<std::string>();
-            }
-            if (!res[0]["created_at"].is_null()) {
-                d.createdAt = res[0]["created_at"].as<std::string>();
-            }
-            return d;
+            return populateDeviceFromRow(res[0]);
         }
     } catch (const std::exception& e) {
         std::cerr << "[DeviceRepository] Error in findByGuid: " << e.what() << std::endl;
@@ -203,6 +162,22 @@ void DeviceRepository::update(const Device& device) {
         txn.commit();
     } catch (const std::exception& e) {
         std::cerr << "[DeviceRepository] Error in update: " << e.what() << std::endl;
+        throw;
+    }
+}
+
+void DeviceRepository::assignUser(int deviceId, std::optional<int> userId) {
+    try {
+        auto conn = Database::getInstance().getConnection();
+        pqxx::work txn(*conn);
+        if (userId.has_value()) {
+            txn.exec_prepared("assign_device_user", userId.value(), deviceId);
+        } else {
+            txn.exec_prepared("assign_device_user", nullptr, deviceId);
+        }
+        txn.commit();
+    } catch (const std::exception& e) {
+        std::cerr << "[DeviceRepository] Error in assignUser: " << e.what() << std::endl;
         throw;
     }
 }

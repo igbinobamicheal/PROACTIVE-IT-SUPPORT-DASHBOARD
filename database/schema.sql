@@ -2,6 +2,7 @@
 DROP TABLE IF EXISTS metrics;
 DROP TABLE IF EXISTS alerts;
 DROP TABLE IF EXISTS devices;
+DROP TABLE IF EXISTS device_users;
 DROP TABLE IF EXISTS users;
 
 -- 1. Users Table (for Authentication)
@@ -12,6 +13,15 @@ CREATE TABLE users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- 1b. Device Users Table (Employees assigned to devices)
+CREATE TABLE device_users (
+    id SERIAL PRIMARY KEY,
+    full_name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    department VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- 2. Devices Table (Monitoring Agents)
 CREATE TABLE devices (
     id SERIAL PRIMARY KEY,
@@ -19,6 +29,7 @@ CREATE TABLE devices (
     token VARCHAR(255) NOT NULL UNIQUE,
     ip_address VARCHAR(45) NOT NULL,
     status VARCHAR(50) DEFAULT 'offline',
+    assigned_user_id INT REFERENCES device_users(id) ON DELETE SET NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
