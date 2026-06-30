@@ -39,7 +39,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    // 4. Auto-open wizard modal if requested via query string
+    // 4. Sort Selector Binding
+    const sortSelect = document.getElementById('sortSelect');
+    if (sortSelect) {
+        sortSelect.addEventListener('change', () => {
+            loadDevices();
+        });
+    }
+
+    // 5. Auto-open wizard modal if requested via query string
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('add') === 'true') {
         openAddDeviceModal();
@@ -52,12 +60,40 @@ async function loadDevices() {
     if (!tableBody) return;
 
     try {
-        const devices = await api.getDevices();
+        let devices = await api.getDevices();
         tableBody.innerHTML = '';
         
         if (devices.length === 0) {
-            tableBody.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-textMuted font-medium">No devices registered yet.</td></tr>`;
+            tableBody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-textMuted font-medium">No devices registered yet.</td></tr>`;
             return;
+        }
+
+        // Apply sorting
+        const sortVal = document.getElementById('sortSelect') ? document.getElementById('sortSelect').value : 'none';
+        if (sortVal === 'dept-asc') {
+            devices.sort((a, b) => {
+                const deptA = a.assigned_user_dept || '';
+                const deptB = b.assigned_user_dept || '';
+                return deptA.localeCompare(deptB);
+            });
+        } else if (sortVal === 'dept-desc') {
+            devices.sort((a, b) => {
+                const deptA = a.assigned_user_dept || '';
+                const deptB = b.assigned_user_dept || '';
+                return deptB.localeCompare(deptA);
+            });
+        } else if (sortVal === 'user-asc') {
+            devices.sort((a, b) => {
+                const nameA = a.assigned_user_name || '';
+                const nameB = b.assigned_user_name || '';
+                return nameA.localeCompare(nameB);
+            });
+        } else if (sortVal === 'user-desc') {
+            devices.sort((a, b) => {
+                const nameA = a.assigned_user_name || '';
+                const nameB = b.assigned_user_name || '';
+                return nameB.localeCompare(nameA);
+            });
         }
 
         devices.forEach(d => {
@@ -75,18 +111,22 @@ async function loadDevices() {
             const osDisplay = d.windows_version ? escapeHtml(d.windows_version) : 'Windows Agent';
             const macDisplay = d.mac_address ? escapeHtml(d.mac_address) : 'N/A';
 
+            // Primary display is User Name if assigned, fallback to Device Name
+            const primaryDisplayName = d.assigned_user_name ? d.assigned_user_name : d.name;
+            const subDisplayName = d.assigned_user_name ? `${d.name} &bull; ID: ${d.id}` : `ID: ${d.id}`;
+
             tr.innerHTML = `
                 <td class="py-3 px-4" onclick="event.stopPropagation()">
                     <input type="checkbox" class="rounded bg-white border-borderSubtle text-primary accent-primary cursor-pointer">
                 </td>
                 <td class="py-3 px-4">
-                    <div class="font-mono font-semibold text-textMain">${escapeHtml(d.name)}</div>
-                    <div class="text-[10px] text-textSubtle mt-0.5">ID: ${d.id}</div>
+                    <div class="font-semibold text-textMain">${escapeHtml(primaryDisplayName)}</div>
+                    <div class="text-[10px] text-textSubtle mt-0.5 font-mono">${subDisplayName}</div>
                 </td>
                 <td class="py-3 px-4">
                     ${d.assigned_user_name 
                         ? `<div class="font-semibold text-textMain">${escapeHtml(d.assigned_user_name)}</div>
-                           <div class="text-[10px] text-textSubtle">${escapeHtml(d.assigned_user_email)}</div>`
+                           <div class="text-[10px] text-textSubtle">${escapeHtml(d.assigned_user_email)} ${d.assigned_user_dept ? `[${escapeHtml(d.assigned_user_dept)}]` : ''}</div>`
                         : `<span class="text-textSubtle italic">Unassigned</span>`}
                 </td>
                 <td class="py-3 px-4">
@@ -108,7 +148,7 @@ async function loadDevices() {
             tableBody.appendChild(tr);
         });
     } catch (err) {
-        tableBody.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-danger font-semibold">Failed to load devices: ${escapeHtml(err.message)}</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-danger font-semibold">Failed to load devices: ${escapeHtml(err.message)}</td></tr>`;
     }
 }
 
@@ -197,11 +237,30 @@ function copyTokenToClipboard(tokenText, btnEl) {
 }
 
 // Add Device Wizard Navigation
-function openAddDeviceModal() {
+async function openAddDeviceModal() {
     document.getElementById('addDeviceModal').classList.remove('hidden');
     document.getElementById('modalStep1').classList.remove('hidden');
     document.getElementById('modalStep2').classList.add('hidden');
     document.getElementById('modalStep3').classList.add('hidden');
+
+    // Populate user selection dropdown
+    try {
+        const users = await api.getDeviceUsers();
+        const select = document.getElementById('modalAssignUserSelect');
+        if (select) {
+            select.innerHTML = '<option value="">-- Leave Unassigned --</option>';
+            if (users && users.length > 0) {
+                users.forEach(u => {
+                    const opt = document.createElement('option');
+                    opt.value = u.id;
+                    opt.textContent = `${u.full_name} (${u.email}) [${u.department || 'No Dept'}]`;
+                    select.appendChild(opt);
+                });
+            }
+        }
+    } catch (e) {
+        console.error('Failed to load device users for onboarding:', e);
+    }
 }
 
 function closeAddDeviceModal(shouldRefresh = false) {
@@ -216,7 +275,10 @@ function closeAddDeviceModal(shouldRefresh = false) {
 // Generate token from the Wizard modal
 async function modalGenerateToken() {
     try {
-        const res = await api.createRegistrationToken();
+        const select = document.getElementById('modalAssignUserSelect');
+        const assignedUserId = select && select.value ? parseInt(select.value) : null;
+
+        const res = await api.createRegistrationToken(assignedUserId);
         currentRegToken = res.token;
 
         // Switch to Step 2

@@ -153,6 +153,16 @@
                         <i data-lucide="search" class="w-4 h-4 text-textSubtle ml-2"></i>
                         <input id="searchInput" class="bg-transparent border-none text-[13px] text-textMain w-full focus:outline-none placeholder:text-textSubtle font-mono" placeholder="Search ID, Name, IP..." type="text"/>
                     </div>
+                    <div class="flex items-center gap-2 mr-2">
+                        <span class="text-[11px] text-textSubtle font-semibold">Sort:</span>
+                        <select id="sortSelect" class="bg-bg border border-borderSubtle rounded px-2.5 py-1 text-[12px] focus:outline-none focus:border-primary text-textMain font-medium cursor-pointer">
+                            <option value="none">None</option>
+                            <option value="dept-asc">Department (A-Z)</option>
+                            <option value="dept-desc">Department (Z-A)</option>
+                            <option value="user-asc">User Name (A-Z)</option>
+                            <option value="user-desc">User Name (Z-A)</option>
+                        </select>
+                    </div>
                 </div>
 
                 <div class="bg-surface border border-borderSubtle rounded-md overflow-hidden flex-1 flex flex-col glass-panel shadow-sm">
@@ -225,12 +235,18 @@
 
             <!-- Wizard Step 1: Generate Token -->
             <div id="modalStep1" class="flex flex-col gap-4 py-3">
-                <div class="flex flex-col gap-2 bg-black/[0.015] border border-borderSubtle rounded-lg p-4 text-center items-center justify-center py-6">
-                    <i data-lucide="key-round" class="w-10 h-10 text-primary mb-2 animate-pulse"></i>
+                <div class="flex flex-col gap-2 bg-black/[0.015] border border-borderSubtle rounded-lg p-4 text-center items-center justify-center py-4">
+                    <i data-lucide="key-round" class="w-8 h-8 text-primary mb-2 animate-pulse"></i>
                     <h4 class="font-semibold text-[13px]">Secure Device Onboarding</h4>
                     <p class="text-[11.5px] text-textMuted max-w-[340px] leading-relaxed">
                         To register a new device securely, generate a temporary one-time token. This token will authorize the installer to automatically configure the node.
                     </p>
+                </div>
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-[10px] font-mono uppercase tracking-wider text-textMuted">Assign to User (Optional)</label>
+                    <select id="modalAssignUserSelect" class="bg-bg border border-borderSubtle rounded-md px-3 py-2 text-[12.5px] focus:outline-none focus:border-primary text-textMain">
+                        <option value="">-- Leave Unassigned --</option>
+                    </select>
                 </div>
                 <button onclick="modalGenerateToken()" class="w-full bg-primary text-white hover:bg-primaryHover py-2 rounded-md font-semibold text-[12px] transition-all flex items-center justify-center gap-2 shadow-sm">
                     <i data-lucide="sparkles" class="w-4 h-4"></i> Generate Registration Token

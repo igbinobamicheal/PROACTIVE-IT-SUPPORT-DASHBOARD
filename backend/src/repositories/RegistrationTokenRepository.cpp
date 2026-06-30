@@ -2,11 +2,15 @@
 #include "database/Database.hpp"
 #include <iostream>
 
-void RegistrationTokenRepository::create(const std::string& token, const std::string& expiresAt) {
+void RegistrationTokenRepository::create(const std::string& token, const std::string& expiresAt, std::optional<int> assignedUserId) {
     try {
         auto conn = Database::getInstance().getConnection();
         pqxx::work txn(*conn);
-        txn.exec_prepared("create_registration_token", token, expiresAt);
+        if (assignedUserId.has_value()) {
+            txn.exec_prepared("create_registration_token", token, expiresAt, assignedUserId.value());
+        } else {
+            txn.exec_prepared("create_registration_token", token, expiresAt, nullptr);
+        }
         txn.commit();
     } catch (const std::exception& e) {
         std::cerr << "[RegistrationTokenRepository] Error in create: " << e.what() << std::endl;
@@ -25,6 +29,9 @@ std::optional<RegistrationToken> RegistrationTokenRepository::findByToken(const 
             rt.token = res[0]["token"].as<std::string>();
             rt.used = res[0]["used"].as<bool>();
             rt.isExpired = res[0]["is_expired"].as<bool>();
+            if (!res[0]["assigned_user_id"].is_null()) {
+                rt.assignedUserId = res[0]["assigned_user_id"].as<int>();
+            }
             return rt;
         }
     } catch (const std::exception& e) {
@@ -57,6 +64,9 @@ std::vector<RegistrationToken> RegistrationTokenRepository::findAll() {
             rt.token = row["token"].as<std::string>();
             rt.used = row["used"].as<bool>();
             rt.isExpired = row["is_expired"].as<bool>();
+            if (!row["assigned_user_id"].is_null()) {
+                rt.assignedUserId = row["assigned_user_id"].as<int>();
+            }
             tokens.push_back(rt);
         }
     } catch (const std::exception& e) {

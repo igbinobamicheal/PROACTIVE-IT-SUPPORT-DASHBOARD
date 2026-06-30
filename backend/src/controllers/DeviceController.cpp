@@ -63,20 +63,37 @@ void DeviceController::registerRoutes(crow::App<CORSMiddleware, AuthMiddleware>&
     CROW_ROUTE(app, "/api/registration-tokens")
     .methods(crow::HTTPMethod::POST)
     .CROW_MIDDLEWARES(app, AuthMiddleware)
-    ([]() {
+    ([](const crow::request& req) {
         crow::response res;
         res.set_header("Content-Type", "application/json");
         try {
+            std::optional<int> assignedUserId;
+            if (!req.body.empty()) {
+                try {
+                    auto body = nlohmann::json::parse(req.body);
+                    if (body.contains("assigned_user_id") && !body["assigned_user_id"].is_null()) {
+                        assignedUserId = body["assigned_user_id"].get<int>();
+                    }
+                } catch (...) {
+                    // Ignore JSON parsing errors for compatibility with legacy requests
+                }
+            }
+
             std::string token = generateUUID();
             std::string expiresAt = getFormattedExpiry(15);
             
             RegistrationTokenRepository repo;
-            repo.create(token, expiresAt);
+            repo.create(token, expiresAt, assignedUserId);
             
             nlohmann::json response = {
                 {"token", token},
                 {"expires_at", expiresAt}
             };
+            if (assignedUserId.has_value()) {
+                response["assigned_user_id"] = assignedUserId.value();
+            } else {
+                response["assigned_user_id"] = nullptr;
+            }
             
             res.code = 201;
             res.write(response.dump());
@@ -106,6 +123,11 @@ void DeviceController::registerRoutes(crow::App<CORSMiddleware, AuthMiddleware>&
                 item["token"] = t.token;
                 item["used"] = t.used;
                 item["is_expired"] = t.isExpired;
+                if (t.assignedUserId.has_value()) {
+                    item["assigned_user_id"] = t.assignedUserId.value();
+                } else {
+                    item["assigned_user_id"] = nullptr;
+                }
                 arr.push_back(item);
             }
             
@@ -232,6 +254,9 @@ void DeviceController::registerRoutes(crow::App<CORSMiddleware, AuthMiddleware>&
                 dev.token = ss.str();
                 
                 devRepo.update(dev);
+                if (rt.assignedUserId.has_value()) {
+                    devRepo.assignUser(dev.id, rt.assignedUserId.value());
+                }
             } else {
                 // Create a new device
                 dev.name = body["name"];
@@ -242,6 +267,9 @@ void DeviceController::registerRoutes(crow::App<CORSMiddleware, AuthMiddleware>&
                 dev.status = "offline";
                 
                 devRepo.create(dev); // Sets ID and Token automatically
+                if (rt.assignedUserId.has_value()) {
+                    devRepo.assignUser(dev.id, rt.assignedUserId.value());
+                }
             }
 
             res.code = 201;

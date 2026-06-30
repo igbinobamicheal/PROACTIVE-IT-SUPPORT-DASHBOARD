@@ -2,6 +2,7 @@
 DROP TABLE IF EXISTS metrics;
 DROP TABLE IF EXISTS alerts;
 DROP TABLE IF EXISTS devices;
+DROP TABLE IF EXISTS registration_tokens;
 DROP TABLE IF EXISTS device_users;
 DROP TABLE IF EXISTS users;
 
@@ -19,6 +20,16 @@ CREATE TABLE device_users (
     full_name VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
     department VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 1c. Registration Tokens Table
+CREATE TABLE registration_tokens (
+    id SERIAL PRIMARY KEY,
+    token VARCHAR(255) NOT NULL UNIQUE,
+    expires_at TIMESTAMP NOT NULL,
+    used BOOLEAN DEFAULT FALSE,
+    assigned_user_id INT REFERENCES device_users(id) ON DELETE SET NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

@@ -97,6 +97,7 @@ void Database::initialize() {
                  "  used BOOLEAN DEFAULT FALSE,"
                  "  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
                  ");");
+        txn.exec("ALTER TABLE registration_tokens ADD COLUMN IF NOT EXISTS assigned_user_id INT REFERENCES device_users(id) ON DELETE SET NULL;");
 
         // 3. Metrics Table
         txn.exec("CREATE TABLE IF NOT EXISTS metrics ("
@@ -221,10 +222,10 @@ void Database::prepareConnection(pqxx::connection& conn) {
     conn.prepare("update_device_details", "UPDATE devices SET name = $1, ip_address = $2, mac_address = $3, windows_version = $4, token = $5, status = $6 WHERE id = $7");
 
     // 2b. Registration Token queries
-    conn.prepare("create_registration_token", "INSERT INTO registration_tokens (token, expires_at) VALUES ($1, $2) RETURNING id");
-    conn.prepare("find_registration_token", "SELECT id, token, used, (expires_at < NOW()) AS is_expired FROM registration_tokens WHERE token = $1");
+    conn.prepare("create_registration_token", "INSERT INTO registration_tokens (token, expires_at, assigned_user_id) VALUES ($1, $2, $3) RETURNING id");
+    conn.prepare("find_registration_token", "SELECT id, token, used, (expires_at < NOW()) AS is_expired, assigned_user_id FROM registration_tokens WHERE token = $1");
     conn.prepare("use_registration_token", "UPDATE registration_tokens SET used = TRUE WHERE token = $1");
-    conn.prepare("find_all_registration_tokens", "SELECT id, token, used, (expires_at < NOW()) AS is_expired FROM registration_tokens ORDER BY created_at DESC");
+    conn.prepare("find_all_registration_tokens", "SELECT id, token, used, (expires_at < NOW()) AS is_expired, assigned_user_id FROM registration_tokens ORDER BY created_at DESC");
     conn.prepare("revoke_registration_token", "UPDATE registration_tokens SET expires_at = NOW() WHERE token = $1");
 
     // 3. Metrics queries

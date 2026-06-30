@@ -10,11 +10,12 @@ struct RegistrationToken {
     std::string token;
     bool used = false;
     bool isExpired = false;
+    std::optional<int> assignedUserId;
 };
 
 class RegistrationTokenRepository {
 public:
-    void create(const std::string& token, const std::string& expiresAt);
+    void create(const std::string& token, const std::string& expiresAt, std::optional<int> assignedUserId = std::nullopt);
     std::optional<RegistrationToken> findByToken(const std::string& token);
     void useToken(const std::string& token);
     std::vector<RegistrationToken> findAll();

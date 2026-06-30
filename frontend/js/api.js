@@ -92,8 +92,8 @@ const api = {
         return this.request('/registration-tokens', 'GET');
     },
 
-    createRegistrationToken() {
-        return this.request('/registration-tokens', 'POST');
+    createRegistrationToken(assignedUserId = null) {
+        return this.request('/registration-tokens', 'POST', assignedUserId ? { assigned_user_id: assignedUserId } : {});
     },
 
     revokeRegistrationToken(token) {
