@@ -86,3 +86,15 @@ std::optional<DeviceUser> DeviceUserRepository::findByEmail(const std::string& e
     }
     return std::nullopt;
 }
+
+void DeviceUserRepository::update(const DeviceUser& user) {
+    try {
+        auto conn = Database::getInstance().getConnection();
+        pqxx::work txn(*conn);
+        txn.exec_prepared("update_device_user", user.fullName, user.department, user.id);
+        txn.commit();
+    } catch (const std::exception& e) {
+        std::cerr << "[DeviceUserRepository] Error in update: " << e.what() << std::endl;
+        throw;
+    }
+}

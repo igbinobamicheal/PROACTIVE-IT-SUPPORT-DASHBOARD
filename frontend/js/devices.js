@@ -68,21 +68,9 @@ async function loadDevices() {
             return;
         }
 
-        // Apply sorting
+        // Apply sorting to devices first
         const sortVal = document.getElementById('sortSelect') ? document.getElementById('sortSelect').value : 'none';
-        if (sortVal === 'dept-asc') {
-            devices.sort((a, b) => {
-                const deptA = a.assigned_user_dept || '';
-                const deptB = b.assigned_user_dept || '';
-                return deptA.localeCompare(deptB);
-            });
-        } else if (sortVal === 'dept-desc') {
-            devices.sort((a, b) => {
-                const deptA = a.assigned_user_dept || '';
-                const deptB = b.assigned_user_dept || '';
-                return deptB.localeCompare(deptA);
-            });
-        } else if (sortVal === 'user-asc') {
+        if (sortVal === 'user-asc') {
             devices.sort((a, b) => {
                 const nameA = a.assigned_user_name || '';
                 const nameB = b.assigned_user_name || '';
@@ -96,64 +84,112 @@ async function loadDevices() {
             });
         }
 
+        // Group by department
+        const groups = {};
         devices.forEach(d => {
-            const tr = document.createElement('tr');
-            tr.className = 'border-b border-black/[0.03] hover:bg-black/[0.015] transition-colors cursor-pointer';
-            tr.onclick = () => {
-                window.location.href = `device-details.html?id=${d.id}`;
-            };
+            const dept = d.assigned_user_dept || 'Unassigned / No Department';
+            if (!groups[dept]) groups[dept] = [];
+            groups[dept].push(d);
+        });
+
+        // Sort departments
+        const sortedDepts = Object.keys(groups).sort((a, b) => {
+            // Unassigned / No Department is always last
+            if (a === 'Unassigned / No Department') return 1;
+            if (b === 'Unassigned / No Department') return -1;
             
-            const statusDotColor = d.status === 'online' 
-                ? 'bg-success shadow-[0_0_8px_rgba(16,185,129,0.3)]' 
-                : 'bg-danger shadow-[0_0_8px_rgba(239,68,68,0.3)]';
-            const statusText = d.status === 'online' ? 'Healthy' : 'Critical';
+            if (sortVal === 'dept-desc') {
+                return b.localeCompare(a);
+            }
+            // default is dept-asc (alphabetical) or 'none' (which groups by dept alphabetically)
+            return a.localeCompare(b);
+        });
 
-            const osDisplay = d.windows_version ? escapeHtml(d.windows_version) : 'Windows Agent';
-            const macDisplay = d.mac_address ? escapeHtml(d.mac_address) : 'N/A';
-
-            // Primary display is User Name if assigned, fallback to Device Name
-            const primaryDisplayName = d.assigned_user_name ? d.assigned_user_name : d.name;
-            const subDisplayName = d.assigned_user_name ? `${d.name} &bull; ID: ${d.id}` : `ID: ${d.id}`;
-
-            tr.innerHTML = `
-                <td class="py-3 px-4" onclick="event.stopPropagation()">
-                    <input type="checkbox" class="rounded bg-white border-borderSubtle text-primary accent-primary cursor-pointer">
-                </td>
-                <td class="py-3 px-4">
-                    <div class="font-semibold text-textMain">${escapeHtml(primaryDisplayName)}</div>
-                    <div class="text-[10px] text-textSubtle mt-0.5 font-mono">${subDisplayName}</div>
-                </td>
-                <td class="py-3 px-4">
-                    ${d.assigned_user_name 
-                        ? `<div class="flex items-center gap-1.5">
-                               <span class="font-semibold text-textMain">${escapeHtml(d.assigned_user_name)}</span>
-                               <button onclick="event.stopPropagation(); openAssignModal(${d.id})" class="text-textSubtle hover:text-textMain inline-flex items-center p-0.5" title="Reassign User">
-                                   <i data-lucide="user-cog" class="w-3.5 h-3.5"></i>
-                               </button>
-                           </div>
-                           <div class="text-[10px] text-textSubtle">${escapeHtml(d.assigned_user_email)} ${d.assigned_user_dept ? `[${escapeHtml(d.assigned_user_dept)}]` : ''}</div>`
-                        : `<button onclick="event.stopPropagation(); openAssignModal(${d.id})" class="text-primary hover:underline text-[11px] font-semibold inline-flex items-center gap-1">
-                               <i data-lucide="user-plus" class="w-3.5 h-3.5"></i> Assign User
-                           </button>`}
-                </td>
-                <td class="py-3 px-4">
-                    <span class="flex items-center gap-2 text-textMuted">
-                        <div class="w-1.5 h-1.5 rounded-full ${statusDotColor}"></div>
-                        ${statusText}
+        // Render groups
+        sortedDepts.forEach(dept => {
+            // Render department header row
+            const headerTr = document.createElement('tr');
+            headerTr.className = 'bg-black/[0.02] border-y border-borderSubtle font-mono text-[10px] text-textSubtle uppercase tracking-wider select-none';
+            
+            const count = groups[dept].length;
+            const deptNameDisplay = dept === 'Unassigned / No Department' ? dept : `Department: ${dept}`;
+            
+            headerTr.innerHTML = `
+                <td colspan="6" class="py-2.5 px-4 font-semibold">
+                    <span class="flex items-center gap-1.5 text-primary">
+                        <i data-lucide="building" class="w-3.5 h-3.5"></i>
+                        ${escapeHtml(deptNameDisplay)} (${count} ${count === 1 ? 'device' : 'devices'})
                     </span>
                 </td>
-                <td class="py-3 px-4 font-mono text-textMuted leading-relaxed">
-                    <div>${escapeHtml(d.ip_address)}</div>
-                    <div class="text-[10px] text-textSubtle uppercase tracking-wide mt-0.5">${osDisplay} &bull; MAC: ${macDisplay}</div>
-                </td>
-                <td class="py-3 px-4" onclick="event.stopPropagation()">
-                    <a href="device-details.html?id=${d.id}" class="inline-flex items-center px-2.5 py-1 rounded bg-black/[0.02] border border-borderSubtle text-textMain hover:bg-black/[0.04] text-[11px] font-medium transition-colors">
-                        View Metrics
-                    </a>
-                </td>
             `;
-            tableBody.appendChild(tr);
+            tableBody.appendChild(headerTr);
+
+            // Render devices in this group
+            groups[dept].forEach(d => {
+                const tr = document.createElement('tr');
+                tr.className = 'border-b border-black/[0.03] hover:bg-black/[0.015] transition-colors cursor-pointer';
+                tr.onclick = () => {
+                    window.location.href = `device-details.html?id=${d.id}`;
+                };
+                
+                const statusDotColor = d.status === 'online' 
+                    ? 'bg-success shadow-[0_0_8px_rgba(16,185,129,0.3)]' 
+                    : 'bg-danger shadow-[0_0_8px_rgba(239,68,68,0.3)]';
+                const statusText = d.status === 'online' ? 'Healthy' : 'Critical';
+
+                const osDisplay = d.windows_version ? escapeHtml(d.windows_version) : 'Windows Agent';
+                const macDisplay = d.mac_address ? escapeHtml(d.mac_address) : 'N/A';
+
+                // Primary display is User Name if assigned, fallback to Device Name
+                const primaryDisplayName = d.assigned_user_name ? d.assigned_user_name : d.name;
+                const subDisplayName = d.assigned_user_name ? `${d.name} &bull; ID: ${d.id}` : `ID: ${d.id}`;
+
+                const userCell = d.assigned_user_name 
+                    ? `<div class="flex items-center gap-1.5">
+                           <span class="font-semibold text-textMain">${escapeHtml(d.assigned_user_name)}</span>
+                           <button onclick="event.stopPropagation(); openAssignModal(${d.id})" class="text-textSubtle hover:text-textMain inline-flex items-center p-0.5" title="Reassign User / Edit Department">
+                               <i data-lucide="user-cog" class="w-3.5 h-3.5"></i>
+                           </button>
+                       </div>
+                       <div class="text-[10px] text-textSubtle">${escapeHtml(d.assigned_user_email)} ${d.assigned_user_dept ? `[${escapeHtml(d.assigned_user_dept)}]` : ''}</div>`
+                    : `<button onclick="event.stopPropagation(); openAssignModal(${d.id})" class="text-primary hover:underline text-[11px] font-semibold inline-flex items-center gap-1">
+                           <i data-lucide="user-plus" class="w-3.5 h-3.5"></i> Assign User
+                       </button>`;
+
+                tr.innerHTML = `
+                    <td class="py-3 px-4" onclick="event.stopPropagation()">
+                        <input type="checkbox" class="rounded bg-white border-borderSubtle text-primary accent-primary cursor-pointer">
+                    </td>
+                    <td class="py-3 px-4">
+                        <div class="font-semibold text-textMain">${escapeHtml(primaryDisplayName)}</div>
+                        <div class="text-[10px] text-textSubtle mt-0.5 font-mono">${subDisplayName}</div>
+                    </td>
+                    <td class="py-3 px-4">
+                        ${userCell}
+                    </td>
+                    <td class="py-3 px-4">
+                        <span class="flex items-center gap-2 text-textMuted">
+                            <div class="w-1.5 h-1.5 rounded-full ${statusDotColor}"></div>
+                            ${statusText}
+                        </span>
+                    </td>
+                    <td class="py-3 px-4 font-mono text-textMuted leading-relaxed">
+                        <div>${escapeHtml(d.ip_address)}</div>
+                        <div class="text-[10px] text-textSubtle uppercase tracking-wide mt-0.5">${osDisplay} &bull; MAC: ${macDisplay}</div>
+                    </td>
+                    <td class="py-3 px-4" onclick="event.stopPropagation()">
+                        <a href="device-details.html?id=${d.id}" class="inline-flex items-center px-2.5 py-1 rounded bg-black/[0.02] border border-borderSubtle text-textMain hover:bg-black/[0.04] text-[11px] font-medium transition-colors">
+                            View Metrics
+                        </a>
+                    </td>
+                `;
+                tableBody.appendChild(tr);
+            });
         });
+
+        // Initialize Lucide icons on newly created elements
+        window.lucide.createIcons();
+
     } catch (err) {
         tableBody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-danger font-semibold">Failed to load devices: ${escapeHtml(err.message)}</td></tr>`;
     }
@@ -250,30 +286,17 @@ function copyTokenToClipboard(tokenText, btnEl) {
 }
 
 // Add Device Wizard Navigation
+// Add Device Wizard Navigation
 async function openAddDeviceModal() {
     document.getElementById('addDeviceModal').classList.remove('hidden');
     document.getElementById('modalStep1').classList.remove('hidden');
     document.getElementById('modalStep2').classList.add('hidden');
     document.getElementById('modalStep3').classList.add('hidden');
 
-    // Populate user selection dropdown
-    try {
-        const users = await api.getDeviceUsers();
-        const select = document.getElementById('modalAssignUserSelect');
-        if (select) {
-            select.innerHTML = '<option value="">-- Leave Unassigned --</option>';
-            if (users && users.length > 0) {
-                users.forEach(u => {
-                    const opt = document.createElement('option');
-                    opt.value = u.id;
-                    opt.textContent = `${u.full_name} (${u.email}) [${u.department || 'No Dept'}]`;
-                    select.appendChild(opt);
-                });
-            }
-        }
-    } catch (e) {
-        console.error('Failed to load device users for onboarding:', e);
-    }
+    // Clear onboarding user inputs
+    document.getElementById('modalUserFullName').value = '';
+    document.getElementById('modalUserEmail').value = '';
+    document.getElementById('modalUserDept').value = '';
 }
 
 function closeAddDeviceModal(shouldRefresh = false) {
@@ -288,8 +311,21 @@ function closeAddDeviceModal(shouldRefresh = false) {
 // Generate token from the Wizard modal
 async function modalGenerateToken() {
     try {
-        const select = document.getElementById('modalAssignUserSelect');
-        const assignedUserId = select && select.value ? parseInt(select.value) : null;
+        const fullName = document.getElementById('modalUserFullName').value.trim();
+        const email = document.getElementById('modalUserEmail').value.trim();
+        const dept = document.getElementById('modalUserDept').value.trim();
+
+        let assignedUserId = null;
+        if (email) {
+            if (!fullName) {
+                alert('Full Name is required if Staff Email is provided.');
+                return;
+            }
+            const user = await api.ensureDeviceUser(fullName, email, dept);
+            if (user && user.id) {
+                assignedUserId = user.id;
+            }
+        }
 
         const res = await api.createRegistrationToken(assignedUserId);
         currentRegToken = res.token;
@@ -411,26 +447,16 @@ function openAssignModal(deviceId) {
     document.getElementById('newFullName').value = '';
     document.getElementById('newEmail').value = '';
     document.getElementById('newDepartment').value = '';
-    
-    document.getElementById('tabSelectExisting').click();
 
-    // Populate existing users
-    api.getDeviceUsers().then(users => {
-        const dropdown = document.getElementById('userDropdown');
-        dropdown.innerHTML = '';
-        if (!users || users.length === 0) {
-            dropdown.innerHTML = '<option value="">-- No users registered yet --</option>';
-        } else {
-            users.forEach(u => {
-                const opt = document.createElement('option');
-                opt.value = u.id;
-                opt.textContent = `${u.full_name} (${u.email}) [${u.department || 'No Dept'}]`;
-                dropdown.appendChild(opt);
-            });
+    // Pre-populate if already assigned
+    api.getDevices().then(devices => {
+        const d = devices.find(x => x.id === deviceId);
+        if (d && d.assigned_user_name) {
+            document.getElementById('newFullName').value = d.assigned_user_name;
+            document.getElementById('newEmail').value = d.assigned_user_email || '';
+            document.getElementById('newDepartment').value = d.assigned_user_dept || '';
         }
-    }).catch(e => {
-        console.error('Failed to load device users:', e);
-    });
+    }).catch(e => console.error(e));
 }
 
 function closeAssignmentModal() {
@@ -448,71 +474,49 @@ document.addEventListener('DOMContentLoaded', () => {
         closeBtn.addEventListener('click', () => closeAssignmentModal());
     }
 
-    const tabSelectExisting = document.getElementById('tabSelectExisting');
-    const tabCreateNew = document.getElementById('tabCreateNew');
-    const formSelectExisting = document.getElementById('formSelectExisting');
-    const formCreateNew = document.getElementById('formCreateNew');
-
-    if (tabSelectExisting && tabCreateNew) {
-        tabSelectExisting.addEventListener('click', () => {
-            tabSelectExisting.className = 'pb-2 border-b-2 border-primary text-primary transition-all font-semibold';
-            tabCreateNew.className = 'pb-2 border-b-2 border-transparent text-textSubtle hover:text-textMain transition-all font-semibold';
-            formSelectExisting.classList.remove('hidden');
-            formCreateNew.classList.add('hidden');
-        });
-
-        tabCreateNew.addEventListener('click', () => {
-            tabCreateNew.className = 'pb-2 border-b-2 border-primary text-primary transition-all font-semibold';
-            tabSelectExisting.className = 'pb-2 border-b-2 border-transparent text-textSubtle hover:text-textMain transition-all font-semibold';
-            formCreateNew.classList.remove('hidden');
-            formSelectExisting.classList.add('hidden');
-        });
-    }
-
-    const btnAssignExisting = document.getElementById('submitAssignExisting');
-    if (btnAssignExisting) {
-        btnAssignExisting.addEventListener('click', async () => {
-            const userId = document.getElementById('userDropdown').value;
-            if (!userId) {
-                alert('Please select a user to assign.');
-                return;
-            }
-
+    // Auto lookup user name/dept by email on email field change
+    const emailInput = document.getElementById('newEmail');
+    if (emailInput) {
+        emailInput.addEventListener('change', async (e) => {
+            const email = e.target.value.trim();
+            if (!email) return;
             try {
-                const updated = await api.assignDeviceUser(activeAssignDeviceId, parseInt(userId));
-                if (updated) {
-                    loadDevices();
-                    closeAssignmentModal();
+                const users = await api.getDeviceUsers();
+                const matched = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+                if (matched) {
+                    document.getElementById('newFullName').value = matched.full_name;
+                    document.getElementById('newDepartment').value = matched.department || '';
                 }
-            } catch (e) {
-                alert('Failed to assign user: ' + e.message);
+            } catch (err) {
+                console.error(err);
             }
         });
     }
 
-    const btnCreateAndAssign = document.getElementById('submitCreateAndAssign');
-    if (btnCreateAndAssign) {
-        btnCreateAndAssign.addEventListener('click', async () => {
+    const btnAssignUser = document.getElementById('submitAssignUser');
+    if (btnAssignUser) {
+        btnAssignUser.addEventListener('click', async () => {
             const fullName = document.getElementById('newFullName').value.trim();
             const email = document.getElementById('newEmail').value.trim();
             const dept = document.getElementById('newDepartment').value.trim();
 
             if (!fullName || !email) {
-                alert('Full Name and Email are required to create a user.');
+                alert('Full Name and Staff Email are required.');
                 return;
             }
 
             try {
-                const newUser = await api.createDeviceUser(fullName, email, dept);
-                if (newUser && newUser.id) {
-                    const updated = await api.assignDeviceUser(activeAssignDeviceId, newUser.id);
+                // Ensure user exists or is updated
+                const user = await api.ensureDeviceUser(fullName, email, dept);
+                if (user && user.id) {
+                    const updated = await api.assignDeviceUser(activeAssignDeviceId, user.id);
                     if (updated) {
                         loadDevices();
                         closeAssignmentModal();
                     }
                 }
             } catch (e) {
-                alert('Failed to create and assign user: ' + e.message);
+                alert('Failed to assign user: ' + e.message);
             }
         });
     }

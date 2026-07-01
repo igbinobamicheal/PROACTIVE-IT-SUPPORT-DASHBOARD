@@ -730,6 +730,58 @@ Write-Host "To uninstall: & '$ExePath' --uninstall; Remove-Item -Recurse -Force 
         }
     });
 
+    // 7b. POST /api/device-users/ensure (guarded by JWT)
+    CROW_ROUTE(app, "/api/device-users/ensure")
+    .methods(crow::HTTPMethod::POST)
+    .CROW_MIDDLEWARES(app, AuthMiddleware)
+    ([](const crow::request& req) {
+        crow::response res;
+        res.set_header("Content-Type", "application/json");
+        try {
+            auto body = nlohmann::json::parse(req.body);
+            if (!body.contains("full_name") || !body.contains("email")) {
+                res.code = 400;
+                res.write(nlohmann::json{{"error", "Missing full_name or email"}}.dump());
+                return res;
+            }
+
+            std::string email = body["email"];
+            std::string fullName = body["full_name"];
+            std::string dept = body.contains("department") ? body["department"].get<std::string>() : "";
+
+            DeviceUserRepository repo;
+            auto existing = repo.findByEmail(email);
+            if (existing.has_value()) {
+                auto user = existing.value();
+                user.fullName = fullName;
+                user.department = dept;
+                repo.update(user);
+                
+                res.code = 200;
+                res.write(nlohmann::json(user).dump());
+                return res;
+            }
+
+            DeviceUser u;
+            u.fullName = fullName;
+            u.email = email;
+            u.department = dept;
+
+            repo.create(u);
+            res.code = 201;
+            res.write(nlohmann::json(u).dump());
+            return res;
+        } catch (const nlohmann::json::parse_error& e) {
+            res.code = 400;
+            res.write(nlohmann::json{{"error", "Malformed JSON request body"}}.dump());
+            return res;
+        } catch (const std::exception& e) {
+            res.code = 500;
+            res.write(nlohmann::json{{"error", std::string("Internal server error: ") + e.what()}}.dump());
+            return res;
+        }
+    });
+
     // 8. POST /api/device/<id>/assign (guarded by JWT)
     CROW_ROUTE(app, "/api/device/<int>/assign")
     .methods(crow::HTTPMethod::POST)

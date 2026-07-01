@@ -243,11 +243,21 @@
                         To register a new device securely, generate a temporary one-time token. This token will authorize the installer to automatically configure the node.
                     </p>
                 </div>
-                <div class="flex flex-col gap-1.5">
-                    <label class="text-[10px] font-mono uppercase tracking-wider text-textMuted">Assign to User (Optional)</label>
-                    <select id="modalAssignUserSelect" class="bg-bg border border-borderSubtle rounded-md px-3 py-2 text-[12.5px] focus:outline-none focus:border-primary text-textMain">
-                        <option value="">-- Leave Unassigned --</option>
-                    </select>
+                <!-- Assign to User Form (Optional) -->
+                <div class="flex flex-col gap-3 border border-borderSubtle bg-black/[0.005] rounded-lg p-3">
+                    <div class="text-[10.5px] font-bold text-textSubtle uppercase tracking-wider">Assign to User (Optional)</div>
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-[10px] font-mono uppercase tracking-wider text-textMuted">User's Full Name</label>
+                        <input type="text" id="modalUserFullName" placeholder="e.g. Alice Smith" class="bg-bg border border-borderSubtle rounded-md px-3 py-1.5 text-[12px] focus:outline-none focus:border-primary text-textMain"/>
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-[10px] font-mono uppercase tracking-wider text-textMuted">Staff Email</label>
+                        <input type="email" id="modalUserEmail" placeholder="e.g. alice@company.com" class="bg-bg border border-borderSubtle rounded-md px-3 py-1.5 text-[12px] focus:outline-none focus:border-primary text-textMain"/>
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label class="text-[10px] font-mono uppercase tracking-wider text-textMuted">Department</label>
+                        <input type="text" id="modalUserDept" placeholder="e.g. Engineering" class="bg-bg border border-borderSubtle rounded-md px-3 py-1.5 text-[12px] focus:outline-none focus:border-primary text-textMain"/>
+                    </div>
                 </div>
                 <button onclick="modalGenerateToken()" class="w-full bg-primary text-white hover:bg-primaryHover py-2 rounded-md font-semibold text-[12px] transition-all flex items-center justify-center gap-2 shadow-sm">
                     <i data-lucide="sparkles" class="w-4 h-4"></i> Generate Registration Token
@@ -360,38 +370,21 @@
             </button>
             <h3 class="text-textMain font-bold text-[15px] tracking-tight" id="modalTitle">Assign User to Device</h3>
             
-            <!-- Tabs -->
-            <div class="flex border-b border-borderSubtle gap-4 text-[12px] font-semibold">
-                <button id="tabSelectExisting" class="pb-2 border-b-2 border-primary text-primary transition-all">Select Existing</button>
-                <button id="tabCreateNew" class="pb-2 border-b-2 border-transparent text-textSubtle hover:text-textMain transition-all">Create New User</button>
-            </div>
-            
-            <!-- Select Existing Form -->
-            <div id="formSelectExisting" class="flex flex-col gap-4">
+            <!-- Direct Form -->
+            <div id="formAssignUser" class="flex flex-col gap-3">
                 <div class="flex flex-col gap-1.5">
-                    <label class="text-[10px] font-mono uppercase tracking-wider text-textMuted">Select Employee</label>
-                    <select id="userDropdown" class="bg-bg border border-borderSubtle rounded-md px-3 py-2 text-[12.5px] focus:outline-none focus:border-primary text-textMain">
-                        <!-- Loaded dynamically -->
-                    </select>
-                </div>
-                <button id="submitAssignExisting" class="bg-primary hover:bg-primaryHover text-white py-2 rounded-md text-[12px] font-semibold transition-colors mt-2 shadow-sm">Assign User</button>
-            </div>
-
-            <!-- Create New User Form -->
-            <div id="formCreateNew" class="flex flex-col gap-4 hidden">
-                <div class="flex flex-col gap-1.5">
-                    <label class="text-[10px] font-mono uppercase tracking-wider text-textMuted">Full Name</label>
+                    <label class="text-[10px] font-mono uppercase tracking-wider text-textMuted">User's Full Name</label>
                     <input type="text" id="newFullName" placeholder="e.g. Alice Smith" class="bg-bg border border-borderSubtle rounded-md px-3 py-2 text-[12.5px] focus:outline-none focus:border-primary text-textMain"/>
                 </div>
                 <div class="flex flex-col gap-1.5">
-                    <label class="text-[10px] font-mono uppercase tracking-wider text-textMuted">Email Address</label>
+                    <label class="text-[10px] font-mono uppercase tracking-wider text-textMuted">Staff Email</label>
                     <input type="email" id="newEmail" placeholder="e.g. alice.smith@company.com" class="bg-bg border border-borderSubtle rounded-md px-3 py-2 text-[12.5px] focus:outline-none focus:border-primary text-textMain"/>
                 </div>
                 <div class="flex flex-col gap-1.5">
                     <label class="text-[10px] font-mono uppercase tracking-wider text-textMuted">Department</label>
                     <input type="text" id="newDepartment" placeholder="e.g. Engineering" class="bg-bg border border-borderSubtle rounded-md px-3 py-2 text-[12.5px] focus:outline-none focus:border-primary text-textMain"/>
                 </div>
-                <button id="submitCreateAndAssign" class="bg-primary hover:bg-primaryHover text-white py-2 rounded-md text-[12px] font-semibold transition-colors mt-2 shadow-sm">Create & Assign User</button>
+                <button id="submitAssignUser" class="bg-primary hover:bg-primaryHover text-white py-2 rounded-md text-[12px] font-semibold transition-colors mt-2 shadow-sm">Assign & Save User</button>
             </div>
         </div>
     </div>

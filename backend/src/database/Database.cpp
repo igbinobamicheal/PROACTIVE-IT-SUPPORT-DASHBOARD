@@ -249,6 +249,7 @@ void Database::prepareConnection(pqxx::connection& conn) {
     conn.prepare("find_all_device_users", "SELECT id, full_name, email, department FROM device_users ORDER BY full_name ASC");
     conn.prepare("find_device_user_by_id", "SELECT id, full_name, email, department FROM device_users WHERE id = $1");
     conn.prepare("find_device_user_by_email", "SELECT id, full_name, email, department FROM device_users WHERE email = $1");
+    conn.prepare("update_device_user", "UPDATE device_users SET full_name = $1, department = $2 WHERE id = $3");
     conn.prepare("assign_device_user", "UPDATE devices SET assigned_user_id = $1 WHERE id = $2");
     
     // 7. Global metrics trend query

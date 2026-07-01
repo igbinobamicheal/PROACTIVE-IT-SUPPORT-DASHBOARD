@@ -11,6 +11,7 @@ public:
     std::vector<DeviceUser> findAll();
     std::optional<DeviceUser> findById(int id);
     std::optional<DeviceUser> findByEmail(const std::string& email);
+    void update(const DeviceUser& user);
 };
 
 #endif // DEVICE_USER_REPOSITORY_HPP
