@@ -846,5 +846,84 @@ Write-Host "To uninstall: & '$ExePath' --uninstall; Remove-Item -Recurse -Force 
             return res;
         }
     });
+
+    // 9. PUT /api/device-users/<id> (guarded by JWT) - update a single device user
+    CROW_ROUTE(app, "/api/device-users/<int>")
+    .methods(crow::HTTPMethod::PUT)
+    .CROW_MIDDLEWARES(app, AuthMiddleware)
+    ([](const crow::request& req, int userId) {
+        crow::response res;
+        res.set_header("Content-Type", "application/json");
+        try {
+            auto body = nlohmann::json::parse(req.body);
+
+            DeviceUserRepository repo;
+            auto existing = repo.findById(userId);
+            if (!existing.has_value()) {
+                res.code = 404;
+                res.write(nlohmann::json{{"error", "User not found"}}.dump());
+                return res;
+            }
+
+            DeviceUser u = existing.value();
+            if (body.contains("full_name")) u.fullName = body["full_name"].get<std::string>();
+            if (body.contains("department")) u.department = body["department"].get<std::string>();
+
+            repo.update(u);
+
+            res.code = 200;
+            res.write(nlohmann::json(u).dump());
+            return res;
+        } catch (const nlohmann::json::parse_error& e) {
+            res.code = 400;
+            res.write(nlohmann::json{{"error", "Malformed JSON request body"}}.dump());
+            return res;
+        } catch (const std::exception& e) {
+            res.code = 500;
+            res.write(nlohmann::json{{"error", std::string("Internal server error: ") + e.what()}}.dump());
+            return res;
+        }
+    });
+
+    // 10. PUT /api/device-users/department (guarded by JWT) - bulk rename a department
+    CROW_ROUTE(app, "/api/device-users/department")
+    .methods(crow::HTTPMethod::PUT)
+    .CROW_MIDDLEWARES(app, AuthMiddleware)
+    ([](const crow::request& req) {
+        crow::response res;
+        res.set_header("Content-Type", "application/json");
+        try {
+            auto body = nlohmann::json::parse(req.body);
+            if (!body.contains("old_name") || !body.contains("new_name")) {
+                res.code = 400;
+                res.write(nlohmann::json{{"error", "Missing old_name or new_name"}}.dump());
+                return res;
+            }
+
+            std::string oldName = body["old_name"].get<std::string>();
+            std::string newName = body["new_name"].get<std::string>();
+
+            if (oldName.empty() || newName.empty()) {
+                res.code = 400;
+                res.write(nlohmann::json{{"error", "old_name and new_name must not be empty"}}.dump());
+                return res;
+            }
+
+            DeviceUserRepository repo;
+            repo.renameDepartment(oldName, newName);
+
+            res.code = 200;
+            res.write(nlohmann::json{{"message", "Department renamed successfully"}, {"old_name", oldName}, {"new_name", newName}}.dump());
+            return res;
+        } catch (const nlohmann::json::parse_error& e) {
+            res.code = 400;
+            res.write(nlohmann::json{{"error", "Malformed JSON request body"}}.dump());
+            return res;
+        } catch (const std::exception& e) {
+            res.code = 500;
+            res.write(nlohmann::json{{"error", std::string("Internal server error: ") + e.what()}}.dump());
+            return res;
+        }
+    });
 }
 

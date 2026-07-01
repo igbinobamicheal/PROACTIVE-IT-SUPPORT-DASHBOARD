@@ -98,3 +98,15 @@ void DeviceUserRepository::update(const DeviceUser& user) {
         throw;
     }
 }
+
+void DeviceUserRepository::renameDepartment(const std::string& oldName, const std::string& newName) {
+    try {
+        auto conn = Database::getInstance().getConnection();
+        pqxx::work txn(*conn);
+        txn.exec_prepared("rename_department", newName, oldName);
+        txn.commit();
+    } catch (const std::exception& e) {
+        std::cerr << "[DeviceUserRepository] Error in renameDepartment: " << e.what() << std::endl;
+        throw;
+    }
+}

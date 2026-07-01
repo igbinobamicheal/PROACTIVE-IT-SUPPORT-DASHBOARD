@@ -12,6 +12,7 @@ public:
     std::optional<DeviceUser> findById(int id);
     std::optional<DeviceUser> findByEmail(const std::string& email);
     void update(const DeviceUser& user);
+    void renameDepartment(const std::string& oldName, const std::string& newName);
 };
 
 #endif // DEVICE_USER_REPOSITORY_HPP

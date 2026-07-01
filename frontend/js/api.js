@@ -116,6 +116,14 @@ const api = {
         return this.request(`/device/${deviceId}/assign`, 'POST', { user_id: userId });
     },
 
+    updateDeviceUser(userId, data) {
+        return this.request(`/device-users/${userId}`, 'PUT', data);
+    },
+
+    renameDepartment(oldName, newName) {
+        return this.request('/device-users/department', 'PUT', { old_name: oldName, new_name: newName });
+    },
+
     getMetricTrends() {
         return this.request('/metrics/trends', 'GET');
     }
