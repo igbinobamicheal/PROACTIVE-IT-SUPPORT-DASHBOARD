@@ -128,6 +128,16 @@ void DeviceController::registerRoutes(crow::App<CORSMiddleware, AuthMiddleware>&
                 } else {
                     item["assigned_user_id"] = nullptr;
                 }
+                if (t.assignedUserFullName.has_value()) {
+                    item["assigned_user_name"] = t.assignedUserFullName.value();
+                } else {
+                    item["assigned_user_name"] = nullptr;
+                }
+                if (t.assignedUserEmail.has_value()) {
+                    item["assigned_user_email"] = t.assignedUserEmail.value();
+                } else {
+                    item["assigned_user_email"] = nullptr;
+                }
                 arr.push_back(item);
             }
             

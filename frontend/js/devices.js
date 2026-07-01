@@ -125,9 +125,16 @@ async function loadDevices() {
                 </td>
                 <td class="py-3 px-4">
                     ${d.assigned_user_name 
-                        ? `<div class="font-semibold text-textMain">${escapeHtml(d.assigned_user_name)}</div>
+                        ? `<div class="flex items-center gap-1.5">
+                               <span class="font-semibold text-textMain">${escapeHtml(d.assigned_user_name)}</span>
+                               <button onclick="event.stopPropagation(); openAssignModal(${d.id})" class="text-textSubtle hover:text-textMain inline-flex items-center p-0.5" title="Reassign User">
+                                   <i data-lucide="user-cog" class="w-3.5 h-3.5"></i>
+                               </button>
+                           </div>
                            <div class="text-[10px] text-textSubtle">${escapeHtml(d.assigned_user_email)} ${d.assigned_user_dept ? `[${escapeHtml(d.assigned_user_dept)}]` : ''}</div>`
-                        : `<span class="text-textSubtle italic">Unassigned</span>`}
+                        : `<button onclick="event.stopPropagation(); openAssignModal(${d.id})" class="text-primary hover:underline text-[11px] font-semibold inline-flex items-center gap-1">
+                               <i data-lucide="user-plus" class="w-3.5 h-3.5"></i> Assign User
+                           </button>`}
                 </td>
                 <td class="py-3 px-4">
                     <span class="flex items-center gap-2 text-textMuted">
@@ -162,7 +169,7 @@ async function loadTokens() {
         tableBody.innerHTML = '';
 
         if (tokens.length === 0) {
-            tableBody.innerHTML = `<tr><td colspan="4" class="py-8 text-center text-textMuted font-medium">No registration tokens generated yet.</td></tr>`;
+            tableBody.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-textMuted font-medium">No registration tokens generated yet.</td></tr>`;
             return;
         }
 
@@ -194,6 +201,12 @@ async function loadTokens() {
                 <td class="py-3 px-4">
                     ${statusBadge}
                 </td>
+                <td class="py-3 px-4">
+                    ${t.assigned_user_name 
+                        ? `<div class="font-semibold text-textMain">${escapeHtml(t.assigned_user_name)}</div>
+                           <div class="text-[10px] text-textSubtle">${escapeHtml(t.assigned_user_email)}</div>`
+                        : `<span class="text-textSubtle italic">Unassigned</span>`}
+                </td>
                 <td class="py-3 px-4 font-mono text-[11px]">
                     ${t.used ? 'Completed Registration' : (t.is_expired ? 'Expired / Revoked' : 'Waiting for Agent')}
                 </td>
@@ -206,7 +219,7 @@ async function loadTokens() {
             tableBody.appendChild(tr);
         });
     } catch (err) {
-        tableBody.innerHTML = `<tr><td colspan="4" class="py-8 text-center text-danger font-semibold">Failed to load registration tokens: ${escapeHtml(err.message)}</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-danger font-semibold">Failed to load registration tokens: ${escapeHtml(err.message)}</td></tr>`;
     }
 }
 
@@ -380,3 +393,127 @@ function escapeHtml(str) {
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
 }
+
+// ==========================================
+// Device Assignment Modal Control
+// ==========================================
+let activeAssignDeviceId = null;
+
+function openAssignModal(deviceId) {
+    activeAssignDeviceId = deviceId;
+    
+    const modalEl = document.getElementById('assignmentModal');
+    if (!modalEl) return;
+    
+    modalEl.classList.remove('hidden');
+    
+    // Reset inputs
+    document.getElementById('newFullName').value = '';
+    document.getElementById('newEmail').value = '';
+    document.getElementById('newDepartment').value = '';
+    
+    document.getElementById('tabSelectExisting').click();
+
+    // Populate existing users
+    api.getDeviceUsers().then(users => {
+        const dropdown = document.getElementById('userDropdown');
+        dropdown.innerHTML = '';
+        if (!users || users.length === 0) {
+            dropdown.innerHTML = '<option value="">-- No users registered yet --</option>';
+        } else {
+            users.forEach(u => {
+                const opt = document.createElement('option');
+                opt.value = u.id;
+                opt.textContent = `${u.full_name} (${u.email}) [${u.department || 'No Dept'}]`;
+                dropdown.appendChild(opt);
+            });
+        }
+    }).catch(e => {
+        console.error('Failed to load device users:', e);
+    });
+}
+
+function closeAssignmentModal() {
+    const modalEl = document.getElementById('assignmentModal');
+    if (modalEl) {
+        modalEl.classList.add('hidden');
+    }
+    activeAssignDeviceId = null;
+}
+
+// Bind modal controls on load
+document.addEventListener('DOMContentLoaded', () => {
+    const closeBtn = document.getElementById('closeModalBtn');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => closeAssignmentModal());
+    }
+
+    const tabSelectExisting = document.getElementById('tabSelectExisting');
+    const tabCreateNew = document.getElementById('tabCreateNew');
+    const formSelectExisting = document.getElementById('formSelectExisting');
+    const formCreateNew = document.getElementById('formCreateNew');
+
+    if (tabSelectExisting && tabCreateNew) {
+        tabSelectExisting.addEventListener('click', () => {
+            tabSelectExisting.className = 'pb-2 border-b-2 border-primary text-primary transition-all font-semibold';
+            tabCreateNew.className = 'pb-2 border-b-2 border-transparent text-textSubtle hover:text-textMain transition-all font-semibold';
+            formSelectExisting.classList.remove('hidden');
+            formCreateNew.classList.add('hidden');
+        });
+
+        tabCreateNew.addEventListener('click', () => {
+            tabCreateNew.className = 'pb-2 border-b-2 border-primary text-primary transition-all font-semibold';
+            tabSelectExisting.className = 'pb-2 border-b-2 border-transparent text-textSubtle hover:text-textMain transition-all font-semibold';
+            formCreateNew.classList.remove('hidden');
+            formSelectExisting.classList.add('hidden');
+        });
+    }
+
+    const btnAssignExisting = document.getElementById('submitAssignExisting');
+    if (btnAssignExisting) {
+        btnAssignExisting.addEventListener('click', async () => {
+            const userId = document.getElementById('userDropdown').value;
+            if (!userId) {
+                alert('Please select a user to assign.');
+                return;
+            }
+
+            try {
+                const updated = await api.assignDeviceUser(activeAssignDeviceId, parseInt(userId));
+                if (updated) {
+                    loadDevices();
+                    closeAssignmentModal();
+                }
+            } catch (e) {
+                alert('Failed to assign user: ' + e.message);
+            }
+        });
+    }
+
+    const btnCreateAndAssign = document.getElementById('submitCreateAndAssign');
+    if (btnCreateAndAssign) {
+        btnCreateAndAssign.addEventListener('click', async () => {
+            const fullName = document.getElementById('newFullName').value.trim();
+            const email = document.getElementById('newEmail').value.trim();
+            const dept = document.getElementById('newDepartment').value.trim();
+
+            if (!fullName || !email) {
+                alert('Full Name and Email are required to create a user.');
+                return;
+            }
+
+            try {
+                const newUser = await api.createDeviceUser(fullName, email, dept);
+                if (newUser && newUser.id) {
+                    const updated = await api.assignDeviceUser(activeAssignDeviceId, newUser.id);
+                    if (updated) {
+                        loadDevices();
+                        closeAssignmentModal();
+                    }
+                }
+            } catch (e) {
+                alert('Failed to create and assign user: ' + e.message);
+            }
+        });
+    }
+});

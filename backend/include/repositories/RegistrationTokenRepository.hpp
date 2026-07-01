@@ -11,6 +11,8 @@ struct RegistrationToken {
     bool used = false;
     bool isExpired = false;
     std::optional<int> assignedUserId;
+    std::optional<std::string> assignedUserFullName;
+    std::optional<std::string> assignedUserEmail;
 };
 
 class RegistrationTokenRepository {

@@ -32,6 +32,12 @@ std::optional<RegistrationToken> RegistrationTokenRepository::findByToken(const 
             if (!res[0]["assigned_user_id"].is_null()) {
                 rt.assignedUserId = res[0]["assigned_user_id"].as<int>();
             }
+            if (!res[0]["assigned_user_name"].is_null()) {
+                rt.assignedUserFullName = res[0]["assigned_user_name"].as<std::string>();
+            }
+            if (!res[0]["assigned_user_email"].is_null()) {
+                rt.assignedUserEmail = res[0]["assigned_user_email"].as<std::string>();
+            }
             return rt;
         }
     } catch (const std::exception& e) {
@@ -66,6 +72,12 @@ std::vector<RegistrationToken> RegistrationTokenRepository::findAll() {
             rt.isExpired = row["is_expired"].as<bool>();
             if (!row["assigned_user_id"].is_null()) {
                 rt.assignedUserId = row["assigned_user_id"].as<int>();
+            }
+            if (!row["assigned_user_name"].is_null()) {
+                rt.assignedUserFullName = row["assigned_user_name"].as<std::string>();
+            }
+            if (!row["assigned_user_email"].is_null()) {
+                rt.assignedUserEmail = row["assigned_user_email"].as<std::string>();
             }
             tokens.push_back(rt);
         }

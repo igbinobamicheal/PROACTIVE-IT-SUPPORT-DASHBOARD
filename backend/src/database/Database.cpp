@@ -223,9 +223,9 @@ void Database::prepareConnection(pqxx::connection& conn) {
 
     // 2b. Registration Token queries
     conn.prepare("create_registration_token", "INSERT INTO registration_tokens (token, expires_at, assigned_user_id) VALUES ($1, $2, $3) RETURNING id");
-    conn.prepare("find_registration_token", "SELECT id, token, used, (expires_at < NOW()) AS is_expired, assigned_user_id FROM registration_tokens WHERE token = $1");
+    conn.prepare("find_registration_token", "SELECT t.id, t.token, t.used, (t.expires_at < NOW()) AS is_expired, t.assigned_user_id, u.full_name AS assigned_user_name, u.email AS assigned_user_email FROM registration_tokens t LEFT JOIN device_users u ON t.assigned_user_id = u.id WHERE t.token = $1");
     conn.prepare("use_registration_token", "UPDATE registration_tokens SET used = TRUE WHERE token = $1");
-    conn.prepare("find_all_registration_tokens", "SELECT id, token, used, (expires_at < NOW()) AS is_expired, assigned_user_id FROM registration_tokens ORDER BY created_at DESC");
+    conn.prepare("find_all_registration_tokens", "SELECT t.id, t.token, t.used, (t.expires_at < NOW()) AS is_expired, t.assigned_user_id, u.full_name AS assigned_user_name, u.email AS assigned_user_email FROM registration_tokens t LEFT JOIN device_users u ON t.assigned_user_id = u.id ORDER BY t.created_at DESC");
     conn.prepare("revoke_registration_token", "UPDATE registration_tokens SET expires_at = NOW() WHERE token = $1");
 
     // 3. Metrics queries
