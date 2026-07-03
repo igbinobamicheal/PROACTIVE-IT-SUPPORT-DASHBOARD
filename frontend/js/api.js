@@ -126,6 +126,10 @@ const api = {
 
     getMetricTrends() {
         return this.request('/metrics/trends', 'GET');
+    },
+
+    getDeviceDiagnostics(id) {
+        return this.request(`/device/${id}/diagnostics`, 'GET');
     }
 };
 

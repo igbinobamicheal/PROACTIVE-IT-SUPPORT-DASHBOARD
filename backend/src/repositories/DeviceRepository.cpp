@@ -181,3 +181,70 @@ void DeviceRepository::assignUser(int deviceId, std::optional<int> userId) {
         throw;
     }
 }
+
+std::optional<DeviceDiagnostics> DeviceRepository::findDiagnosticsById(int deviceId) {
+    try {
+        auto conn = Database::getInstance().getConnection();
+        pqxx::nontransaction txn(*conn);
+        pqxx::result res = txn.exec_prepared("find_device_diagnostics", deviceId);
+        if (!res.empty()) {
+            DeviceDiagnostics d;
+            d.deviceId = res[0]["device_id"].as<int>();
+            d.systemInfo = res[0]["system_info"].as<std::string>();
+            d.cpuInfo = res[0]["cpu_info"].as<std::string>();
+            d.memoryInfo = res[0]["memory_info"].as<std::string>();
+            d.storageInfo = res[0]["storage_info"].as<std::string>();
+            d.batteryInfo = res[0]["battery_info"].as<std::string>();
+            d.networkInfo = res[0]["network_info"].as<std::string>();
+            d.securityInfo = res[0]["security_info"].as<std::string>();
+            d.processesInfo = res[0]["processes_info"].as<std::string>();
+            d.eventLogs = res[0]["event_logs"].as<std::string>();
+            d.installedSoftware = res[0]["installed_software"].as<std::string>();
+            d.lastUpdated = res[0]["last_updated"].as<std::string>();
+            return d;
+        }
+    } catch (const std::exception& e) {
+        std::cerr << "[DeviceRepository] Error in findDiagnosticsById: " << e.what() << std::endl;
+    }
+    return std::nullopt;
+}
+
+void DeviceRepository::saveDiagnostics(const DeviceDiagnostics& diag) {
+    try {
+        auto conn = Database::getInstance().getConnection();
+        pqxx::work txn(*conn);
+        
+        pqxx::result checkRes = txn.exec_prepared("find_device_diagnostics", diag.deviceId);
+        if (checkRes.empty()) {
+            txn.exec_prepared("create_device_diagnostics", 
+                               diag.deviceId, 
+                               diag.systemInfo, 
+                               diag.cpuInfo, 
+                               diag.memoryInfo, 
+                               diag.storageInfo, 
+                               diag.batteryInfo, 
+                               diag.networkInfo, 
+                               diag.securityInfo, 
+                               diag.processesInfo, 
+                               diag.eventLogs, 
+                               diag.installedSoftware);
+        } else {
+            txn.exec_prepared("update_device_diagnostics", 
+                               diag.systemInfo, 
+                               diag.cpuInfo, 
+                               diag.memoryInfo, 
+                               diag.storageInfo, 
+                               diag.batteryInfo, 
+                               diag.networkInfo, 
+                               diag.securityInfo, 
+                               diag.processesInfo, 
+                               diag.eventLogs, 
+                               diag.installedSoftware,
+                               diag.deviceId);
+        }
+        txn.commit();
+    } catch (const std::exception& e) {
+        std::cerr << "[DeviceRepository] Error in saveDiagnostics: " << e.what() << std::endl;
+        throw;
+    }
+}

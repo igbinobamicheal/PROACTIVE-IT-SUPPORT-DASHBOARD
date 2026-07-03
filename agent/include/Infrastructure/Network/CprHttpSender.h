@@ -10,6 +10,7 @@ public:
     CprHttpSender() = default;
 
     bool SendMetrics(const std::string& serverUrl, const std::string& token, const Domain::Models::MetricData& metrics) override;
+    bool SendDiagnostics(const std::string& serverUrl, const std::string& token, const std::string& diagnosticsJson) override;
     bool RegisterDevice(const std::string& serverUrl, 
                         const Domain::Models::MetricData& metrics,
                         const std::string& registrationToken, 

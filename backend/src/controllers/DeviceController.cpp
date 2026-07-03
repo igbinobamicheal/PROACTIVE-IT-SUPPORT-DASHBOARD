@@ -925,5 +925,101 @@ Write-Host "To uninstall: & '$ExePath' --uninstall; Remove-Item -Recurse -Force 
             return res;
         }
     });
+
+    // 11. POST /api/device/diagnostics (unguarded, uses device token)
+    CROW_ROUTE(app, "/api/device/diagnostics")
+    .methods(crow::HTTPMethod::POST)
+    ([](const crow::request& req) {
+        crow::response res;
+        res.set_header("Content-Type", "application/json");
+
+        std::string deviceToken = req.get_header_value("X-Device-Token");
+        if (deviceToken.empty()) {
+            res.code = 401;
+            res.write(nlohmann::json{{"error", "Missing X-Device-Token header"}}.dump());
+            return res;
+        }
+
+        try {
+            DeviceRepository devRepo;
+            auto devOpt = devRepo.findByToken(deviceToken);
+            if (!devOpt.has_value()) {
+                res.code = 401;
+                res.write(nlohmann::json{{"error", "Invalid device token"}}.dump());
+                return res;
+            }
+
+            auto dev = devOpt.value();
+            auto body = nlohmann::json::parse(req.body);
+
+            auto diagOpt = devRepo.findDiagnosticsById(dev.id);
+            DeviceDiagnostics diag;
+            if (diagOpt.has_value()) {
+                diag = diagOpt.value();
+            } else {
+                diag.deviceId = dev.id;
+            }
+
+            if (body.contains("system_info")) diag.systemInfo = body["system_info"].dump();
+            if (body.contains("cpu_info")) diag.cpuInfo = body["cpu_info"].dump();
+            if (body.contains("memory_info")) diag.memoryInfo = body["memory_info"].dump();
+            if (body.contains("storage_info")) diag.storageInfo = body["storage_info"].dump();
+            if (body.contains("battery_info")) diag.batteryInfo = body["battery_info"].dump();
+            if (body.contains("network_info")) diag.networkInfo = body["network_info"].dump();
+            if (body.contains("security_info")) diag.securityInfo = body["security_info"].dump();
+            if (body.contains("processes_info")) diag.processesInfo = body["processes_info"].dump();
+            if (body.contains("event_logs")) diag.eventLogs = body["event_logs"].dump();
+            if (body.contains("installed_software")) diag.installedSoftware = body["installed_software"].dump();
+
+            devRepo.saveDiagnostics(diag);
+
+            nlohmann::json diagEvent = {
+                {"device_id", dev.id},
+                {"timestamp", EventBroker::getCurrentTimestamp()}
+            };
+            EventBroker::getInstance().publish("device_diagnostics", diagEvent.dump());
+
+            res.code = 200;
+            res.write(nlohmann::json{{"message", "Diagnostics updated successfully"}}.dump());
+            return res;
+        } catch (const nlohmann::json::parse_error& e) {
+            res.code = 400;
+            res.write(nlohmann::json{{"error", "Malformed JSON request body"}}.dump());
+            return res;
+        } catch (const std::exception& e) {
+            res.code = 500;
+            res.write(nlohmann::json{{"error", std::string("Internal server error: ") + e.what()}}.dump());
+            return res;
+        }
+    });
+
+    // 12. GET /api/device/<int>/diagnostics (guarded by JWT)
+    CROW_ROUTE(app, "/api/device/<int>/diagnostics")
+    .methods(crow::HTTPMethod::GET)
+    .CROW_MIDDLEWARES(app, AuthMiddleware)
+    ([](int id) {
+        crow::response res;
+        res.set_header("Content-Type", "application/json");
+
+        try {
+            DeviceRepository devRepo;
+            auto diagOpt = devRepo.findDiagnosticsById(id);
+            if (!diagOpt.has_value()) {
+                DeviceDiagnostics diag;
+                diag.deviceId = id;
+                res.code = 200;
+                res.write(nlohmann::json(diag).dump());
+                return res;
+            }
+
+            res.code = 200;
+            res.write(nlohmann::json(diagOpt.value()).dump());
+            return res;
+        } catch (const std::exception& e) {
+            res.code = 500;
+            res.write(nlohmann::json{{"error", std::string("Internal server error: ") + e.what()}}.dump());
+            return res;
+        }
+    });
 }
 

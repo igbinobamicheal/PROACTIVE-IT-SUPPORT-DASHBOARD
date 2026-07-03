@@ -2,6 +2,7 @@
 #define DEVICE_REPOSITORY_HPP
 
 #include "models/Device.hpp"
+#include "models/DeviceDiagnostics.hpp"
 #include <optional>
 #include <vector>
 #include <string>
@@ -15,6 +16,9 @@ public:
     std::optional<Device> findByGuid(const std::string& machineGuid);
     void update(const Device& device);
     void assignUser(int deviceId, std::optional<int> userId);
+    
+    std::optional<DeviceDiagnostics> findDiagnosticsById(int deviceId);
+    void saveDiagnostics(const DeviceDiagnostics& diag);
 };
 
 #endif // DEVICE_REPOSITORY_HPP

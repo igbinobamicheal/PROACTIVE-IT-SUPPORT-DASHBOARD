@@ -9,6 +9,7 @@ class IHttpSender {
 public:
     virtual ~IHttpSender() = default;
     virtual bool SendMetrics(const std::string& serverUrl, const std::string& token, const Models::MetricData& metrics) = 0;
+    virtual bool SendDiagnostics(const std::string& serverUrl, const std::string& token, const std::string& diagnosticsJson) = 0;
     virtual bool RegisterDevice(const std::string& serverUrl, 
                                 const Models::MetricData& metrics,
                                 const std::string& registrationToken, 

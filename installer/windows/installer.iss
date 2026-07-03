@@ -34,6 +34,7 @@ Source: "..\..\agent\build\Release\proactive_it_agent.exe"; DestDir: "{app}"; De
 Source: "..\..\agent\build\Release\cpr.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\..\agent\build\Release\libcurl.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\..\agent\build\Release\z.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\..\agent\collect_diagnostics.ps1"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"

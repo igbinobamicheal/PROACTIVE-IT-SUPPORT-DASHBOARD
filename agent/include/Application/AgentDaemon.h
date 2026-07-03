@@ -27,6 +27,7 @@ public:
 
 private:
     void MetricsLoop();
+    void DiagnosticsLoop();
     void HeartbeatLoop();
     void ReconnectLoop();
     void UpdateLoop();
@@ -37,6 +38,9 @@ private:
     bool IsNewerVersion(const std::string& current, const std::string& latest);
     std::string CalculateFileSHA256(const std::string& filePath);
     void ExecuteUpdaterScript();
+    
+    std::string ExecutePowerShell(const std::wstring& args);
+    void WritePowerShellScriptIfMissing();
 
     std::unique_ptr<Domain::RepositoryInterfaces::IConfigRepository> configRepo_;
     std::unique_ptr<Domain::ServiceInterfaces::IMetricCollector> metricCollector_;
@@ -44,6 +48,7 @@ private:
     std::unique_ptr<Infrastructure::Config::OfflineCache> offlineCache_;
 
     std::thread metricsThread_;
+    std::thread diagnosticsThread_;
     std::thread heartbeatThread_;
     std::thread reconnectThread_;
     std::thread updateThread_;

@@ -113,6 +113,8 @@ int main() {
         CROW_ROUTE(app, "/api/devices").methods(crow::HTTPMethod::OPTIONS)([]() { return crow::response(204); });
         CROW_ROUTE(app, "/api/device/<int>").methods(crow::HTTPMethod::OPTIONS)([](int id) { return crow::response(204); });
         CROW_ROUTE(app, "/api/device/<int>/metrics").methods(crow::HTTPMethod::OPTIONS)([](int id) { return crow::response(204); });
+        CROW_ROUTE(app, "/api/device/diagnostics").methods(crow::HTTPMethod::OPTIONS)([]() { return crow::response(204); });
+        CROW_ROUTE(app, "/api/device/<int>/diagnostics").methods(crow::HTTPMethod::OPTIONS)([](int id) { return crow::response(204); });
         CROW_ROUTE(app, "/api/alerts").methods(crow::HTTPMethod::OPTIONS)([]() { return crow::response(204); });
         CROW_ROUTE(app, "/api/events").methods(crow::HTTPMethod::OPTIONS)([]() { return crow::response(204); });
         CROW_ROUTE(app, "/api/metrics").methods(crow::HTTPMethod::OPTIONS)([]() { return crow::response(204); });

@@ -113,6 +113,22 @@ void Database::initialize() {
                  "  FOREIGN KEY (device_id) REFERENCES devices(id) ON DELETE CASCADE"
                  ");");
 
+        // 3b. Device Diagnostics Table
+        txn.exec("CREATE TABLE IF NOT EXISTS device_diagnostics ("
+                 "  device_id INT PRIMARY KEY REFERENCES devices(id) ON DELETE CASCADE,"
+                 "  system_info TEXT,"
+                 "  cpu_info TEXT,"
+                 "  memory_info TEXT,"
+                 "  storage_info TEXT,"
+                 "  battery_info TEXT,"
+                 "  network_info TEXT,"
+                 "  security_info TEXT,"
+                 "  processes_info TEXT,"
+                 "  event_logs TEXT,"
+                 "  installed_software TEXT,"
+                 "  last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
+                 ");");
+
         // 4. Alerts Table
         txn.exec("CREATE TABLE IF NOT EXISTS alerts ("
                  "  id SERIAL PRIMARY KEY,"
@@ -220,6 +236,11 @@ void Database::prepareConnection(pqxx::connection& conn) {
     conn.prepare("find_device_by_token", "SELECT d.id, d.name, d.token, d.ip_address, d.status, d.machine_guid, d.mac_address, d.windows_version, TO_CHAR(d.created_at, 'YYYY-MM-DD HH24:MI:SS') AS created_at, d.assigned_user_id, u.full_name AS assigned_user_name, u.email AS assigned_user_email, u.department AS assigned_user_dept FROM devices d LEFT JOIN device_users u ON d.assigned_user_id = u.id WHERE d.token = $1");
     conn.prepare("find_device_by_guid", "SELECT d.id, d.name, d.token, d.ip_address, d.status, d.machine_guid, d.mac_address, d.windows_version, TO_CHAR(d.created_at, 'YYYY-MM-DD HH24:MI:SS') AS created_at, d.assigned_user_id, u.full_name AS assigned_user_name, u.email AS assigned_user_email, u.department AS assigned_user_dept FROM devices d LEFT JOIN device_users u ON d.assigned_user_id = u.id WHERE d.machine_guid = $1");
     conn.prepare("update_device_details", "UPDATE devices SET name = $1, ip_address = $2, mac_address = $3, windows_version = $4, token = $5, status = $6 WHERE id = $7");
+
+    // 2c. Diagnostics queries
+    conn.prepare("find_device_diagnostics", "SELECT device_id, system_info, cpu_info, memory_info, storage_info, battery_info, network_info, security_info, processes_info, event_logs, installed_software, TO_CHAR(last_updated, 'YYYY-MM-DD HH24:MI:SS') AS last_updated FROM device_diagnostics WHERE device_id = $1");
+    conn.prepare("create_device_diagnostics", "INSERT INTO device_diagnostics (device_id, system_info, cpu_info, memory_info, storage_info, battery_info, network_info, security_info, processes_info, event_logs, installed_software) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)");
+    conn.prepare("update_device_diagnostics", "UPDATE device_diagnostics SET system_info = $1, cpu_info = $2, memory_info = $3, storage_info = $4, battery_info = $5, network_info = $6, security_info = $7, processes_info = $8, event_logs = $9, installed_software = $10, last_updated = NOW() WHERE device_id = $11");
 
     // 2b. Registration Token queries
     conn.prepare("create_registration_token", "INSERT INTO registration_tokens (token, expires_at, assigned_user_id) VALUES ($1, $2, $3) RETURNING id");

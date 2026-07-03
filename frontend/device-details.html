@@ -171,67 +171,401 @@
                 </div>
             </div>
 
-            <!-- Real-Time Metrics -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-2">
-                <div class="bg-surface border border-borderSubtle rounded-lg p-4 flex flex-col gap-1 shadow-sm glass-panel">
-                    <span class="text-[11px] font-medium text-textMuted uppercase tracking-wider">CPU Usage</span>
-                    <div class="text-[28px] font-bold font-mono tracking-tight" id="cardCpu">-</div>
+            <!-- Tabs Navigation -->
+            <div class="border-b border-borderSubtle flex flex-wrap gap-4 text-[13px] font-semibold text-textSubtle mb-2 mt-2">
+                <button id="btnTabOverview" class="tab-btn pb-2 border-b-2 border-primary text-primary transition-all flex items-center gap-1.5 focus:outline-none">
+                    <i data-lucide="activity" class="w-4 h-4"></i> Overview
+                </button>
+                <button id="btnTabSystem" class="tab-btn pb-2 border-b-2 border-transparent hover:text-textMain transition-all flex items-center gap-1.5 focus:outline-none">
+                    <i data-lucide="cpu" class="w-4 h-4"></i> System & Hardware
+                </button>
+                <button id="btnTabNetwork" class="tab-btn pb-2 border-b-2 border-transparent hover:text-textMain transition-all flex items-center gap-1.5 focus:outline-none">
+                    <i data-lucide="globe" class="w-4 h-4"></i> Network & Security
+                </button>
+                <button id="btnTabProcesses" class="tab-btn pb-2 border-b-2 border-transparent hover:text-textMain transition-all flex items-center gap-1.5 focus:outline-none">
+                    <i data-lucide="list" class="w-4 h-4"></i> Processes & Services
+                </button>
+                <button id="btnTabLogs" class="tab-btn pb-2 border-b-2 border-transparent hover:text-textMain transition-all flex items-center gap-1.5 focus:outline-none">
+                    <i data-lucide="file-text" class="w-4 h-4"></i> Event Logs
+                </button>
+                <button id="btnTabSoftware" class="tab-btn pb-2 border-b-2 border-transparent hover:text-textMain transition-all flex items-center gap-1.5 focus:outline-none">
+                    <i data-lucide="package" class="w-4 h-4"></i> Installed Software
+                </button>
+            </div>
+
+            <!-- Tab Contents -->
+            
+            <!-- 1. Overview Tab -->
+            <div id="contentOverview" class="tab-content flex flex-col gap-6">
+                <!-- Real-Time Metrics -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-2">
+                    <div class="bg-surface border border-borderSubtle rounded-lg p-4 flex flex-col gap-1 shadow-sm glass-panel">
+                        <span class="text-[11px] font-medium text-textMuted uppercase tracking-wider">CPU Usage</span>
+                        <div class="text-[28px] font-bold font-mono tracking-tight" id="cardCpu">-</div>
+                    </div>
+                    <div class="bg-surface border border-borderSubtle rounded-lg p-4 flex flex-col gap-1 shadow-sm glass-panel">
+                        <span class="text-[11px] font-medium text-textMuted uppercase tracking-wider">RAM Usage</span>
+                        <div class="text-[28px] font-bold font-mono tracking-tight" id="cardRam">-</div>
+                    </div>
+                    <div class="bg-surface border border-borderSubtle rounded-lg p-4 flex flex-col gap-1 shadow-sm glass-panel">
+                        <span class="text-[11px] font-medium text-textMuted uppercase tracking-wider">Disk Space</span>
+                        <div class="text-[28px] font-bold font-mono tracking-tight" id="cardDisk">-</div>
+                    </div>
+                    <div class="bg-surface border border-borderSubtle rounded-lg p-4 flex flex-col gap-1 shadow-sm glass-panel">
+                        <span class="text-[11px] font-medium text-textMuted uppercase tracking-wider">Network IO</span>
+                        <div class="text-[13px] font-semibold text-textMain" id="cardNetwork">-</div>
+                    </div>
                 </div>
-                <div class="bg-surface border border-borderSubtle rounded-lg p-4 flex flex-col gap-1 shadow-sm glass-panel">
-                    <span class="text-[11px] font-medium text-textMuted uppercase tracking-wider">RAM Usage</span>
-                    <div class="text-[28px] font-bold font-mono tracking-tight" id="cardRam">-</div>
+
+                <!-- Metric Graphs Row -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:h-[300px] mt-2">
+                    <div class="bg-surface border border-borderSubtle rounded-lg p-4 h-[220px] lg:h-full flex flex-col shadow-sm glass-panel">
+                        <span class="text-[12px] font-medium text-textMuted mb-3">CPU History (%)</span>
+                        <div class="flex-1 relative w-full"><canvas id="cpuChart"></canvas></div>
+                    </div>
+                    <div class="bg-surface border border-borderSubtle rounded-lg p-4 h-[220px] lg:h-full flex flex-col shadow-sm glass-panel">
+                        <span class="text-[12px] font-medium text-textMuted mb-3">RAM History (%)</span>
+                        <div class="flex-1 relative w-full"><canvas id="ramChart"></canvas></div>
+                    </div>
+                    <div class="bg-surface border border-borderSubtle rounded-lg p-4 h-[220px] lg:h-full flex flex-col shadow-sm glass-panel">
+                        <span class="text-[12px] font-medium text-textMuted mb-3">Disk History (%)</span>
+                        <div class="flex-1 relative w-full"><canvas id="diskChart"></canvas></div>
+                    </div>
                 </div>
-                <div class="bg-surface border border-borderSubtle rounded-lg p-4 flex flex-col gap-1 shadow-sm glass-panel">
-                    <span class="text-[11px] font-medium text-textMuted uppercase tracking-wider">Disk Space</span>
-                    <div class="text-[28px] font-bold font-mono tracking-tight" id="cardDisk">-</div>
-                </div>
-                <div class="bg-surface border border-borderSubtle rounded-lg p-4 flex flex-col gap-1 shadow-sm glass-panel">
-                    <span class="text-[11px] font-medium text-textMuted uppercase tracking-wider">Network IO</span>
-                    <div class="text-[13px] font-semibold text-textMain" id="cardNetwork">-</div>
+
+                <!-- History Log Table -->
+                <div class="bg-surface border border-borderSubtle rounded-md overflow-hidden mt-2 flex flex-col shadow-sm glass-panel">
+                    <div class="p-3 border-b border-borderSubtle flex justify-between items-center bg-black/[0.01]">
+                        <span class="text-[13px] font-medium text-textMuted">Recent Metrics Ingestion Log</span>
+                        <span class="inline-flex items-center text-[10px] font-semibold text-primary bg-primary/10 rounded px-1.5 py-0.5 border border-primary/20"><span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse mr-1"></span> Live Data</span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-[12px]">
+                            <thead>
+                                <tr class="border-b border-borderSubtle bg-black/[0.005]">
+                                    <th class="py-2.5 px-4 font-medium text-textSubtle font-mono uppercase tracking-widest text-[10px]">Timestamp</th>
+                                    <th class="py-2.5 px-4 font-medium text-textSubtle font-mono uppercase tracking-widest text-[10px]">CPU Usage</th>
+                                    <th class="py-2.5 px-4 font-medium text-textSubtle font-mono uppercase tracking-widest text-[10px]">RAM Usage</th>
+                                    <th class="py-2.5 px-4 font-medium text-textSubtle font-mono uppercase tracking-widest text-[10px]">Disk Usage</th>
+                                    <th class="py-2.5 px-4 font-medium text-textSubtle font-mono uppercase tracking-widest text-[10px]">Net In</th>
+                                    <th class="py-2.5 px-4 font-medium text-textSubtle font-mono uppercase tracking-widest text-[10px]">Net Out</th>
+                                    <th class="py-2.5 px-4 font-medium text-textSubtle font-mono uppercase tracking-widest text-[10px]">Uptime</th>
+                                </tr>
+                            </thead>
+                            <tbody id="metricsHistoryBody">
+                                <tr>
+                                    <td colspan="7" class="text-center text-textMuted py-8">Loading metric ingestion records...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
-            <!-- Metric Graphs Row -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:h-[300px] mt-2">
-                <div class="bg-surface border border-borderSubtle rounded-lg p-4 h-[220px] lg:h-full flex flex-col shadow-sm glass-panel">
-                    <span class="text-[12px] font-medium text-textMuted mb-3">CPU History (%)</span>
-                    <div class="flex-1 relative w-full"><canvas id="cpuChart"></canvas></div>
+            <!-- 2. System & Hardware Tab -->
+            <div id="contentSystem" class="tab-content flex flex-col gap-6 hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- System Info Card -->
+                    <div class="bg-surface border border-borderSubtle rounded-lg p-5 shadow-sm glass-panel flex flex-col gap-4">
+                        <div class="flex items-center gap-2 pb-2 border-b border-borderSubtle">
+                            <i data-lucide="info" class="w-4 h-4 text-primary"></i>
+                            <h3 class="text-textMain font-semibold text-[13px]">System Information</h3>
+                        </div>
+                        <div class="grid grid-cols-2 gap-y-3 gap-x-4 text-[12.5px] text-textMain">
+                            <div class="flex flex-col"><span class="text-[10px] text-textSubtle font-mono uppercase tracking-wider">Manufacturer</span><span class="font-medium font-mono truncate" id="sysManufacturer">-</span></div>
+                            <div class="flex flex-col"><span class="text-[10px] text-textSubtle font-mono uppercase tracking-wider">Model</span><span class="font-medium font-mono truncate" id="sysModel">-</span></div>
+                            <div class="flex flex-col"><span class="text-[10px] text-textSubtle font-mono uppercase tracking-wider">Serial Number</span><span class="font-medium font-mono truncate" id="sysSerial">-</span></div>
+                            <div class="flex flex-col"><span class="text-[10px] text-textSubtle font-mono uppercase tracking-wider">BIOS Version</span><span class="font-medium font-mono truncate" id="sysBios">-</span></div>
+                            <div class="flex flex-col"><span class="text-[10px] text-textSubtle font-mono uppercase tracking-wider">Windows Edition</span><span class="font-medium truncate" id="sysEdition">-</span></div>
+                            <div class="flex flex-col"><span class="text-[10px] text-textSubtle font-mono uppercase tracking-wider">Build Number</span><span class="font-medium font-mono" id="sysBuild">-</span></div>
+                            <div class="flex flex-col"><span class="text-[10px] text-textSubtle font-mono uppercase tracking-wider">Architecture</span><span class="font-medium font-mono" id="sysArch">-</span></div>
+                            <div class="flex flex-col"><span class="text-[10px] text-textSubtle font-mono uppercase tracking-wider">System Uptime</span><span class="font-medium" id="sysUptime">-</span></div>
+                            <div class="flex flex-col"><span class="text-[10px] text-textSubtle font-mono uppercase tracking-wider">Last Boot</span><span class="font-medium font-mono" id="sysLastBoot">-</span></div>
+                            <div class="flex flex-col"><span class="text-[10px] text-textSubtle font-mono uppercase tracking-wider">Logged-in User</span><span class="font-medium font-mono truncate" id="sysUser">-</span></div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex flex-col gap-6">
+                        <!-- CPU details -->
+                        <div class="bg-surface border border-borderSubtle rounded-lg p-5 shadow-sm glass-panel flex flex-col gap-4">
+                            <div class="flex justify-between items-center pb-2 border-b border-borderSubtle">
+                                <div class="flex items-center gap-2">
+                                    <i data-lucide="cpu" class="w-4 h-4 text-primary"></i>
+                                    <h3 class="text-textMain font-semibold text-[13px]">CPU & Hardware Details</h3>
+                                </div>
+                                <span class="text-[11px] font-mono text-textMuted bg-black/5 px-2 py-0.5 rounded" id="sysCpuFreq">- MHz</span>
+                            </div>
+                            <div class="flex flex-col gap-3">
+                                <span class="text-[10px] text-textSubtle font-mono uppercase tracking-wider">Per-Core CPU Utilization</span>
+                                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3" id="cpuCoresContainer">
+                                    <div class="text-center text-textMuted text-[12px] col-span-4 py-4">No core details loaded.</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Battery Details -->
+                        <div class="bg-surface border border-borderSubtle rounded-lg p-5 shadow-sm glass-panel flex flex-col gap-4">
+                            <div class="flex items-center gap-2 pb-2 border-b border-borderSubtle">
+                                <i data-lucide="battery-charging" class="w-4 h-4 text-primary"></i>
+                                <h3 class="text-textMain font-semibold text-[13px]">Battery Monitoring (Laptops)</h3>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4 text-[12.5px] text-textMain" id="batteryGrid">
+                                <div class="flex flex-col"><span class="text-[10px] text-textSubtle font-mono uppercase tracking-wider">Battery Level</span><span class="font-bold text-[18px]" id="batLevel">-</span></div>
+                                <div class="flex flex-col"><span class="text-[10px] text-textSubtle font-mono uppercase tracking-wider">Charging Status</span><span class="font-medium" id="batStatus">-</span></div>
+                                <div class="flex flex-col"><span class="text-[10px] text-textSubtle font-mono uppercase tracking-wider">Remaining Time</span><span class="font-medium" id="batTime">-</span></div>
+                                <div class="flex flex-col"><span class="text-[10px] text-textSubtle font-mono uppercase tracking-wider">Battery Health</span><span class="font-medium" id="batHealth">-</span></div>
+                            </div>
+                            <div class="hidden text-textSubtle italic text-[12.5px] py-2" id="batteryUnavailableMsg">
+                                Battery information is unavailable (Desktop computer).
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="bg-surface border border-borderSubtle rounded-lg p-4 h-[220px] lg:h-full flex flex-col shadow-sm glass-panel">
-                    <span class="text-[12px] font-medium text-textMuted mb-3">RAM History (%)</span>
-                    <div class="flex-1 relative w-full"><canvas id="ramChart"></canvas></div>
-                </div>
-                <div class="bg-surface border border-borderSubtle rounded-lg p-4 h-[220px] lg:h-full flex flex-col shadow-sm glass-panel">
-                    <span class="text-[12px] font-medium text-textMuted mb-3">Disk History (%)</span>
-                    <div class="flex-1 relative w-full"><canvas id="diskChart"></canvas></div>
+
+                <!-- Storage Info -->
+                <div class="bg-surface border border-borderSubtle rounded-lg overflow-hidden shadow-sm glass-panel flex flex-col">
+                    <div class="p-4 border-b border-borderSubtle bg-black/[0.01] flex items-center gap-2">
+                        <i data-lucide="hard-drive" class="w-4 h-4 text-primary"></i>
+                        <h3 class="text-textMain font-semibold text-[13px]">Storage Devices & SMART Health</h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-[12.5px]">
+                            <thead>
+                                <tr class="border-b border-borderSubtle bg-black/[0.005]">
+                                    <th class="py-2.5 px-4 font-semibold text-textSubtle font-mono uppercase tracking-widest text-[9px]">Drive</th>
+                                    <th class="py-2.5 px-4 font-semibold text-textSubtle font-mono uppercase tracking-widest text-[9px]">Type</th>
+                                    <th class="py-2.5 px-4 font-semibold text-textSubtle font-mono uppercase tracking-widest text-[9px]">Total Capacity</th>
+                                    <th class="py-2.5 px-4 font-semibold text-textSubtle font-mono uppercase tracking-widest text-[9px]">Used Space</th>
+                                    <th class="py-2.5 px-4 font-semibold text-textSubtle font-mono uppercase tracking-widest text-[9px]">Free Space</th>
+                                    <th class="py-2.5 px-4 font-semibold text-textSubtle font-mono uppercase tracking-widest text-[9px]">Percentage Used</th>
+                                    <th class="py-2.5 px-4 font-semibold text-textSubtle font-mono uppercase tracking-widest text-[9px]">SMART Status</th>
+                                    <th class="py-2.5 px-4 font-semibold text-textSubtle font-mono uppercase tracking-widest text-[9px]">Health Indicator</th>
+                                </tr>
+                            </thead>
+                            <tbody id="storageTableBody">
+                                <tr><td colspan="8" class="text-center py-6 text-textMuted">Loading storage details...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
-            <!-- History Log Table -->
-            <div class="bg-surface border border-borderSubtle rounded-md overflow-hidden mt-2 flex flex-col shadow-sm glass-panel">
-                <div class="p-3 border-b border-borderSubtle flex justify-between items-center bg-black/[0.01]">
-                    <span class="text-[13px] font-medium text-textMuted">Recent Metrics Ingestion Log</span>
-                    <span class="inline-flex items-center text-[10px] font-semibold text-primary bg-primary/10 rounded px-1.5 py-0.5 border border-primary/20"><span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse mr-1"></span> Live Data</span>
+            <!-- 3. Network & Security Tab -->
+            <div id="contentNetwork" class="tab-content flex flex-col gap-6 hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Network Details -->
+                    <div class="bg-surface border border-borderSubtle rounded-lg p-5 shadow-sm glass-panel flex flex-col gap-4">
+                        <div class="flex justify-between items-center pb-2 border-b border-borderSubtle">
+                            <div class="flex items-center gap-2">
+                                <i data-lucide="globe" class="w-4 h-4 text-primary"></i>
+                                <h3 class="text-textMain font-semibold text-[13px]">Network Interfaces</h3>
+                            </div>
+                            <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border shadow-sm" id="netInternetStatus">-</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-y-3 gap-x-4 text-[12.5px] text-textMain">
+                            <div class="flex flex-col"><span class="text-[10px] text-textSubtle font-mono uppercase tracking-wider">Local IP</span><span class="font-medium font-mono" id="netLocalIp">-</span></div>
+                            <div class="flex flex-col"><span class="text-[10px] text-textSubtle font-mono uppercase tracking-wider">Public IP</span><span class="font-medium font-mono" id="netPublicIp">-</span></div>
+                            <div class="flex flex-col"><span class="text-[10px] text-textSubtle font-mono uppercase tracking-wider">MAC Address</span><span class="font-medium font-mono" id="netMac">-</span></div>
+                            <div class="flex flex-col"><span class="text-[10px] text-textSubtle font-mono uppercase tracking-wider">Hostname</span><span class="font-medium font-mono truncate" id="netHostname">-</span></div>
+                            <div class="flex flex-col"><span class="text-[10px] text-textSubtle font-mono uppercase tracking-wider">Default Gateway</span><span class="font-medium font-mono" id="netGateway">-</span></div>
+                            <div class="flex flex-col"><span class="text-[10px] text-textSubtle font-mono uppercase tracking-wider">DNS Servers</span><span class="font-medium font-mono truncate" id="netDns">-</span></div>
+                            <div class="flex flex-col"><span class="text-[10px] text-textSubtle font-mono uppercase tracking-wider">Active Adapter</span><span class="font-medium truncate" id="netAdapter">-</span></div>
+                            <div class="flex flex-col"><span class="text-[10px] text-textSubtle font-mono uppercase tracking-wider">Connection Type</span><span class="font-medium" id="netConnType">-</span></div>
+                            <div class="flex flex-col col-span-2"><span class="text-[10px] text-textSubtle font-mono uppercase tracking-wider">Server Latency</span><span class="font-semibold text-textMain" id="netLatency">- ms</span></div>
+                        </div>
+                    </div>
+
+                    <!-- Security Details -->
+                    <div class="bg-surface border border-borderSubtle rounded-lg p-5 shadow-sm glass-panel flex flex-col gap-4">
+                        <div class="flex items-center gap-2 pb-2 border-b border-borderSubtle">
+                            <i data-lucide="shield-check" class="w-4 h-4 text-primary"></i>
+                            <h3 class="text-textMain font-semibold text-[13px]">Windows Security Indicators</h3>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-[12.5px] text-textMain">
+                            <div class="flex flex-col p-3 bg-black/5 rounded border border-borderSubtle">
+                                <span class="text-[10px] text-textSubtle font-mono uppercase tracking-wider">Windows Defender</span>
+                                <span class="font-bold text-[14px] mt-1" id="secDefender">-</span>
+                            </div>
+                            <div class="flex flex-col p-3 bg-black/5 rounded border border-borderSubtle">
+                                <span class="text-[10px] text-textSubtle font-mono uppercase tracking-wider">Firewall Status</span>
+                                <span class="font-bold text-[14px] mt-1" id="secFirewall">-</span>
+                            </div>
+                            <div class="flex flex-col p-3 bg-black/5 rounded border border-borderSubtle">
+                                <span class="text-[10px] text-textSubtle font-mono uppercase tracking-wider">Windows Update</span>
+                                <span class="font-bold text-[14px] mt-1" id="secUpdate">-</span>
+                            </div>
+                            <div class="flex flex-col p-3 bg-black/5 rounded border border-borderSubtle">
+                                <span class="text-[10px] text-textSubtle font-mono uppercase tracking-wider">BitLocker Encryption</span>
+                                <span class="font-bold text-[14px] mt-1" id="secBitlocker">-</span>
+                            </div>
+                            <div class="flex flex-col p-3 bg-black/5 rounded border border-borderSubtle col-span-2">
+                                <span class="text-[10px] text-textSubtle font-mono uppercase tracking-wider">Restart Pending after Updates</span>
+                                <span class="font-semibold text-[13px] mt-1" id="secPendingRestart">-</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse text-[12px]">
-                        <thead>
-                            <tr class="border-b border-borderSubtle bg-black/[0.005]">
-                                <th class="py-2.5 px-4 font-medium text-textSubtle font-mono uppercase tracking-widest text-[10px]">Timestamp</th>
-                                <th class="py-2.5 px-4 font-medium text-textSubtle font-mono uppercase tracking-widest text-[10px]">CPU Usage</th>
-                                <th class="py-2.5 px-4 font-medium text-textSubtle font-mono uppercase tracking-widest text-[10px]">RAM Usage</th>
-                                <th class="py-2.5 px-4 font-medium text-textSubtle font-mono uppercase tracking-widest text-[10px]">Disk Usage</th>
-                                <th class="py-2.5 px-4 font-medium text-textSubtle font-mono uppercase tracking-widest text-[10px]">Net In</th>
-                                <th class="py-2.5 px-4 font-medium text-textSubtle font-mono uppercase tracking-widest text-[10px]">Net Out</th>
-                                <th class="py-2.5 px-4 font-medium text-textSubtle font-mono uppercase tracking-widest text-[10px]">Uptime</th>
-                            </tr>
-                        </thead>
-                        <tbody id="metricsHistoryBody">
-                            <tr>
-                                <td colspan="7" class="text-center text-textMuted py-8">Loading metric ingestion records...</td>
-                            </tr>
-                        </tbody>
-                    </table>
+            </div>
+
+            <!-- 4. Processes & Services Tab -->
+            <div id="contentProcesses" class="tab-content flex flex-col gap-6 hidden">
+                <!-- Header search -->
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-surface border border-borderSubtle rounded-lg p-4 shadow-sm glass-panel">
+                    <div class="flex flex-col">
+                        <span class="text-[13px] font-semibold text-textMain">Processes & Windows Services</span>
+                        <span class="text-[11px] text-textMuted" id="procCountText">Total active processes: -</span>
+                    </div>
+                    <div class="relative w-full sm:w-64">
+                        <input type="text" id="procSearchInput" placeholder="Filter processes or services..." class="w-full bg-bg border border-borderSubtle rounded-md pl-8 pr-3 py-1.5 text-[12px] focus:outline-none focus:border-primary text-textMain"/>
+                        <i data-lucide="search" class="w-3.5 h-3.5 text-textSubtle absolute left-2.5 top-2.5"></i>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Left: Top Processes -->
+                    <div class="bg-surface border border-borderSubtle rounded-lg overflow-hidden flex flex-col shadow-sm glass-panel">
+                        <div class="p-3.5 border-b border-borderSubtle bg-black/[0.01]">
+                            <h3 class="text-textMain font-semibold text-[13px] flex items-center gap-2"><i data-lucide="activity" class="w-4 h-4 text-primary"></i> Top CPU & Memory Processes</h3>
+                        </div>
+                        <div class="overflow-y-auto max-h-[400px]">
+                            <table class="w-full text-left border-collapse text-[12px]">
+                                <thead>
+                                    <tr class="border-b border-borderSubtle bg-black/[0.005]">
+                                        <th class="py-2 px-3 font-semibold text-textSubtle font-mono uppercase tracking-widest text-[9px]">PID</th>
+                                        <th class="py-2 px-3 font-semibold text-textSubtle font-mono uppercase tracking-widest text-[9px]">Name</th>
+                                        <th class="py-2 px-3 font-semibold text-textSubtle font-mono uppercase tracking-widest text-[9px] text-right">CPU</th>
+                                        <th class="py-2 px-3 font-semibold text-textSubtle font-mono uppercase tracking-widest text-[9px] text-right">Memory</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="procTableBody">
+                                    <tr><td colspan="4" class="text-center py-6 text-textMuted">Loading process table...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Right: Critical Services -->
+                    <div class="bg-surface border border-borderSubtle rounded-lg overflow-hidden flex flex-col shadow-sm glass-panel">
+                        <div class="p-3.5 border-b border-borderSubtle bg-black/[0.01]">
+                            <h3 class="text-textMain font-semibold text-[13px] flex items-center gap-2"><i data-lucide="settings" class="w-4 h-4 text-primary"></i> Critical Services Status</h3>
+                        </div>
+                        <div class="overflow-y-auto max-h-[400px]">
+                            <table class="w-full text-left border-collapse text-[12px]">
+                                <thead>
+                                    <tr class="border-b border-borderSubtle bg-black/[0.005]">
+                                        <th class="py-2 px-3 font-semibold text-textSubtle font-mono uppercase tracking-widest text-[9px]">Service Name</th>
+                                        <th class="py-2 px-3 font-semibold text-textSubtle font-mono uppercase tracking-widest text-[9px]">Display Name</th>
+                                        <th class="py-2 px-3 font-semibold text-textSubtle font-mono uppercase tracking-widest text-[9px]">Start Type</th>
+                                        <th class="py-2 px-3 font-semibold text-textSubtle font-mono uppercase tracking-widest text-[9px] text-right">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="svcTableBody">
+                                    <tr><td colspan="4" class="text-center py-6 text-textMuted">Loading services list...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. Event Logs Tab -->
+            <div id="contentLogs" class="tab-content flex flex-col gap-6 hidden">
+                <!-- Log Filters -->
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-surface border border-borderSubtle rounded-lg p-4 shadow-sm glass-panel">
+                    <div class="flex flex-wrap gap-3 items-center w-full md:w-auto">
+                        <div class="flex flex-col gap-1">
+                            <label class="text-[9px] font-mono uppercase tracking-wider text-textSubtle">Log Level</label>
+                            <select id="logLevelSelect" class="bg-bg border border-borderSubtle rounded px-2.5 py-1 text-[11.5px] focus:outline-none focus:border-primary text-textMain">
+                                <option value="ALL">All Levels</option>
+                                <option value="Critical">Critical</option>
+                                <option value="Error">Error</option>
+                                <option value="Warning">Warning</option>
+                            </select>
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <label class="text-[9px] font-mono uppercase tracking-wider text-textSubtle">Log Name</label>
+                            <select id="logNameSelect" class="bg-bg border border-borderSubtle rounded px-2.5 py-1 text-[11.5px] focus:outline-none focus:border-primary text-textMain">
+                                <option value="ALL">All Logs</option>
+                                <option value="System">System</option>
+                                <option value="Application">Application</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="relative w-full md:w-64">
+                        <input type="text" id="logSearchInput" placeholder="Search log messages..." class="w-full bg-bg border border-borderSubtle rounded-md pl-8 pr-3 py-1.5 text-[12px] focus:outline-none focus:border-primary text-textMain"/>
+                        <i data-lucide="search" class="w-3.5 h-3.5 text-textSubtle absolute left-2.5 top-2.5"></i>
+                    </div>
+                </div>
+
+                <!-- Logs Table -->
+                <div class="bg-surface border border-borderSubtle rounded-lg overflow-hidden flex flex-col shadow-sm glass-panel">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-[12px]">
+                            <thead>
+                                <tr class="border-b border-borderSubtle bg-black/[0.005]">
+                                    <th class="py-2.5 px-4 font-semibold text-textSubtle font-mono uppercase tracking-widest text-[9px]">Timestamp</th>
+                                    <th class="py-2.5 px-4 font-semibold text-textSubtle font-mono uppercase tracking-widest text-[9px]">Log</th>
+                                    <th class="py-2.5 px-4 font-semibold text-textSubtle font-mono uppercase tracking-widest text-[9px]">Source</th>
+                                    <th class="py-2.5 px-4 font-semibold text-textSubtle font-mono uppercase tracking-widest text-[9px]">Event ID</th>
+                                    <th class="py-2.5 px-4 font-semibold text-textSubtle font-mono uppercase tracking-widest text-[9px]">Level</th>
+                                    <th class="py-2.5 px-4 font-semibold text-textSubtle font-mono uppercase tracking-widest text-[9px]">Message</th>
+                                </tr>
+                            </thead>
+                            <tbody id="logsTableBody">
+                                <tr><td colspan="6" class="text-center py-8 text-textMuted">Loading event logs...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 6. Installed Software Tab -->
+            <div id="contentSoftware" class="tab-content flex flex-col gap-6 hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Startup Applications -->
+                    <div class="bg-surface border border-borderSubtle rounded-lg overflow-hidden flex flex-col shadow-sm glass-panel lg:col-span-1">
+                        <div class="p-3.5 border-b border-borderSubtle bg-black/[0.01]">
+                            <h3 class="text-textMain font-semibold text-[13px] flex items-center gap-2"><i data-lucide="play-circle" class="w-4 h-4 text-primary"></i> Startup Applications</h3>
+                        </div>
+                        <div class="overflow-y-auto max-h-[500px]">
+                            <table class="w-full text-left border-collapse text-[12px]">
+                                <thead>
+                                    <tr class="border-b border-borderSubtle bg-black/[0.005]">
+                                        <th class="py-2 px-3 font-semibold text-textSubtle font-mono uppercase tracking-widest text-[9px]">Name</th>
+                                        <th class="py-2 px-3 font-semibold text-textSubtle font-mono uppercase tracking-widest text-[9px]">Location</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="startupTableBody">
+                                    <tr><td colspan="2" class="text-center py-6 text-textMuted">Loading startup registry...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Installed Applications -->
+                    <div class="bg-surface border border-borderSubtle rounded-lg overflow-hidden flex flex-col shadow-sm glass-panel lg:col-span-2">
+                        <div class="p-3.5 border-b border-borderSubtle bg-black/[0.01] flex justify-between items-center flex-wrap gap-2">
+                            <h3 class="text-textMain font-semibold text-[13px] flex items-center gap-2"><i data-lucide="package" class="w-4 h-4 text-primary"></i> Installed Applications</h3>
+                            <div class="relative w-48">
+                                <input type="text" id="softSearchInput" placeholder="Search applications..." class="bg-bg border border-borderSubtle rounded px-2.5 py-1 text-[11.5px] focus:outline-none focus:border-primary text-textMain pl-7 w-full"/>
+                                <i data-lucide="search" class="w-3.5 h-3.5 text-textSubtle absolute left-2 top-2"></i>
+                            </div>
+                        </div>
+                        <div class="overflow-y-auto max-h-[500px]">
+                            <table class="w-full text-left border-collapse text-[12px]">
+                                <thead>
+                                    <tr class="border-b border-borderSubtle bg-black/[0.005]">
+                                        <th class="py-2 px-4 font-semibold text-textSubtle font-mono uppercase tracking-widest text-[9px]">Application Name</th>
+                                        <th class="py-2 px-4 font-semibold text-textSubtle font-mono uppercase tracking-widest text-[9px]">Version</th>
+                                        <th class="py-2 px-4 font-semibold text-textSubtle font-mono uppercase tracking-widest text-[9px] text-right">Install Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="softTableBody">
+                                    <tr><td colspan="3" class="text-center py-8 text-textMuted">Loading applications registry...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </main>

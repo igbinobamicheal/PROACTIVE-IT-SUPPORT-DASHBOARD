@@ -94,6 +94,43 @@ bool CprHttpSender::SendMetrics(const std::string& serverUrl, const std::string&
     }
 }
 
+bool CprHttpSender::SendDiagnostics(const std::string& serverUrl, const std::string& token, const std::string& diagnosticsJson) {
+    using namespace Infrastructure::Logging;
+
+    if (!ValidateHttps(serverUrl)) {
+        return false;
+    }
+
+    std::string endpoint = BuildEndpointUrl(serverUrl, "/api/device/diagnostics");
+
+    try {
+        Logger::GetInstance().Info("Sending diagnostics payload to " + endpoint);
+
+        auto response = cpr::Post(
+            cpr::Url{endpoint},
+            cpr::Header{
+                {"Content-Type", "application/json"},
+                {"X-Device-Token", token},
+                {"User-Agent", "ProactiveITAgent/2.0.0"}
+            },
+            cpr::Body{diagnosticsJson},
+            cpr::VerifySsl{true},
+            cpr::Timeout{15000} // 15s timeout
+        );
+
+        if (response.status_code == 200 || response.status_code == 201) {
+            Logger::GetInstance().Info("Diagnostics successfully sent to backend.");
+            return true;
+        } else {
+            Logger::GetInstance().Error("Failed to send diagnostics. HTTP status: " + std::to_string(response.status_code) + ", Response: " + response.text);
+            return false;
+        }
+    } catch (const std::exception& e) {
+        Logger::GetInstance().Error("Exception while sending diagnostics: " + std::string(e.what()));
+        return false;
+    }
+}
+
 bool CprHttpSender::RegisterDevice(const std::string& serverUrl, 
                                     const Domain::Models::MetricData& metrics,
                                     const std::string& registrationToken, 
