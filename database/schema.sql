@@ -1,6 +1,7 @@
 -- Drop tables if they exist (ordered by foreign key dependencies)
 DROP TABLE IF EXISTS metrics;
 DROP TABLE IF EXISTS alerts;
+DROP TABLE IF EXISTS device_diagnostics;
 DROP TABLE IF EXISTS devices;
 DROP TABLE IF EXISTS registration_tokens;
 DROP TABLE IF EXISTS device_users;
@@ -68,6 +69,23 @@ CREATE TABLE alerts (
     message VARCHAR(255) NOT NULL,
     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     resolved BOOLEAN DEFAULT FALSE,
+    FOREIGN KEY (device_id) REFERENCES devices(id) ON DELETE CASCADE
+);
+
+-- 5. Device Diagnostics Table (Troubleshooting profiles)
+CREATE TABLE device_diagnostics (
+    device_id INT PRIMARY KEY,
+    system_info TEXT,
+    cpu_info TEXT,
+    memory_info TEXT,
+    storage_info TEXT,
+    battery_info TEXT,
+    network_info TEXT,
+    security_info TEXT,
+    processes_info TEXT,
+    event_logs TEXT,
+    installed_software TEXT,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (device_id) REFERENCES devices(id) ON DELETE CASCADE
 );
 
