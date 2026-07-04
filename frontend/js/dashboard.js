@@ -325,6 +325,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Initialize EventSource
     let eventSource = null;
+    let sseFailureCount = 0;
+    const MAX_SSE_FAILURES = 5;
+
     function initializeSSE() {
         if (eventSource) {
             eventSource.close();
@@ -335,10 +338,21 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         eventSource.onopen = () => {
             console.log('[SSE] Connection to events channel established.');
+            sseFailureCount = 0; // Reset on successful connection
         };
 
         eventSource.onerror = (err) => {
-            console.error('[SSE] Connection error. Reconnecting...', err);
+            sseFailureCount++;
+            console.error(`[SSE] Connection error (${sseFailureCount}/${MAX_SSE_FAILURES}). Reconnecting...`, err);
+            
+            if (sseFailureCount >= MAX_SSE_FAILURES) {
+                console.error('[SSE] Max reconnection failures reached. Token may be expired. Redirecting to login.');
+                eventSource.close();
+                localStorage.removeItem('jwt_token');
+                localStorage.removeItem('username');
+                window.location.href = 'login.html';
+                return;
+            }
         };
 
         // Event Listeners

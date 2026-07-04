@@ -83,58 +83,36 @@ int main(int argc, char* argv[]) {
         std::string generatedToken;
         bool registered = false;
 
-        // Try registering automatically using the registration key
+        // Try registering automatically using the registration token from config
         if (!config.registrationKey.empty()) {
-            std::cout << "[Agent] Found registration key. Attempting key-based auto-registration..." << std::endl;
+            std::cout << "[Agent] Found registration token. Attempting auto-registration..." << std::endl;
             if (registrar.registerDeviceWithKey(config.serverUrl, config.deviceName, config.registrationKey, generatedToken)) {
                 config.deviceToken = generatedToken;
+                config.registrationKey = ""; // Clear used token
                 config.save(configPath);
-                std::cout << "[Agent] Device registered successfully using registration key." << std::endl;
+                std::cout << "[Agent] Device registered successfully using registration token." << std::endl;
                 registered = true;
             } else {
-                std::cout << "[Agent Warning] Key-based auto-registration failed. Falling back to admin credentials." << std::endl;
+                std::cout << "[Agent Warning] Auto-registration failed. Token may be expired or already used." << std::endl;
             }
         }
 
-        // Fallback to JWT-based registration if key-based registration was not used or failed
+        // Fallback: prompt for a registration token interactively
         if (!registered) {
-            std::string adminJwt = "";
+            std::cout << "\n--- Registration Required ---" << std::endl;
+            std::cout << "A registration token is required to register this agent." << std::endl;
+            std::cout << "Generate one from the IT Dashboard under Devices > Registration Tokens." << std::endl;
+            std::cout << "\nEnter Registration Token: ";
+            
+            std::string regToken;
+            std::getline(std::cin, regToken);
 
-            // Try automatic login using preconfigured credentials
-            if (!config.adminUsername.empty() && !config.adminPassword.empty()) {
-                adminJwt = registrar.loginAndGetToken(config.serverUrl, config.adminUsername, config.adminPassword);
-            }
-
-            // Fallback to interactive console prompt if auto-login fails or credentials aren't set
-            if (adminJwt.empty()) {
-                std::cout << "\n--- Authentication Required for Registration ---" << std::endl;
-                std::cout << "Choose an option:" << std::endl;
-                std::cout << "1. Log in with admin credentials (username & password)" << std::endl;
-                std::cout << "2. Enter pre-generated Admin JWT token directly" << std::endl;
-                std::cout << "Select option (1 or 2): ";
-                
-                std::string option;
-                std::getline(std::cin, option);
-
-                if (option == "1") {
-                    std::string user, pass;
-                    std::cout << "Enter Admin Username: ";
-                    std::getline(std::cin, user);
-                    std::cout << "Enter Admin Password: ";
-                    std::getline(std::cin, pass);
-                    adminJwt = registrar.loginAndGetToken(config.serverUrl, user, pass);
-                } else {
-                    std::cout << "Enter Administrator JWT Token: ";
-                    std::getline(std::cin, adminJwt);
-                }
-            }
-
-            if (adminJwt.empty()) {
-                std::cerr << "[Agent Error] Authorized JWT token is required to register. Exiting." << std::endl;
+            if (regToken.empty()) {
+                std::cerr << "[Agent Error] Registration token is required. Exiting." << std::endl;
                 return 1;
             }
 
-            if (registrar.registerDevice(config.serverUrl, config.deviceName, adminJwt, generatedToken)) {
+            if (registrar.registerDeviceWithKey(config.serverUrl, config.deviceName, regToken, generatedToken)) {
                 config.deviceToken = generatedToken;
                 config.save(configPath);
                 std::cout << "[Agent] Device registered successfully and token saved." << std::endl;

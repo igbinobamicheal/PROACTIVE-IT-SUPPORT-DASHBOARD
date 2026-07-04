@@ -30,8 +30,14 @@ const api = {
             config.body = JSON.stringify(body);
         }
 
+        // Add timeout to prevent UI hanging if backend is unresponsive
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000);
+        config.signal = controller.signal;
+
         try {
             const response = await fetch(`${API_BASE}${endpoint}`, config);
+            clearTimeout(timeoutId);
             
             if (response.status === 401 && requireAuth) {
                 // Token expired or invalid
@@ -47,6 +53,11 @@ const api = {
             }
             return data;
         } catch (error) {
+            clearTimeout(timeoutId);
+            if (error.name === 'AbortError') {
+                console.error(`API Timeout on ${method} ${endpoint}: Request timed out after 15 seconds`);
+                throw new Error('Request timed out. Please check your network connection.');
+            }
             console.error(`API Error on ${method} ${endpoint}:`, error);
             throw error;
         }

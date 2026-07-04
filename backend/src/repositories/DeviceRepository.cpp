@@ -214,34 +214,19 @@ void DeviceRepository::saveDiagnostics(const DeviceDiagnostics& diag) {
         auto conn = Database::getInstance().getConnection();
         pqxx::work txn(*conn);
         
-        pqxx::result checkRes = txn.exec_prepared("find_device_diagnostics", diag.deviceId);
-        if (checkRes.empty()) {
-            txn.exec_prepared("create_device_diagnostics", 
-                               diag.deviceId, 
-                               diag.systemInfo, 
-                               diag.cpuInfo, 
-                               diag.memoryInfo, 
-                               diag.storageInfo, 
-                               diag.batteryInfo, 
-                               diag.networkInfo, 
-                               diag.securityInfo, 
-                               diag.processesInfo, 
-                               diag.eventLogs, 
-                               diag.installedSoftware);
-        } else {
-            txn.exec_prepared("update_device_diagnostics", 
-                               diag.systemInfo, 
-                               diag.cpuInfo, 
-                               diag.memoryInfo, 
-                               diag.storageInfo, 
-                               diag.batteryInfo, 
-                               diag.networkInfo, 
-                               diag.securityInfo, 
-                               diag.processesInfo, 
-                               diag.eventLogs, 
-                               diag.installedSoftware,
-                               diag.deviceId);
-        }
+        // Atomic UPSERT — eliminates TOCTOU race between concurrent submissions
+        txn.exec_prepared("upsert_device_diagnostics", 
+                           diag.deviceId, 
+                           diag.systemInfo, 
+                           diag.cpuInfo, 
+                           diag.memoryInfo, 
+                           diag.storageInfo, 
+                           diag.batteryInfo, 
+                           diag.networkInfo, 
+                           diag.securityInfo, 
+                           diag.processesInfo, 
+                           diag.eventLogs, 
+                           diag.installedSoftware);
         txn.commit();
     } catch (const std::exception& e) {
         std::cerr << "[DeviceRepository] Error in saveDiagnostics: " << e.what() << std::endl;

@@ -147,8 +147,14 @@ void Database::initialize() {
                  "VALUES ('admin', '$2a$10$N9qo8uLOickgx2ZMRZoMyeMiMwiT/hYv/GXAzJLiUmBNwmYD4kh02') "
                  "ON CONFLICT (username) DO NOTHING;");
 
+        // Performance indexes for critical query paths
+        txn.exec("CREATE INDEX IF NOT EXISTS idx_metrics_device_timestamp ON metrics(device_id, timestamp DESC);");
+        txn.exec("CREATE INDEX IF NOT EXISTS idx_alerts_device_resolved ON alerts(device_id, resolved);");
+        txn.exec("CREATE INDEX IF NOT EXISTS idx_devices_status_lastseen ON devices(status, last_seen);");
+        txn.exec("CREATE INDEX IF NOT EXISTS idx_metrics_timestamp ON metrics(timestamp);");
+
         txn.commit();
-        std::cout << "[Database] Successfully validated database tables." << std::endl;
+        std::cout << "[Database] Successfully validated database tables and indexes." << std::endl;
     } catch (const std::exception& e) {
         throw std::runtime_error("Failed to initialize PostgreSQL database: " + std::string(e.what()));
     }
@@ -203,7 +209,10 @@ Database::ConnectionPtr Database::getConnection() {
         }
     }
     
-    poolCv.wait(lock, [this]() { return !connectionPool.empty(); });
+    bool acquired = poolCv.wait_for(lock, std::chrono::seconds(5), [this]() { return !connectionPool.empty(); });
+    if (!acquired) {
+        throw std::runtime_error("Database connection pool exhausted: timed out waiting for an available connection.");
+    }
     
     pqxx::connection* conn = connectionPool.front();
     connectionPool.pop();
@@ -241,6 +250,14 @@ void Database::prepareConnection(pqxx::connection& conn) {
     conn.prepare("find_device_diagnostics", "SELECT device_id, system_info, cpu_info, memory_info, storage_info, battery_info, network_info, security_info, processes_info, event_logs, installed_software, TO_CHAR(last_updated, 'YYYY-MM-DD HH24:MI:SS') AS last_updated FROM device_diagnostics WHERE device_id = $1");
     conn.prepare("create_device_diagnostics", "INSERT INTO device_diagnostics (device_id, system_info, cpu_info, memory_info, storage_info, battery_info, network_info, security_info, processes_info, event_logs, installed_software) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)");
     conn.prepare("update_device_diagnostics", "UPDATE device_diagnostics SET system_info = $1, cpu_info = $2, memory_info = $3, storage_info = $4, battery_info = $5, network_info = $6, security_info = $7, processes_info = $8, event_logs = $9, installed_software = $10, last_updated = NOW() WHERE device_id = $11");
+    conn.prepare("upsert_device_diagnostics",
+                 "INSERT INTO device_diagnostics (device_id, system_info, cpu_info, memory_info, storage_info, battery_info, network_info, security_info, processes_info, event_logs, installed_software) "
+                 "VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) "
+                 "ON CONFLICT (device_id) DO UPDATE SET "
+                 "system_info = EXCLUDED.system_info, cpu_info = EXCLUDED.cpu_info, memory_info = EXCLUDED.memory_info, "
+                 "storage_info = EXCLUDED.storage_info, battery_info = EXCLUDED.battery_info, network_info = EXCLUDED.network_info, "
+                 "security_info = EXCLUDED.security_info, processes_info = EXCLUDED.processes_info, event_logs = EXCLUDED.event_logs, "
+                 "installed_software = EXCLUDED.installed_software, last_updated = NOW()");
 
     // 2b. Registration Token queries
     conn.prepare("create_registration_token", "INSERT INTO registration_tokens (token, expires_at, assigned_user_id) VALUES ($1, $2, $3) RETURNING id");

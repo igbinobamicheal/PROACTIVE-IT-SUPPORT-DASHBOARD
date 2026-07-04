@@ -29,24 +29,30 @@ void runStatusChecker() {
 
         try {
             auto conn = Database::getInstance().getConnection();
-            pqxx::work txn(*conn);
             
-            // Find devices that are online but have no metrics in the last 30 seconds
-            pqxx::result res = txn.exec_prepared("find_timed_out_devices");
-            
+            // Use nontransaction for the read — no write intent
             std::vector<std::tuple<int, std::string, std::string>> timedOutDevices;
-            for (auto const &row : res) {
-                timedOutDevices.push_back({
-                    row["id"].as<int>(),
-                    row["name"].as<std::string>(),
-                    row["ip_address"].as<std::string>()
-                });
+            {
+                pqxx::nontransaction ntxn(*conn);
+                pqxx::result res = ntxn.exec_prepared("find_timed_out_devices");
+                for (auto const &row : res) {
+                    timedOutDevices.push_back({
+                        row["id"].as<int>(),
+                        row["name"].as<std::string>(),
+                        row["ip_address"].as<std::string>()
+                    });
+                }
             }
 
-            if (!timedOutDevices.empty()) {
-                for (const auto& [id, name, ip] : timedOutDevices) {
-                    std::cout << "[StatusChecker] Device '" << name << "' (ID: " << id << ") timed out. Marking offline." << std::endl;
+            // Update each device in its own transaction to prevent partial failures
+            for (const auto& [id, name, ip] : timedOutDevices) {
+                try {
+                    auto updateConn = Database::getInstance().getConnection();
+                    pqxx::work txn(*updateConn);
                     txn.exec_prepared("update_device_status", "offline", id);
+                    txn.commit();
+                    
+                    std::cout << "[StatusChecker] Device '" << name << "' (ID: " << id << ") timed out. Marking offline." << std::endl;
                            
                     // Create offline event JSON
                     nlohmann::json eventJson = {
@@ -57,8 +63,9 @@ void runStatusChecker() {
                     };
                     
                     EventBroker::getInstance().publish("device_offline", eventJson.dump());
+                } catch (const std::exception& e) {
+                    std::cerr << "[StatusChecker] Error updating device " << id << ": " << e.what() << std::endl;
                 }
-                txn.commit();
             }
         } catch (const std::exception& e) {
             std::cerr << "[StatusChecker] Error checking device statuses: " << e.what() << std::endl;
@@ -122,6 +129,16 @@ int main() {
         CROW_ROUTE(app, "/api/device-users").methods(crow::HTTPMethod::OPTIONS)([]() { return crow::response(204); });
         CROW_ROUTE(app, "/api/device/<int>/assign").methods(crow::HTTPMethod::OPTIONS)([](int id) { return crow::response(204); });
         CROW_ROUTE(app, "/api/metrics/trends").methods(crow::HTTPMethod::OPTIONS)([]() { return crow::response(204); });
+
+        // CORS preflight for registration-token and agent routes
+        CROW_ROUTE(app, "/api/registration-tokens").methods(crow::HTTPMethod::OPTIONS)([]() { return crow::response(204); });
+        CROW_ROUTE(app, "/api/registration-tokens/revoke").methods(crow::HTTPMethod::OPTIONS)([]() { return crow::response(204); });
+        CROW_ROUTE(app, "/api/heartbeat").methods(crow::HTTPMethod::OPTIONS)([]() { return crow::response(204); });
+        CROW_ROUTE(app, "/api/agent/latest").methods(crow::HTTPMethod::OPTIONS)([]() { return crow::response(204); });
+        CROW_ROUTE(app, "/api/deploy/installer").methods(crow::HTTPMethod::OPTIONS)([]() { return crow::response(204); });
+        CROW_ROUTE(app, "/api/device-users/ensure").methods(crow::HTTPMethod::OPTIONS)([]() { return crow::response(204); });
+        CROW_ROUTE(app, "/api/device-users/<int>").methods(crow::HTTPMethod::OPTIONS)([](int id) { return crow::response(204); });
+        CROW_ROUTE(app, "/api/device-users/department").methods(crow::HTTPMethod::OPTIONS)([]() { return crow::response(204); });
 
         // Get server configuration
         auto& config = Config::getInstance();

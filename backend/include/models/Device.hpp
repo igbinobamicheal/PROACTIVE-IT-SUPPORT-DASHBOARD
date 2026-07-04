@@ -2,6 +2,7 @@
 #define DEVICE_HPP
 
 #include <string>
+#include <optional>
 #include <nlohmann/json.hpp>
 
 struct Device {

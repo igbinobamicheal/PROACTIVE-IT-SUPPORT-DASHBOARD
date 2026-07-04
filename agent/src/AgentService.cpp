@@ -24,13 +24,16 @@ void AgentService::runLoop(const std::string& configPath) {
     MetricCollector collector;
     HttpClient client;
     
-    while (running) {
+    while (running.load()) {
         auto& config = ConfigManager::getInstance();
         
         // Ensure configuration is reloaded or active
         if (config.deviceToken.empty()) {
             std::cout << "[AgentService] Device is not registered. Waiting..." << std::endl;
-            std::this_thread::sleep_for(std::chrono::seconds(5));
+            // Interruptible wait — check running every 100ms
+            for (int i = 0; i < 50 && running.load(); ++i) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            }
             continue;
         }
 
@@ -48,6 +51,10 @@ void AgentService::runLoop(const std::string& configPath) {
             std::cerr << "[AgentService] Failed to send metrics. Status: " << status << std::endl;
         }
 
-        std::this_thread::sleep_for(std::chrono::seconds(config.intervalSeconds));
+        // Interruptible sleep — check running every 100ms instead of sleeping the entire interval
+        int sleepCycles = config.intervalSeconds * 10; // 100ms per cycle
+        for (int i = 0; i < sleepCycles && running.load(); ++i) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        }
     }
 }
