@@ -411,10 +411,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    function safeParseJson(str) {
-        if (!str) return null;
+    function safeParseJson(val) {
+        if (!val) return null;
+        if (typeof val === 'object') return val;
         try {
-            return JSON.parse(str);
+            return JSON.parse(val);
         } catch (e) {
             console.warn('Failed to parse diagnostics JSON string field:', e);
             return null;
@@ -1024,5 +1025,21 @@ document.addEventListener('DOMContentLoaded', async () => {
             .replace(/>/g, "&gt;")
             .replace(/"/g, "&quot;")
             .replace(/'/g, "&#039;");
+    }
+
+    // Bind Remove Device Button
+    const removeBtn = document.getElementById('removeDeviceBtn');
+    if (removeBtn) {
+        removeBtn.addEventListener('click', async () => {
+            if (confirm('CRITICAL ACTION: Are you sure you want to permanently remove this device and delete all its telemetry history? This action cannot be undone.')) {
+                try {
+                    await api.deleteDevice(deviceId);
+                    alert('Device removed successfully.');
+                    window.location.href = 'devices.html';
+                } catch (e) {
+                    alert('Failed to remove device: ' + e.message);
+                }
+            }
+        });
     }
 });

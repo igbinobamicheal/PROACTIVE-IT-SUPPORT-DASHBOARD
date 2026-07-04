@@ -21,6 +21,10 @@
 #include <iomanip>
 #include <chrono>
 
+#ifdef DELETE
+#undef DELETE
+#endif
+
 namespace {
 std::string generateUUID() {
     std::random_device rd;
@@ -960,7 +964,17 @@ Write-Host "To uninstall: & '$ExePath' --uninstall; Remove-Item -Recurse -Force 
                 diag.deviceId = dev.id;
             }
 
-            if (body.contains("system_info")) diag.systemInfo = body["system_info"].dump();
+            if (body.contains("system_info")) {
+                auto sysJson = body["system_info"];
+                if (body.contains("startup_applications")) {
+                    sysJson["startup_applications"] = body["startup_applications"];
+                }
+                diag.systemInfo = sysJson.dump();
+            } else if (body.contains("startup_applications")) {
+                auto sysJson = safeParseJson(diag.systemInfo, "{}");
+                sysJson["startup_applications"] = body["startup_applications"];
+                diag.systemInfo = sysJson.dump();
+            }
             if (body.contains("cpu_info")) diag.cpuInfo = body["cpu_info"].dump();
             if (body.contains("memory_info")) diag.memoryInfo = body["memory_info"].dump();
             if (body.contains("storage_info")) diag.storageInfo = body["storage_info"].dump();
@@ -1012,7 +1026,7 @@ Write-Host "To uninstall: & '$ExePath' --uninstall; Remove-Item -Recurse -Force 
                 return res;
             }
 
-            res.code = 200;
+             res.code = 200;
             res.write(nlohmann::json(diagOpt.value()).dump());
             return res;
         } catch (const std::exception& e) {
@@ -1021,5 +1035,32 @@ Write-Host "To uninstall: & '$ExePath' --uninstall; Remove-Item -Recurse -Force 
             return res;
         }
     });
-}
 
+    // 13. DELETE /api/device/<int> (guarded by JWT)
+    CROW_ROUTE(app, "/api/device/<int>")
+    .methods(crow::HTTPMethod::DELETE)
+    .CROW_MIDDLEWARES(app, AuthMiddleware)
+    ([](int id) -> crow::response {
+        crow::response res;
+        res.set_header("Content-Type", "application/json");
+
+        try {
+            DeviceRepository devRepo;
+            auto devOpt = devRepo.findById(id);
+            if (!devOpt.has_value()) {
+                res.code = 404;
+                res.write(nlohmann::json{{"error", "Device not found"}}.dump());
+                return res;
+            }
+
+            devRepo.remove(id);
+            res.code = 200;
+            res.write(nlohmann::json{{"message", "Device removed successfully"}}.dump());
+            return res;
+        } catch (const std::exception& e) {
+            res.code = 500;
+            res.write(nlohmann::json{{"error", std::string("Internal server error: ") + e.what()}}.dump());
+            return res;
+        }
+    });
+}

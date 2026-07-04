@@ -138,8 +138,46 @@
                                 <p class="text-[12px] text-textMuted leading-relaxed">
                                     Before launching the installer, generate a secure one-time registration token. The token authorizes the installer to configure the daemon credentials.
                                 </p>
+                        </div>
+                        
+                        <!-- User Assignment Option (Optional) -->
+                        <div class="border-t border-borderSubtle/50 pt-4 flex flex-col gap-3">
+                            <h4 class="text-[11px] font-bold text-textSubtle uppercase tracking-wider">Device Assignment (Optional)</h4>
+                            <div class="flex flex-col gap-2">
+                                <select id="assignmentTypeSelect" class="bg-bg border border-borderSubtle rounded-md px-3 py-2 text-[12.5px] focus:outline-none focus:border-primary text-textMain cursor-pointer transition-all">
+                                    <option value="none">Unassigned / Generic Device</option>
+                                    <option value="existing">Assign to Existing Employee</option>
+                                    <option value="new">Create & Assign New Employee</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Select Existing Employee Dropdown (Hidden initially) -->
+                            <div id="existingUserContainer" class="hidden flex flex-col gap-1.5 animate-in fade-in duration-200">
+                                <label class="text-[10px] font-mono uppercase tracking-wider text-textMuted">Select Employee</label>
+                                <select id="userDropdown" class="bg-bg border border-borderSubtle rounded-md px-3 py-2 text-[12.5px] focus:outline-none focus:border-primary text-textMain">
+                                    <option value="">Loading employees...</option>
+                                </select>
+                            </div>
+
+                            <!-- Create New Employee Fields (Hidden initially) -->
+                            <div id="newUserContainer" class="hidden flex flex-col gap-3 animate-in fade-in duration-200">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div class="flex flex-col gap-1">
+                                        <label class="text-[10px] font-mono uppercase tracking-wider text-textMuted">Full Name *</label>
+                                        <input type="text" id="newFullName" placeholder="e.g. Alice Smith" class="bg-bg border border-borderSubtle rounded-md px-3 py-1.5 text-[12.5px] focus:outline-none focus:border-primary text-textMain"/>
+                                    </div>
+                                    <div class="flex flex-col gap-1">
+                                        <label class="text-[10px] font-mono uppercase tracking-wider text-textMuted">Email Address *</label>
+                                        <input type="email" id="newEmail" placeholder="e.g. alice.smith@company.com" class="bg-bg border border-borderSubtle rounded-md px-3 py-1.5 text-[12.5px] focus:outline-none focus:border-primary text-textMain"/>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col gap-1">
+                                    <label class="text-[10px] font-mono uppercase tracking-wider text-textMuted">Department</label>
+                                    <input type="text" id="newDepartment" placeholder="e.g. Engineering" class="bg-bg border border-borderSubtle rounded-md px-3 py-1.5 text-[12.5px] focus:outline-none focus:border-primary text-textMain"/>
+                                </div>
                             </div>
                         </div>
+
                         <button id="generateTokenBtn" class="bg-primary text-white hover:bg-primaryHover py-2 px-4 rounded-md font-semibold text-[12px] transition-all flex items-center justify-center gap-2 shadow-sm mt-2 self-start">
                             <i data-lucide="sparkles" class="w-4 h-4"></i> Generate Registration Token
                         </button>
@@ -249,6 +287,7 @@
     <script src="js/api.js?v=2.1.0"></script>
     <script src="js/session.js"></script>
     <script src="js/deploy.js?v=2.0.0"></script>
+    <script src="js/sidebar.js"></script>
     <script>
         lucide.createIcons();
         document.addEventListener('DOMContentLoaded', () => {

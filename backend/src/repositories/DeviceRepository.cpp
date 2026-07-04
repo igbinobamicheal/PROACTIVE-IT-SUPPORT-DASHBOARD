@@ -233,3 +233,15 @@ void DeviceRepository::saveDiagnostics(const DeviceDiagnostics& diag) {
         throw;
     }
 }
+
+void DeviceRepository::remove(int id) {
+    try {
+        auto conn = Database::getInstance().getConnection();
+        pqxx::work txn(*conn);
+        txn.exec_prepared("delete_device", id);
+        txn.commit();
+    } catch (const std::exception& e) {
+        std::cerr << "[DeviceRepository] Error in remove: " << e.what() << std::endl;
+        throw;
+    }
+}

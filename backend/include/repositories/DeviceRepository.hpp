@@ -16,6 +16,7 @@ public:
     std::optional<Device> findByGuid(const std::string& machineGuid);
     void update(const Device& device);
     void assignUser(int deviceId, std::optional<int> userId);
+    void remove(int id);
     
     std::optional<DeviceDiagnostics> findDiagnosticsById(int deviceId);
     void saveDiagnostics(const DeviceDiagnostics& diag);

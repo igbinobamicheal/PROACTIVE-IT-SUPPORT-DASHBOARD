@@ -141,6 +141,10 @@ const api = {
 
     getDeviceDiagnostics(id) {
         return this.request(`/device/${id}/diagnostics`, 'GET');
+    },
+
+    deleteDevice(id) {
+        return this.request(`/device/${id}`, 'DELETE');
     }
 };
 

@@ -245,6 +245,7 @@ void Database::prepareConnection(pqxx::connection& conn) {
     conn.prepare("find_device_by_token", "SELECT d.id, d.name, d.token, d.ip_address, d.status, d.machine_guid, d.mac_address, d.windows_version, TO_CHAR(d.created_at, 'YYYY-MM-DD HH24:MI:SS') AS created_at, d.assigned_user_id, u.full_name AS assigned_user_name, u.email AS assigned_user_email, u.department AS assigned_user_dept FROM devices d LEFT JOIN device_users u ON d.assigned_user_id = u.id WHERE d.token = $1");
     conn.prepare("find_device_by_guid", "SELECT d.id, d.name, d.token, d.ip_address, d.status, d.machine_guid, d.mac_address, d.windows_version, TO_CHAR(d.created_at, 'YYYY-MM-DD HH24:MI:SS') AS created_at, d.assigned_user_id, u.full_name AS assigned_user_name, u.email AS assigned_user_email, u.department AS assigned_user_dept FROM devices d LEFT JOIN device_users u ON d.assigned_user_id = u.id WHERE d.machine_guid = $1");
     conn.prepare("update_device_details", "UPDATE devices SET name = $1, ip_address = $2, mac_address = $3, windows_version = $4, token = $5, status = $6 WHERE id = $7");
+    conn.prepare("delete_device", "DELETE FROM devices WHERE id = $1");
 
     // 2c. Diagnostics queries
     conn.prepare("find_device_diagnostics", "SELECT device_id, system_info, cpu_info, memory_info, storage_info, battery_info, network_info, security_info, processes_info, event_logs, installed_software, TO_CHAR(last_updated, 'YYYY-MM-DD HH24:MI:SS') AS last_updated FROM device_diagnostics WHERE device_id = $1");

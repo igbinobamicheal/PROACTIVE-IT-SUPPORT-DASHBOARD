@@ -2,11 +2,36 @@
 let activeRegToken = '';
 let countdownTimer = null;
 let pollTimer = null;
+let allUsers = [];
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     const generateTokenBtn = document.getElementById('generateTokenBtn');
     const copyBtn = document.getElementById('copyBtn');
     const downloadBtn = document.getElementById('downloadBtn');
+    const assignmentTypeSelect = document.getElementById('assignmentTypeSelect');
+
+    // Load existing employees
+    if (assignmentTypeSelect) {
+        loadEmployees();
+        
+        // Show/hide fields conditionally
+        assignmentTypeSelect.addEventListener('change', (e) => {
+            const val = e.target.value;
+            const existingContainer = document.getElementById('existingUserContainer');
+            const newContainer = document.getElementById('newUserContainer');
+            
+            if (val === 'existing') {
+                existingContainer.classList.remove('hidden');
+                newContainer.classList.add('hidden');
+            } else if (val === 'new') {
+                existingContainer.classList.add('hidden');
+                newContainer.classList.remove('hidden');
+            } else {
+                existingContainer.classList.add('hidden');
+                newContainer.classList.add('hidden');
+            }
+        });
+    }
 
     if (generateTokenBtn) {
         generateTokenBtn.addEventListener('click', () => {
@@ -27,15 +52,63 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+async function loadEmployees() {
+    const userDropdown = document.getElementById('userDropdown');
+    if (!userDropdown) return;
+    
+    try {
+        allUsers = await api.getDeviceUsers() || [];
+        userDropdown.innerHTML = '<option value="">-- Choose Employee --</option>';
+        if (allUsers.length === 0) {
+            userDropdown.innerHTML = '<option value="">No employees registered yet</option>';
+            return;
+        }
+        allUsers.forEach(u => {
+            const opt = document.createElement('option');
+            opt.value = u.id;
+            opt.textContent = `${u.full_name} (${u.email}) - ${u.department || 'No Dept'}`;
+            userDropdown.appendChild(opt);
+        });
+    } catch (err) {
+        console.error('Failed to load device users:', err);
+        userDropdown.innerHTML = '<option value="">Failed to load employees</option>';
+    }
+}
+
 async function generateDeploymentToken() {
     const step1Pane = document.getElementById('step1Pane');
     const step2Pane = document.getElementById('step2Pane');
     const tokenText = document.getElementById('tokenText');
     const statusDot = document.getElementById('statusDot');
     const statusLabel = document.getElementById('statusLabel');
+    const assignmentType = document.getElementById('assignmentTypeSelect').value;
+
+    let assignedUserId = null;
 
     try {
-        const res = await api.createRegistrationToken();
+        if (assignmentType === 'existing') {
+            const selectedVal = document.getElementById('userDropdown').value;
+            if (!selectedVal) {
+                alert('Please select an employee to assign.');
+                return;
+            }
+            assignedUserId = parseInt(selectedVal);
+        } else if (assignmentType === 'new') {
+            const fullName = document.getElementById('newFullName').value.trim();
+            const email = document.getElementById('newEmail').value.trim();
+            const department = document.getElementById('newDepartment').value.trim();
+
+            if (!fullName || !email) {
+                alert('Please fill out all required fields: Full Name and Email.');
+                return;
+            }
+
+            // Create new employee first
+            const newUser = await api.createDeviceUser(fullName, email, department);
+            assignedUserId = newUser.id;
+        }
+
+        const res = await api.createRegistrationToken(assignedUserId);
         activeRegToken = res.token;
 
         // Transition panes

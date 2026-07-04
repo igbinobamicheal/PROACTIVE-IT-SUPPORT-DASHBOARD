@@ -31,9 +31,15 @@ inline nlohmann::json safeParseJson(const std::string& str, const std::string& f
 
 // nlohmann/json integration for serialization/deserialization
 inline void to_json(nlohmann::json& j, const DeviceDiagnostics& d) {
+    auto sysJson = safeParseJson(d.systemInfo, "{}");
+    nlohmann::json startupJson = nlohmann::json::array();
+    if (sysJson.contains("startup_applications")) {
+        startupJson = sysJson["startup_applications"];
+        sysJson.erase("startup_applications");
+    }
     j = nlohmann::json{
         {"device_id", d.deviceId},
-        {"system_info", safeParseJson(d.systemInfo, "{}")},
+        {"system_info", sysJson},
         {"cpu_info", safeParseJson(d.cpuInfo, "{}")},
         {"memory_info", safeParseJson(d.memoryInfo, "{}")},
         {"storage_info", safeParseJson(d.storageInfo, "[]")},
@@ -43,6 +49,7 @@ inline void to_json(nlohmann::json& j, const DeviceDiagnostics& d) {
         {"processes_info", safeParseJson(d.processesInfo, "{}")},
         {"event_logs", safeParseJson(d.eventLogs, "[]")},
         {"installed_software", safeParseJson(d.installedSoftware, "[]")},
+        {"startup_applications", startupJson},
         {"last_updated", d.lastUpdated}
     };
 }
