@@ -145,6 +145,10 @@ const api = {
 
     deleteDevice(id) {
         return this.request(`/device/${id}`, 'DELETE');
+    },
+
+    restartDeviceAgent(id) {
+        return this.request(`/device/${id}/restart`, 'POST');
     }
 };
 

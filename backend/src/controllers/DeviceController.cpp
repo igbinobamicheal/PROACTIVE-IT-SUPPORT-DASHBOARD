@@ -1063,4 +1063,36 @@ Write-Host "To uninstall: & '$ExePath' --uninstall; Remove-Item -Recurse -Force 
             return res;
         }
     });
+
+    // 14. POST /api/device/<int>/restart (guarded by JWT)
+    CROW_ROUTE(app, "/api/device/<int>/restart")
+    .methods(crow::HTTPMethod::POST)
+    .CROW_MIDDLEWARES(app, AuthMiddleware)
+    ([](int id) -> crow::response {
+        crow::response res;
+        res.set_header("Content-Type", "application/json");
+
+        try {
+            DeviceRepository devRepo;
+            auto devOpt = devRepo.findById(id);
+            if (!devOpt.has_value()) {
+                res.code = 404;
+                res.write(nlohmann::json{{"error", "Device not found"}}.dump());
+                return res;
+            }
+
+            auto conn = Database::getInstance().getConnection();
+            pqxx::work txn(*conn);
+            txn.exec_prepared("update_device_status", "restarting", id);
+            txn.commit();
+
+            res.code = 200;
+            res.write(nlohmann::json{{"message", "Restart command dispatched successfully"}}.dump());
+            return res;
+        } catch (const std::exception& e) {
+            res.code = 500;
+            res.write(nlohmann::json{{"error", std::string("Internal server error: ") + e.what()}}.dump());
+            return res;
+        }
+    });
 }

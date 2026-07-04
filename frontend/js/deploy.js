@@ -220,6 +220,5 @@ function copyDeploymentToken() {
 }
 
 function downloadAgentInstaller() {
-    const base = window.API_BASE_URL || 'http://localhost:8080/api';
-    window.location.href = `${base}/deploy/installer`;
+    window.location.href = api.getBaseOrigin() + '/api/deploy/installer';
 }

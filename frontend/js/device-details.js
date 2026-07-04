@@ -86,6 +86,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (status === 'online') {
             badge.className = 'inline-flex items-center px-2.5 py-0.5 rounded border border-success/20 bg-success/5 text-success text-[10px] font-bold uppercase tracking-wider shadow-sm';
             text.innerHTML = '<span class="inline-block w-1.5 h-1.5 rounded-full bg-success shadow-[0_0_8px_rgba(16,185,129,0.3)] animate-pulse mr-2"></span><span class="text-[12px] text-textMuted font-medium">Active monitoring agent online</span>';
+        } else if (status === 'restarting') {
+            badge.className = 'inline-flex items-center px-2.5 py-0.5 rounded border border-warning/20 bg-warning/5 text-warning text-[10px] font-bold uppercase tracking-wider shadow-sm';
+            text.innerHTML = '<span class="inline-block w-1.5 h-1.5 rounded-full bg-warning shadow-[0_0_8px_rgba(245,158,11,0.3)] animate-spin mr-2"></span><span class="text-[12px] text-textMuted font-medium">Agent is restarting...</span>';
         } else {
             badge.className = 'inline-flex items-center px-2.5 py-0.5 rounded border border-danger/20 bg-danger/5 text-danger text-[10px] font-bold uppercase tracking-wider shadow-sm';
             text.innerHTML = '<span class="inline-block w-1.5 h-1.5 rounded-full bg-danger shadow-[0_0_8px_rgba(239,68,68,0.3)] mr-2"></span><span class="text-[12px] text-textMuted font-medium">Agent offline (no contact)</span>';
@@ -1038,6 +1041,22 @@ document.addEventListener('DOMContentLoaded', async () => {
                     window.location.href = 'devices.html';
                 } catch (e) {
                     alert('Failed to remove device: ' + e.message);
+                }
+            }
+        });
+    }
+
+    // Bind Restart Agent Button
+    const restartBtn = document.getElementById('restartAgentBtn');
+    if (restartBtn) {
+        restartBtn.addEventListener('click', async () => {
+            if (confirm('Are you sure you want to trigger a remote restart of the monitoring agent service on this node?')) {
+                try {
+                    await api.restartDeviceAgent(deviceId);
+                    alert('Restart command dispatched successfully.');
+                    updateStatusBadge('restarting');
+                } catch (e) {
+                    alert('Failed to dispatch restart command: ' + e.message);
                 }
             }
         });
