@@ -27,7 +27,7 @@
                 this.row = row;
                 this.col = col;
                 // Higher opacity for visibility on light cream background (#ECEAE5)
-                this.baseOpacity = 0.06 + Math.random() * 0.08;
+                this.baseOpacity = 0.20 + Math.random() * 0.10;
                 this.opacity = this.baseOpacity;
                 this.pulseSpeed = 0.003 + Math.random() * 0.007;
                 this.pulseDir = Math.random() > 0.5 ? 1 : -1;
@@ -37,7 +37,7 @@
             update(mouseX, mouseY) {
                 // Animate idle pulse
                 this.opacity += this.pulseSpeed * this.pulseDir;
-                if (this.opacity > 0.16 || this.opacity < 0.04) {
+                if (this.opacity > 0.35 || this.opacity < 0.15) {
                     this.pulseDir *= -1;
                 }
 
@@ -48,7 +48,7 @@
                     const dist = Math.sqrt(dx * dx + dy * dy);
                     if (dist < 220) {
                         const factor = (220 - dist) / 220;
-                        this.glow = factor * factor * 0.55; // Quadratic falloff
+                        this.glow = factor * factor * 0.65; // Quadratic falloff
                     } else {
                         this.glow += (0 - this.glow) * 0.08;
                     }
