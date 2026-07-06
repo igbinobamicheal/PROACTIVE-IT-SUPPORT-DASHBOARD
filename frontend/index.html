@@ -139,12 +139,82 @@
             animation-name: blurFadeInBottom;
             animation-play-state: running;
         }
+
+        /* Glowing Animated Orbs Background */
+        .orb-wrapper {
+            position: absolute;
+            left: 50%;
+            top: 25%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            max-width: 1200px;
+            height: 600px;
+            pointer-events: none;
+            z-index: -2;
+            overflow: visible;
+        }
+
+        .glowing-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            mix-blend-mode: multiply;
+            will-change: transform, opacity;
+        }
+
+        .orb-amber {
+            top: 10%;
+            left: 30%;
+            width: 450px;
+            height: 450px;
+            background: radial-gradient(circle, rgba(184, 124, 59, 0.25) 0%, rgba(184, 124, 59, 0.05) 60%, rgba(236, 234, 229, 0) 100%);
+            animation: floatOrb1 20s ease-in-out infinite alternate;
+        }
+
+        .orb-bronze {
+            top: 20%;
+            left: 50%;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(156, 100, 44, 0.2) 0%, rgba(156, 100, 44, 0.04) 60%, rgba(236, 234, 229, 0) 100%);
+            animation: floatOrb2 25s ease-in-out infinite alternate;
+        }
+
+        @keyframes floatOrb1 {
+            0% {
+                transform: translate(0, 0) scale(1);
+            }
+            50% {
+                transform: translate(40px, -30px) scale(1.1);
+            }
+            100% {
+                transform: translate(-20px, 30px) scale(0.95);
+            }
+        }
+
+        @keyframes floatOrb2 {
+            0% {
+                transform: translate(0, 0) scale(1.05);
+            }
+            50% {
+                transform: translate(-50px, 40px) scale(0.9);
+            }
+            100% {
+                transform: translate(30px, -20px) scale(1.15);
+            }
+        }
     </style>
 </head>
 <body class="w-full min-h-screen m-0 p-0 overflow-x-hidden relative bg-bg">
  
     <div class="fixed inset-0 bg-glow-radial z-[-2] pointer-events-none"></div>
     <div class="bg-grid"></div>
+    
+    <!-- Glowing Animated Orbs Background -->
+    <div class="orb-wrapper">
+        <div class="glowing-orb orb-amber"></div>
+        <div class="glowing-orb orb-bronze"></div>
+    </div>
  
     <header class="fixed w-full top-0 z-50 flex justify-between items-center px-6 md:px-12 h-16 glass-nav transition-all">
         <div class="flex items-center gap-2 cursor-pointer" onclick="window.scrollTo(0,0)">
@@ -364,6 +434,5 @@
             }
         })();
     </script>
-    <script src="js/shapegrid.js"></script>
 </body>
 </html>
