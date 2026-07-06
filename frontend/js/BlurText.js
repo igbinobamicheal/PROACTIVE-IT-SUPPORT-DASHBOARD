@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState, useMemo } from 'https://esm.sh/react@18';
-import { motion } from 'https://esm.sh/motion/react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
+import { motion } from 'motion/react';
 
 const buildKeyframes = (from, steps) => {
   const keys = new Set([...Object.keys(from), ...steps.flatMap(s => Object.keys(s))]);
