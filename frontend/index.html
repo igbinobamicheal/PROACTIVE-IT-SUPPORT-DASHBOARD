@@ -109,7 +109,7 @@
                 MonitorPro Core v3.0 is live <i data-lucide="arrow-right" class="w-3 h-3"></i>
             </a>
             
-            <h1 class="text-[56px] md:text-[72px] leading-[1.05] font-bold tracking-tight text-textMain">
+            <h1 id="hero-title" class="flex flex-wrap justify-center gap-x-4 text-[56px] md:text-[72px] leading-[1.05] font-bold tracking-tight text-textMain">
                 Absolute <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-[#9c642c]">Observability</span>
             </h1>
             
@@ -226,6 +226,39 @@
                 }
             }
         });
+    </script>
+
+    <script type="module">
+        import React from 'https://esm.sh/react@18';
+        import ReactDOM from 'https://esm.sh/react-dom@18/client';
+        import BlurText from './js/BlurText.js';
+
+        const HeroTitle = () => {
+            return React.createElement(
+                React.Fragment,
+                null,
+                React.createElement(BlurText, {
+                    text: "Absolute",
+                    delay: 150,
+                    animateBy: "words",
+                    direction: "top",
+                    className: "inline-block text-textMain"
+                }),
+                React.createElement(BlurText, {
+                    text: "Observability",
+                    delay: 150,
+                    animateBy: "words",
+                    direction: "top",
+                    className: "text-transparent bg-clip-text bg-gradient-to-r from-primary to-[#9c642c] inline-block"
+                })
+            );
+        };
+
+        const rootEl = document.getElementById('hero-title');
+        if (rootEl) {
+            const root = ReactDOM.createRoot(rootEl);
+            root.render(React.createElement(HeroTitle));
+        }
     </script>
 </body>
 </html>
