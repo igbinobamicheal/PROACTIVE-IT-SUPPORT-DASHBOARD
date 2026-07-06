@@ -1,7 +1,7 @@
 /**
- * Hexagon Grid Background Animation
+ * Hexagon Grid Background Animation (Light Theme, Hero Section Only)
  * Renders a mathematical, interactive, pulsing copper hexagon grid on an HTML5 canvas.
- * Fully compatible with file:// protocol and classic script loading.
+ * Restrained to the top 650px (hero section) with page-relative mouse coordinates.
  */
 (function() {
     function initHexagonGrid() {
@@ -10,7 +10,7 @@
 
         const ctx = canvas.getContext('2d');
         let width = canvas.width = window.innerWidth;
-        let height = canvas.height = window.innerHeight;
+        let height = canvas.height = 650; // Constrained to hero section height
 
         // Grid spacing constants based on hexagon geometry
         const hexRadius = 45; 
@@ -26,8 +26,8 @@
                 this.y = y;
                 this.row = row;
                 this.col = col;
-                // Subtle organic base pulsing opacity
-                this.baseOpacity = 0.04 + Math.random() * 0.06;
+                // Higher opacity for visibility on light cream background (#ECEAE5)
+                this.baseOpacity = 0.06 + Math.random() * 0.08;
                 this.opacity = this.baseOpacity;
                 this.pulseSpeed = 0.003 + Math.random() * 0.007;
                 this.pulseDir = Math.random() > 0.5 ? 1 : -1;
@@ -37,7 +37,7 @@
             update(mouseX, mouseY) {
                 // Animate idle pulse
                 this.opacity += this.pulseSpeed * this.pulseDir;
-                if (this.opacity > 0.15 || this.opacity < 0.03) {
+                if (this.opacity > 0.16 || this.opacity < 0.04) {
                     this.pulseDir *= -1;
                 }
 
@@ -48,7 +48,7 @@
                     const dist = Math.sqrt(dx * dx + dy * dy);
                     if (dist < 220) {
                         const factor = (220 - dist) / 220;
-                        this.glow = factor * factor * 0.5; // Quadratic falloff for smooth fading
+                        this.glow = factor * factor * 0.55; // Quadratic falloff
                     } else {
                         this.glow += (0 - this.glow) * 0.08;
                     }
@@ -59,7 +59,8 @@
 
             draw(ctx) {
                 const alpha = this.opacity + this.glow;
-                ctx.strokeStyle = `rgba(217, 140, 69, ${alpha})`;
+                // Use copper rgb(184, 124, 59) matching light theme primary
+                ctx.strokeStyle = `rgba(184, 124, 59, ${alpha})`;
                 ctx.lineWidth = 1 + this.glow * 1.5;
 
                 ctx.beginPath();
@@ -76,9 +77,9 @@
                 ctx.closePath();
                 ctx.stroke();
 
-                // Draw soft fill on hovering nodes
+                // Draw soft fill on hover
                 if (this.glow > 0.05) {
-                    ctx.fillStyle = `rgba(217, 140, 69, ${this.glow * 0.04})`;
+                    ctx.fillStyle = `rgba(184, 124, 59, ${this.glow * 0.05})`;
                     ctx.fill();
                 }
             }
@@ -94,7 +95,7 @@
                     let x = c * horizDist;
                     let y = r * vertDist;
 
-                    // Offset every other column to interlock hexagons
+                    // Offset columns to lock hexagons together
                     if (c % 2 !== 0) {
                         y += vertDist / 2;
                     }
@@ -112,16 +113,21 @@
             clearTimeout(resizeTimeout);
             resizeTimeout = setTimeout(() => {
                 width = canvas.width = window.innerWidth;
-                height = canvas.height = window.innerHeight;
+                height = canvas.height = 650;
                 createGrid();
             }, 150);
         });
 
-        // Mouse listeners
+        // Document-relative mouse listeners (resolves scroll offset)
         let mouseX, mouseY;
         window.addEventListener('mousemove', (e) => {
-            mouseX = e.clientX;
-            mouseY = e.clientY;
+            if (e.pageY > 650) {
+                mouseX = undefined;
+                mouseY = undefined;
+            } else {
+                mouseX = e.pageX;
+                mouseY = e.pageY;
+            }
         });
 
         window.addEventListener('mouseleave', () => {
@@ -132,8 +138,14 @@
         // Touch support for mobile layouts
         window.addEventListener('touchmove', (e) => {
             if (e.touches.length > 0) {
-                mouseX = e.touches[0].clientX;
-                mouseY = e.touches[0].clientY;
+                const touchY = e.touches[0].pageY;
+                if (touchY > 650) {
+                    mouseX = undefined;
+                    mouseY = undefined;
+                } else {
+                    mouseX = e.touches[0].pageX;
+                    mouseY = touchY;
+                }
             }
         });
 
