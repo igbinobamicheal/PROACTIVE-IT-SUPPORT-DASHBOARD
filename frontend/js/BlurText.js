@@ -1,106 +1,63 @@
-import React, { useEffect, useRef, useState, useMemo } from 'react';
-import { motion } from 'motion/react';
-
-const buildKeyframes = (from, steps) => {
-  const keys = new Set([...Object.keys(from), ...steps.flatMap(s => Object.keys(s))]);
-
-  const keyframes = {};
-  keys.forEach(k => {
-    keyframes[k] = [from[k], ...steps.map(s => s[k])];
-  });
-  return keyframes;
-};
-
-const BlurText = ({
-  text = '',
-  delay = 200,
-  className = '',
-  animateBy = 'words',
-  direction = 'top',
-  threshold = 0.1,
-  rootMargin = '0px',
-  animationFrom,
-  animationTo,
-  easing = t => t,
-  onAnimationComplete,
-  stepDuration = 0.35
-}) => {
-  const elements = animateBy === 'words' ? text.split(' ') : text.split('');
-  const [inView, setInView] = useState(false);
-  const ref = useRef(null);
-
-  useEffect(() => {
-    if (!ref.current) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setInView(true);
-          observer.unobserve(ref.current);
-        }
-      },
-      { threshold, rootMargin }
-    );
-    observer.observe(ref.current);
-    return () => observer.disconnect();
-  }, [threshold, rootMargin]);
-
-  const defaultFrom = useMemo(
-    () =>
-      direction === 'top' ? { filter: 'blur(10px)', opacity: 0, y: -50 } : { filter: 'blur(10px)', opacity: 0, y: 50 },
-    [direction]
-  );
-
-  const defaultTo = useMemo(
-    () => [
-      {
-        filter: 'blur(5px)',
-        opacity: 0.5,
-        y: direction === 'top' ? 5 : -5
-      },
-      { filter: 'blur(0px)', opacity: 1, y: 0 }
-    ],
-    [direction]
-  );
-
-  const fromSnapshot = animationFrom ?? defaultFrom;
-  const toSnapshots = animationTo ?? defaultTo;
-
-  const stepCount = toSnapshots.length + 1;
-  const totalDuration = stepDuration * (stepCount - 1);
-  const times = Array.from({ length: stepCount }, (_, i) => (stepCount === 1 ? 0 : i / (stepCount - 1)));
-
-  return React.createElement(
-    'span',
-    {
-      ref: ref,
-      className: className,
-      style: { display: 'inline-flex', flexWrap: 'wrap' }
-    },
-    elements.map((segment, index) => {
-      const animateKeyframes = buildKeyframes(fromSnapshot, toSnapshots);
-
-      const spanTransition = {
-        duration: totalDuration,
-        times,
-        delay: (index * delay) / 1000
-      };
-      spanTransition.ease = easing;
-
-      return React.createElement(
-        motion.span,
-        {
-          className: "inline-block will-change-[transform,filter,opacity]",
-          key: index,
-          initial: fromSnapshot,
-          animate: inView ? animateKeyframes : fromSnapshot,
-          transition: spanTransition,
-          onAnimationComplete: index === elements.length - 1 ? onAnimationComplete : undefined
-        },
-        segment === ' ' ? '\u00A0' : segment,
-        animateBy === 'words' && index < elements.length - 1 && '\u00A0'
-      );
-    })
-  );
-};
-
-export default BlurText;
+/**
+ * BlurText - Vanilla JavaScript Component
+ * Animates text characters or words with a blur-in effect when they enter the viewport.
+ * Dependency-free, high performance.
+ */
+export default function initBlurText() {
+    const targets = document.querySelectorAll('.blur-text-target');
+    targets.forEach(target => {
+        const text = target.textContent.trim();
+        const animateBy = target.getAttribute('data-animate-by') || 'words';
+        const direction = target.getAttribute('data-direction') || 'top';
+        const delay = parseInt(target.getAttribute('data-delay') || '150', 10);
+        const duration = target.getAttribute('data-duration') || '0.7s';
+        
+        // Split by words or letters
+        const elements = animateBy === 'words' ? text.split(/\s+/) : text.split('');
+        
+        target.innerHTML = '';
+        
+        elements.forEach((segment, index) => {
+            if (segment === '') return;
+            
+            const span = document.createElement('span');
+            span.className = direction === 'top' ? 'blur-span-top' : 'blur-span-bottom';
+            span.textContent = segment;
+            span.style.animationDuration = duration;
+            span.style.animationDelay = `${index * delay}ms`;
+            
+            // Handle animation complete callback on the last element if defined
+            if (index === elements.length - 1) {
+                span.addEventListener('animationend', () => {
+                    const callbackName = target.getAttribute('data-on-complete');
+                    if (callbackName && typeof window[callbackName] === 'function') {
+                        window[callbackName]();
+                    }
+                });
+            }
+            
+            target.appendChild(span);
+            
+            // Add space if animating by words, except after the last word
+            if (animateBy === 'words' && index < elements.length - 1) {
+                target.appendChild(document.createTextNode('\u00A0'));
+            }
+        });
+        
+        // Intersection Observer to trigger animation
+        const observer = new IntersectionObserver(([entry]) => {
+            if (entry.isIntersecting) {
+                const spans = target.querySelectorAll('.blur-span-top, .blur-span-bottom');
+                spans.forEach(span => {
+                    span.classList.add('animate-active');
+                });
+                observer.unobserve(target);
+            }
+        }, {
+            threshold: parseFloat(target.getAttribute('data-threshold') || '0.1'),
+            rootMargin: target.getAttribute('data-root-margin') || '0px'
+        });
+        
+        observer.observe(target);
+    });
+}

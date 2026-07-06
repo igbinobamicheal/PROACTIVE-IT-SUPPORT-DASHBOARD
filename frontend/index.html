@@ -72,17 +72,74 @@
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-10px); }
         }
+
+        /* BlurText Animations */
+        @keyframes blurFadeInTop {
+            0% {
+                filter: blur(10px);
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            50% {
+                filter: blur(5px);
+                opacity: 0.5;
+                transform: translateY(5px);
+            }
+            100% {
+                filter: blur(0px);
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes blurFadeInBottom {
+            0% {
+                filter: blur(10px);
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            50% {
+                filter: blur(5px);
+                opacity: 0.5;
+                transform: translateY(-5px);
+            }
+            100% {
+                filter: blur(0px);
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .blur-span-top {
+            display: inline-block;
+            opacity: 0;
+            filter: blur(10px);
+            transform: translateY(-50px);
+            will-change: transform, filter, opacity;
+            animation-fill-mode: forwards;
+            animation-play-state: paused;
+        }
+
+        .blur-span-bottom {
+            display: inline-block;
+            opacity: 0;
+            filter: blur(10px);
+            transform: translateY(50px);
+            will-change: transform, filter, opacity;
+            animation-fill-mode: forwards;
+            animation-play-state: paused;
+        }
+
+        .blur-span-top.animate-active {
+            animation-name: blurFadeInTop;
+            animation-play-state: running;
+        }
+
+        .blur-span-bottom.animate-active {
+            animation-name: blurFadeInBottom;
+            animation-play-state: running;
+        }
     </style>
-    <script type="importmap">
-    {
-      "imports": {
-        "react": "https://esm.sh/react@18.3.1",
-        "react-dom": "https://esm.sh/react-dom@18.3.1",
-        "react-dom/client": "https://esm.sh/react-dom@18.3.1/client",
-        "motion/react": "https://esm.sh/motion/react?external=react"
-      }
-    }
-    </script>
 </head>
 <body class="w-full min-h-screen m-0 p-0 overflow-x-hidden relative bg-bg">
  
@@ -120,7 +177,8 @@
             </a>
             
             <h1 id="hero-title" class="flex flex-wrap justify-center gap-x-4 text-[56px] md:text-[72px] leading-[1.05] font-bold tracking-tight text-textMain">
-                Absolute <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-[#9c642c]">Observability</span>
+                <span class="blur-text-target" data-delay="150" data-direction="top">Absolute</span>
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-[#9c642c] blur-text-target" data-delay="150" data-direction="top">Observability</span>
             </h1>
             
             <p class="text-[18px] text-textMuted leading-relaxed max-w-2xl font-medium mt-2">
@@ -239,36 +297,8 @@
     </script>
 
     <script type="module">
-        import React from 'react';
-        import ReactDOM from 'react-dom/client';
-        import BlurText from './js/BlurText.js';
-
-        const HeroTitle = () => {
-            return React.createElement(
-                React.Fragment,
-                null,
-                React.createElement(BlurText, {
-                    text: "Absolute",
-                    delay: 150,
-                    animateBy: "words",
-                    direction: "top",
-                    className: "inline-block text-textMain"
-                }),
-                React.createElement(BlurText, {
-                    text: "Observability",
-                    delay: 150,
-                    animateBy: "words",
-                    direction: "top",
-                    className: "text-transparent bg-clip-text bg-gradient-to-r from-primary to-[#9c642c] inline-block"
-                })
-            );
-        };
-
-        const rootEl = document.getElementById('hero-title');
-        if (rootEl) {
-            const root = ReactDOM.createRoot(rootEl);
-            root.render(React.createElement(HeroTitle));
-        }
+        import initBlurText from './js/BlurText.js';
+        initBlurText();
     </script>
 </body>
 </html>
