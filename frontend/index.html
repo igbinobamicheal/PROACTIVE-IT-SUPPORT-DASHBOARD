@@ -296,9 +296,59 @@
         });
     </script>
 
-    <script type="module">
-        import initBlurText from './js/BlurText.js';
-        initBlurText();
+    <script>
+        // BlurText Animation - fully self-contained, zero dependencies
+        (function() {
+            function initBlurText() {
+                var targets = document.querySelectorAll('.blur-text-target');
+                targets.forEach(function(target) {
+                    var text = target.textContent.trim();
+                    var animateBy = target.getAttribute('data-animate-by') || 'words';
+                    var direction = target.getAttribute('data-direction') || 'top';
+                    var delay = parseInt(target.getAttribute('data-delay') || '150', 10);
+                    var duration = target.getAttribute('data-duration') || '0.7s';
+
+                    var elements = animateBy === 'words' ? text.split(/\s+/) : text.split('');
+
+                    target.innerHTML = '';
+
+                    elements.forEach(function(segment, index) {
+                        if (segment === '') return;
+
+                        var span = document.createElement('span');
+                        span.className = direction === 'top' ? 'blur-span-top' : 'blur-span-bottom';
+                        span.textContent = segment;
+                        span.style.animationDuration = duration;
+                        span.style.animationDelay = (index * delay) + 'ms';
+
+                        target.appendChild(span);
+
+                        if (animateBy === 'words' && index < elements.length - 1) {
+                            target.appendChild(document.createTextNode('\u00A0'));
+                        }
+                    });
+
+                    var observer = new IntersectionObserver(function(entries) {
+                        if (entries[0].isIntersecting) {
+                            var spans = target.querySelectorAll('.blur-span-top, .blur-span-bottom');
+                            spans.forEach(function(s) { s.classList.add('animate-active'); });
+                            observer.unobserve(target);
+                        }
+                    }, {
+                        threshold: parseFloat(target.getAttribute('data-threshold') || '0.1'),
+                        rootMargin: target.getAttribute('data-root-margin') || '0px'
+                    });
+
+                    observer.observe(target);
+                });
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initBlurText);
+            } else {
+                initBlurText();
+            }
+        })();
     </script>
 </body>
 </html>
