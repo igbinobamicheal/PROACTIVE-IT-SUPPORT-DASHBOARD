@@ -26,8 +26,8 @@
                 this.y = y;
                 this.row = row;
                 this.col = col;
-                // Higher opacity for visibility on light cream background (#ECEAE5)
-                this.baseOpacity = 0.20 + Math.random() * 0.10;
+                // Much richer copper color and opacity for high visibility and vibrant pop
+                this.baseOpacity = 0.30 + Math.random() * 0.12;
                 this.opacity = this.baseOpacity;
                 this.pulseSpeed = 0.003 + Math.random() * 0.007;
                 this.pulseDir = Math.random() > 0.5 ? 1 : -1;
@@ -37,7 +37,7 @@
             update(mouseX, mouseY) {
                 // Animate idle pulse
                 this.opacity += this.pulseSpeed * this.pulseDir;
-                if (this.opacity > 0.35 || this.opacity < 0.15) {
+                if (this.opacity > 0.50 || this.opacity < 0.22) {
                     this.pulseDir *= -1;
                 }
 
@@ -48,7 +48,7 @@
                     const dist = Math.sqrt(dx * dx + dy * dy);
                     if (dist < 220) {
                         const factor = (220 - dist) / 220;
-                        this.glow = factor * factor * 0.65; // Quadratic falloff
+                        this.glow = factor * factor * 0.80; // Stronger hover multiplier
                     } else {
                         this.glow += (0 - this.glow) * 0.08;
                     }
@@ -59,9 +59,9 @@
 
             draw(ctx) {
                 const alpha = this.opacity + this.glow;
-                // Use copper rgb(184, 124, 59) matching light theme primary
-                ctx.strokeStyle = `rgba(184, 124, 59, ${alpha})`;
-                ctx.lineWidth = 1 + this.glow * 1.5;
+                // Use a richer, more saturated copper orange rgb(217, 107, 39)
+                ctx.strokeStyle = `rgba(217, 107, 39, ${alpha})`;
+                ctx.lineWidth = 1.6 + this.glow * 2.2; // Thicker lines on hover
 
                 ctx.beginPath();
                 for (let i = 0; i < 6; i++) {
@@ -77,9 +77,9 @@
                 ctx.closePath();
                 ctx.stroke();
 
-                // Draw soft fill on hover
+                // Draw soft fill on hover (increased fill opacity for glow pop)
                 if (this.glow > 0.05) {
-                    ctx.fillStyle = `rgba(184, 124, 59, ${this.glow * 0.05})`;
+                    ctx.fillStyle = `rgba(217, 107, 39, ${this.glow * 0.15})`;
                     ctx.fill();
                 }
             }
