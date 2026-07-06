@@ -308,8 +308,18 @@
                     var delay = parseInt(target.getAttribute('data-delay') || '150', 10);
                     var duration = target.getAttribute('data-duration') || '0.7s';
 
-                    var elements = animateBy === 'words' ? text.split(/\s+/) : text.split('');
+                    // Detect gradient-related classes on the target to propagate to child spans
+                    var gradientClasses = [];
+                    ['text-transparent', 'bg-clip-text', 'bg-gradient-to-r', 'bg-gradient-to-l',
+                     'bg-gradient-to-t', 'bg-gradient-to-b', 'bg-gradient-to-tr', 'bg-gradient-to-br'].forEach(function(cls) {
+                        if (target.classList.contains(cls)) gradientClasses.push(cls);
+                    });
+                    // Also grab from-* and to-* color classes
+                    target.className.split(/\s+/).forEach(function(cls) {
+                        if (cls.match(/^(from-|to-|via-)/) ) gradientClasses.push(cls);
+                    });
 
+                    var elements = animateBy === 'words' ? text.split(/\s+/) : text.split('');
                     target.innerHTML = '';
 
                     elements.forEach(function(segment, index) {
@@ -317,6 +327,10 @@
 
                         var span = document.createElement('span');
                         span.className = direction === 'top' ? 'blur-span-top' : 'blur-span-bottom';
+
+                        // Copy gradient classes to child span so bg-clip-text works
+                        gradientClasses.forEach(function(cls) { span.classList.add(cls); });
+
                         span.textContent = segment;
                         span.style.animationDuration = duration;
                         span.style.animationDelay = (index * delay) + 'ms';
