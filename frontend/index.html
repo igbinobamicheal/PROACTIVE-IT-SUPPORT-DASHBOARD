@@ -17,25 +17,25 @@
             theme: {
                 extend: {
                     colors: {
-                        bg: "#ECEAE5",
-                        surface: "rgba(255, 255, 255, 0.62)",
-                        card: "rgba(255, 255, 255, 0.62)",
-                        borderSubtle: "rgba(30, 26, 23, 0.08)",
-                        primary: "#B87C3B", /* Rich Amber */
-                        primaryHover: "#9c642c",
+                        bg: "#120a06", /* Deep dark copper background */
+                        surface: "rgba(28, 16, 10, 0.65)", /* Deep copper glass surface */
+                        card: "rgba(28, 16, 10, 0.65)",
+                        borderSubtle: "rgba(217, 140, 69, 0.15)", /* Soft copper borders */
+                        primary: "#D98C45", /* Radiant metallic copper */
+                        primaryHover: "#F0A65F",
                         success: "#10B981",
-                        warning: "#B87C3B",
+                        warning: "#D98C45",
                         danger: "#EF4444",
-                        textMain: "#1E1A17",
-                        textMuted: "#4A4540",
-                        textSubtle: "#7C7770",
+                        textMain: "#F5ECE6", /* Off-white warm text */
+                        textMuted: "#C7B4A7", /* Muted copper text */
+                        textSubtle: "#8A7466",
                     },
                     fontFamily: {
                         sans: ['Inter', 'sans-serif'],
                         mono: ['JetBrains Mono', 'monospace'],
                     },
                     backgroundImage: {
-                        'glow-radial': 'radial-gradient(circle at 50% 0%, rgba(184, 124, 59, 0.08) 0%, rgba(236, 234, 229, 0) 65%)',
+                        'glow-radial': 'radial-gradient(circle at 50% 0%, rgba(217, 140, 69, 0.15) 0%, rgba(18, 10, 6, 0) 70%)',
                     }
                 }
             }
@@ -43,28 +43,25 @@
     </script>
     
     <style>
-        html { scroll-behavior: smooth; background-color: #ECEAE5; color: #1E1A17; }
+        html { scroll-behavior: smooth; background-color: #120a06; color: #F5ECE6; }
         body { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
         
         ::-webkit-scrollbar { width: 4px; height: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #C4C2BC; border-radius: 2px; }
-        ::-webkit-scrollbar-thumb:hover { background: #A4A29C; }
+        ::-webkit-scrollbar-thumb { background: #8C5A3C; border-radius: 2px; }
+        ::-webkit-scrollbar-thumb:hover { background: #B87C3B; }
         
-        .bg-grid {
-            position: absolute; inset: 0; z-index: -1; pointer-events: none;
-            background-size: 40px 40px;
-            background-image: linear-gradient(to right, rgba(30, 26, 23, 0.02) 1px, transparent 1px),
-                              linear-gradient(to bottom, rgba(30, 26, 23, 0.02) 1px, transparent 1px);
-            mask-image: linear-gradient(to bottom, black 20%, transparent 80%);
-            -webkit-mask-image: linear-gradient(to bottom, black 20%, transparent 80%);
+        #hexagon-grid-canvas {
+            position: fixed; inset: 0; z-index: -1; pointer-events: none;
+            mask-image: linear-gradient(to bottom, black 40%, transparent 95%);
+            -webkit-mask-image: linear-gradient(to bottom, black 40%, transparent 95%);
         }
  
         .glass-nav {
-            background: rgba(236, 234, 229, 0.65);
+            background: rgba(18, 10, 6, 0.75);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            border-bottom: 1px solid rgba(30, 26, 23, 0.06);
+            border-bottom: 1px solid rgba(217, 140, 69, 0.12);
         }
  
         .anim-float { animation: float 6s ease-in-out infinite; }
@@ -139,82 +136,12 @@
             animation-name: blurFadeInBottom;
             animation-play-state: running;
         }
-
-        /* Glowing Animated Orbs Background */
-        .orb-wrapper {
-            position: absolute;
-            left: 50%;
-            top: 25%;
-            transform: translate(-50%, -50%);
-            width: 100%;
-            max-width: 1200px;
-            height: 600px;
-            pointer-events: none;
-            z-index: -2;
-            overflow: visible;
-        }
-
-        .glowing-orb {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(100px);
-            mix-blend-mode: multiply;
-            will-change: transform, opacity;
-        }
-
-        .orb-amber {
-            top: 10%;
-            left: 30%;
-            width: 450px;
-            height: 450px;
-            background: radial-gradient(circle, rgba(184, 124, 59, 0.25) 0%, rgba(184, 124, 59, 0.05) 60%, rgba(236, 234, 229, 0) 100%);
-            animation: floatOrb1 20s ease-in-out infinite alternate;
-        }
-
-        .orb-bronze {
-            top: 20%;
-            left: 50%;
-            width: 500px;
-            height: 500px;
-            background: radial-gradient(circle, rgba(156, 100, 44, 0.2) 0%, rgba(156, 100, 44, 0.04) 60%, rgba(236, 234, 229, 0) 100%);
-            animation: floatOrb2 25s ease-in-out infinite alternate;
-        }
-
-        @keyframes floatOrb1 {
-            0% {
-                transform: translate(0, 0) scale(1);
-            }
-            50% {
-                transform: translate(40px, -30px) scale(1.1);
-            }
-            100% {
-                transform: translate(-20px, 30px) scale(0.95);
-            }
-        }
-
-        @keyframes floatOrb2 {
-            0% {
-                transform: translate(0, 0) scale(1.05);
-            }
-            50% {
-                transform: translate(-50px, 40px) scale(0.9);
-            }
-            100% {
-                transform: translate(30px, -20px) scale(1.15);
-            }
-        }
     </style>
 </head>
 <body class="w-full min-h-screen m-0 p-0 overflow-x-hidden relative bg-bg">
  
     <div class="fixed inset-0 bg-glow-radial z-[-2] pointer-events-none"></div>
-    <div class="bg-grid"></div>
-    
-    <!-- Glowing Animated Orbs Background -->
-    <div class="orb-wrapper">
-        <div class="glowing-orb orb-amber"></div>
-        <div class="glowing-orb orb-bronze"></div>
-    </div>
+    <canvas id="hexagon-grid-canvas" class="fixed inset-0 z-[-1] pointer-events-none"></canvas>
  
     <header class="fixed w-full top-0 z-50 flex justify-between items-center px-6 md:px-12 h-16 glass-nav transition-all">
         <div class="flex items-center gap-2 cursor-pointer" onclick="window.scrollTo(0,0)">
@@ -280,7 +207,7 @@
                             <stop offset="100%" stop-color="#9C642C" />
                         </linearGradient>
                     </defs>
-                    <g fill="none" stroke="rgba(30,26,23,0.03)" stroke-width="1">
+                    <g fill="none" stroke="rgba(217, 140, 69, 0.08)" stroke-width="1">
                         <!-- Background mapping -->
                         <path d="M 100 0 L 100 400 M 200 0 L 200 400 M 300 0 L 300 400 M 400 0 L 400 400 M 500 0 L 500 400 M 600 0 L 600 400 M 700 0 L 700 400" />
                         <path d="M 0 100 L 800 100 M 0 200 L 800 200 M 0 300 L 800 300" />
@@ -288,16 +215,16 @@
                         <!-- Sine waves representing data streams -->
                         <path d="M 0 200 Q 100 100, 200 200 T 400 200 T 600 200 T 800 200" stroke="url(#purpleGrad)" stroke-width="2" />
                         <path d="M 0 200 Q 100 300, 200 200 T 400 200 T 600 200 T 800 200" stroke="url(#purpleGrad)" stroke-width="2" opacity="0.2"/>
-                        <path d="M 0 200 Q 150 150, 300 250 T 600 150 T 800 200" stroke="rgba(30,26,23,0.1)" stroke-width="1.5" stroke-dasharray="4 4" />
+                        <path d="M 0 200 Q 150 150, 300 250 T 600 150 T 800 200" stroke="rgba(217, 140, 69, 0.25)" stroke-width="1.5" stroke-dasharray="4 4" />
                     </g>
                     <!-- Nodes -->
-                    <circle cx="200" cy="200" r="5" fill="#1E1A17" />
-                    <circle cx="400" cy="200" r="7" fill="#B87C3B">
+                    <circle cx="200" cy="200" r="5" fill="#F5ECE6" />
+                    <circle cx="400" cy="200" r="7" fill="#D98C45">
                         <animate attributeName="r" values="7;9;7" dur="2s" repeatCount="indefinite" />
                     </circle>
-                    <circle cx="600" cy="200" r="5" fill="#1E1A17" />
-                    <circle cx="300" cy="250" r="4" fill="#7C7770" />
-                    <circle cx="600" cy="150" r="4" fill="#7C7770" />
+                    <circle cx="600" cy="200" r="5" fill="#F5ECE6" />
+                    <circle cx="300" cy="250" r="4" fill="#C7B4A7" />
+                    <circle cx="600" cy="150" r="4" fill="#C7B4A7" />
                 </svg>
             </div>
         </div>
@@ -434,5 +361,6 @@
             }
         })();
     </script>
+    <script src="js/hexagon-grid.js"></script>
 </body>
 </html>
