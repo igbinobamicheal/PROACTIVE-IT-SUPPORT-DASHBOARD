@@ -53,8 +53,8 @@
         
         #hexagon-grid-canvas {
             position: absolute; top: 0; left: 0; width: 100%; height: 650px; z-index: -1; pointer-events: none;
-            mask-image: linear-gradient(to bottom, black 50%, transparent 95%);
-            -webkit-mask-image: linear-gradient(to bottom, black 50%, transparent 95%);
+            mask-image: linear-gradient(to bottom, black 20%, transparent 60%);
+            -webkit-mask-image: linear-gradient(to bottom, black 20%, transparent 60%);
         }
  
         .glass-nav {
@@ -64,10 +64,10 @@
             border-bottom: 1px solid rgba(30, 26, 23, 0.06);
         }
  
-        .anim-float { animation: float 6s ease-in-out infinite; }
+        .anim-float { animation: float 6s ease-in-out infinite; will-change: transform; }
         @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
+            0%, 100% { transform: translate3d(0, 0, 0); }
+            50% { transform: translate3d(0, -10px, 0); }
         }
 
         /* BlurText Animations */
@@ -136,6 +136,84 @@
             animation-name: blurFadeInBottom;
             animation-play-state: running;
         }
+
+        /* Network Diagram Animations */
+        @keyframes flowOut {
+            to {
+                stroke-dashoffset: -40;
+            }
+        }
+        @keyframes flowIn {
+            to {
+                stroke-dashoffset: 40;
+            }
+        }
+        .stream-flow-out {
+            stroke-dasharray: 6 18;
+            animation: flowOut 2.5s linear infinite;
+            will-change: stroke-dashoffset;
+        }
+        .stream-flow-in {
+            stroke-dasharray: 6 18;
+            animation: flowIn 2.5s linear infinite;
+            will-change: stroke-dashoffset;
+        }
+        
+        @keyframes blinkFast {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.2; }
+        }
+        @keyframes blinkSlow {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+        .led-blink-1 { animation: blinkSlow 1.5s infinite; will-change: opacity; }
+        .led-blink-2 { animation: blinkSlow 2s infinite 0.5s; will-change: opacity; }
+        .led-blink-3 { animation: blinkFast 0.6s infinite; will-change: opacity; }
+        .led-blink-4 { animation: blinkSlow 1.8s infinite 0.2s; will-change: opacity; }
+        
+        @keyframes pingWave {
+            0% { transform: translate3d(0,0,0) scale(1); opacity: 0.6; }
+            100% { transform: translate3d(0,0,0) scale(1.6); opacity: 0; }
+        }
+        .ping-wave-1 {
+            transform-origin: 480px 270px;
+            animation: pingWave 3s cubic-bezier(0.1, 0.8, 0.3, 1) infinite;
+            will-change: transform, opacity;
+        }
+        .ping-wave-2 {
+            transform-origin: 480px 270px;
+            animation: pingWave 3s cubic-bezier(0.1, 0.8, 0.3, 1) infinite 1.5s;
+            will-change: transform, opacity;
+        }
+        
+        @keyframes bounceDot {
+            0%, 100% { transform: translate3d(0,0,0); }
+            50% { transform: translate3d(0,-4px,0); }
+        }
+        .bounce-dot {
+            animation: bounceDot 2s ease-in-out infinite;
+            transform-origin: center;
+            will-change: transform;
+        }
+
+        .device-node {
+            cursor: pointer;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            will-change: transform;
+        }
+        .device-node:hover {
+            transform: scale(1.1);
+        }
+        
+        #node-cloud { transform-origin: 480px 80px; }
+        #node-server { transform-origin: 180px 120px; }
+        #node-laptop { transform-origin: 780px 120px; }
+        #node-firewall { transform-origin: 120px 270px; }
+        #node-database { transform-origin: 840px 270px; }
+        #node-phone { transform-origin: 220px 420px; }
+        #node-workstation { transform-origin: 740px 420px; }
+        #node-router { transform-origin: 480px 270px; }
     </style>
 </head>
 <body class="w-full min-h-screen m-0 p-0 overflow-x-hidden relative">
@@ -199,32 +277,164 @@
                 <div class="w-2.5 h-2.5 rounded-full bg-borderSubtle"></div>
             </div>
             <div class="absolute inset-0 top-8 p-8 flex items-center justify-center">
-                <!-- Abstract Data Mesh SVG -->
-                <svg viewBox="0 0 800 400" class="w-full h-full opacity-80">
+                <!-- Interactive Router Network Topology SVG -->
+                <svg viewBox="0 0 960 540" class="w-full h-full opacity-90 select-none">
                     <defs>
-                        <linearGradient id="purpleGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                            <stop offset="0%" stop-color="#B87C3B" />
-                            <stop offset="100%" stop-color="#9C642C" />
-                        </linearGradient>
+                        <!-- Glow filter for nodes and signals -->
+                        <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+                            <feGaussianBlur stdDeviation="3" result="blur" />
+                            <feMerge>
+                                <feMergeNode in="blur" />
+                                <feMergeNode in="SourceGraphic" />
+                            </feMerge>
+                        </filter>
                     </defs>
-                    <g fill="none" stroke="rgba(30,26,23,0.03)" stroke-width="1">
-                        <!-- Background mapping -->
-                        <path d="M 100 0 L 100 400 M 200 0 L 200 400 M 300 0 L 300 400 M 400 0 L 400 400 M 500 0 L 500 400 M 600 0 L 600 400 M 700 0 L 700 400" />
-                        <path d="M 0 100 L 800 100 M 0 200 L 800 200 M 0 300 L 800 300" />
-                        
-                        <!-- Sine waves representing data streams -->
-                        <path d="M 0 200 Q 100 100, 200 200 T 400 200 T 600 200 T 800 200" stroke="url(#purpleGrad)" stroke-width="2" />
-                        <path d="M 0 200 Q 100 300, 200 200 T 400 200 T 600 200 T 800 200" stroke="url(#purpleGrad)" stroke-width="2" opacity="0.2"/>
-                        <path d="M 0 200 Q 150 150, 300 250 T 600 150 T 800 200" stroke="rgba(30,26,23,0.1)" stroke-width="1.5" stroke-dasharray="4 4" />
+
+                    <!-- Network Streams (Cables & Moving Data) -->
+                    <!-- Underlay passive links -->
+                    <g stroke="rgba(184, 124, 59, 0.08)" stroke-width="2.5" fill="none">
+                        <path d="M 480 270 L 480 80" />
+                        <path d="M 480 270 Q 330 195 180 120" />
+                        <path d="M 480 270 Q 630 195 780 120" />
+                        <path d="M 120 270 L 480 270" />
+                        <path d="M 840 270 L 480 270" />
+                        <path d="M 220 420 Q 350 345 480 270" />
+                        <path d="M 480 270 Q 610 345 740 420" />
                     </g>
-                    <!-- Nodes -->
-                    <circle cx="200" cy="200" r="5" fill="#1E1A17" />
-                    <circle cx="400" cy="200" r="7" fill="#B87C3B">
-                        <animate attributeName="r" values="7;9;7" dur="2s" repeatCount="indefinite" />
+
+                    <!-- Overlay animated streaming data -->
+                    <!-- Outward streams (from router) -->
+                    <g stroke="#B87C3B" stroke-width="2.5" fill="none" opacity="0.85" class="stream-flow-out">
+                        <path d="M 480 270 L 480 80" />
+                        <path d="M 480 270 Q 330 195 180 120" />
+                        <path d="M 480 270 Q 630 195 780 120" />
+                        <path d="M 480 270 Q 610 345 740 420" />
+                    </g>
+                    <!-- Inward streams (to router) -->
+                    <g stroke="#10B981" stroke-width="2.5" fill="none" opacity="0.8" class="stream-flow-in">
+                        <path d="M 120 270 L 480 270" />
+                        <path d="M 840 270 L 480 270" />
+                        <path d="M 220 420 Q 350 345 480 270" />
+                    </g>
+
+                    <!-- Traveling Pulse Packets -->
+                    <circle r="5" fill="#B87C3B" filter="url(#glow)">
+                        <animateMotion dur="4.2s" repeatCount="indefinite" path="M 480 270 L 480 80" />
                     </circle>
-                    <circle cx="600" cy="200" r="5" fill="#1E1A17" />
-                    <circle cx="300" cy="250" r="4" fill="#7C7770" />
-                    <circle cx="600" cy="150" r="4" fill="#7C7770" />
+                    <circle r="5" fill="#10B981" filter="url(#glow)">
+                        <animateMotion dur="3.5s" repeatCount="indefinite" path="M 840 270 L 480 270" />
+                    </circle>
+                    <circle r="5" fill="#B87C3B" filter="url(#glow)">
+                        <animateMotion dur="5s" repeatCount="indefinite" path="M 480 270 Q 330 195 180 120" />
+                    </circle>
+                    <circle r="5" fill="#10B981" filter="url(#glow)">
+                        <animateMotion dur="4.6s" repeatCount="indefinite" path="M 220 420 Q 350 345 480 270" />
+                    </circle>
+                    <circle r="5" fill="#B87C3B" filter="url(#glow)">
+                        <animateMotion dur="3.8s" repeatCount="indefinite" path="M 480 270 Q 630 195 780 120" />
+                    </circle>
+                    <circle r="5" fill="#B87C3B" filter="url(#glow)">
+                        <animateMotion dur="5.5s" repeatCount="indefinite" path="M 480 270 Q 610 345 740 420" />
+                    </circle>
+                    <circle r="5" fill="#10B981" filter="url(#glow)">
+                        <animateMotion dur="3.2s" repeatCount="indefinite" path="M 120 270 L 480 270" />
+                    </circle>
+
+                    <!-- DEVICE NODES -->
+
+                    <!-- 1. Central Router -->
+                    <g id="node-router" class="device-node">
+                        <circle cx="480" cy="270" r="48" fill="rgba(255, 255, 255, 0.9)" stroke="rgba(184, 124, 59, 0.15)" stroke-width="1.5" />
+                        <circle cx="480" cy="270" r="45" fill="none" stroke="#B87C3B" stroke-width="1.5" class="ping-wave-1" />
+                        <circle cx="480" cy="270" r="45" fill="none" stroke="#B87C3B" stroke-width="1.5" class="ping-wave-2" />
+                        <circle cx="480" cy="270" r="32" fill="#ECEAE5" stroke="#B87C3B" stroke-width="2.5" />
+                        <!-- Router body -->
+                        <rect x="460" y="266" width="40" height="12" rx="2" fill="#1E1A17" stroke="#B87C3B" stroke-width="1.5" />
+                        <!-- Antennas -->
+                        <line x1="468" y1="266" x2="464" y2="252" stroke="#B87C3B" stroke-width="2" stroke-linecap="round" />
+                        <line x1="492" y1="266" x2="496" y2="252" stroke="#B87C3B" stroke-width="2" stroke-linecap="round" />
+                        <!-- Signals -->
+                        <path d="M 460 248 A 6 6 0 0 1 468 248" fill="none" stroke="#B87C3B" stroke-width="1.5" stroke-linecap="round" class="led-blink-1" />
+                        <path d="M 492 248 A 6 6 0 0 1 500 248" fill="none" stroke="#B87C3B" stroke-width="1.5" stroke-linecap="round" class="led-blink-4" />
+                        <!-- LEDs -->
+                        <circle cx="467" cy="272" r="1.5" fill="#10B981" class="led-blink-1" />
+                        <circle cx="474" cy="272" r="1.5" fill="#10B981" class="led-blink-2" />
+                        <circle cx="481" cy="272" r="1.5" fill="#B87C3B" class="led-blink-3" />
+                        <circle cx="493" cy="272" r="1.5" fill="#10B981" class="led-blink-4" />
+                        <text x="480" y="338" text-anchor="middle" font-family="'Inter', sans-serif" font-size="13" font-weight="700" fill="#1E1A17" letter-spacing="-0.01em">MonitorPro Router</text>
+                    </g>
+
+                    <!-- 2. Cloud Node -->
+                    <g id="node-cloud" class="device-node">
+                        <circle cx="480" cy="80" r="30" fill="rgba(255, 255, 255, 0.9)" stroke="#B87C3B" stroke-width="2" />
+                        <path d="M 473 88 C 470 88, 467 85, 467 81.5 C 467 78.5, 469.5 76, 472.5 75.5 C 474 71.5, 477.5 69, 481.5 69 C 486 69, 489.5 72, 490 76 C 492.5 76, 494.5 78, 494.5 81 C 494.5 84, 492.5 86, 489.5 86 L 473 86 Z" 
+                              fill="none" stroke="#1E1A17" stroke-width="2" stroke-linejoin="round" />
+                        <text x="480" y="128" text-anchor="middle" font-family="'Inter', sans-serif" font-size="12" font-weight="600" fill="#4A4540">Cloud API</text>
+                    </g>
+
+                    <!-- 3. Server Node -->
+                    <g id="node-server" class="device-node">
+                        <circle cx="180" cy="120" r="30" fill="rgba(255, 255, 255, 0.9)" stroke="#B87C3B" stroke-width="2" />
+                        <rect x="166" y="105" width="28" height="7" rx="1" fill="#1E1A17" stroke="#B87C3B" stroke-width="1" />
+                        <rect x="166" y="115" width="28" height="7" rx="1" fill="#1E1A17" stroke="#B87C3B" stroke-width="1" />
+                        <rect x="166" y="125" width="28" height="7" rx="1" fill="#1E1A17" stroke="#B87C3B" stroke-width="1" />
+                        <circle cx="170" cy="108.5" r="0.8" fill="#10B981" />
+                        <circle cx="170" cy="118.5" r="0.8" fill="#10B981" />
+                        <circle cx="170" cy="128.5" r="0.8" fill="#EF4444" class="led-blink-3" />
+                        <circle cx="188" cy="108.5" r="0.8" fill="#B87C3B" class="led-blink-2" />
+                        <circle cx="188" cy="118.5" r="0.8" fill="#B87C3B" class="led-blink-4" />
+                        <circle cx="188" cy="128.5" r="0.8" fill="#B87C3B" class="led-blink-1" />
+                        <text x="180" y="168" text-anchor="middle" font-family="'Inter', sans-serif" font-size="12" font-weight="600" fill="#4A4540">Prod Servers</text>
+                    </g>
+
+                    <!-- 4. Laptop Node -->
+                    <g id="node-laptop" class="device-node">
+                        <circle cx="780" cy="120" r="30" fill="rgba(255, 255, 255, 0.9)" stroke="#B87C3B" stroke-width="2" />
+                        <rect x="767" y="106" width="26" height="16" rx="1" fill="#1E1A17" stroke="#B87C3B" stroke-width="1.5" />
+                        <polygon points="763,122 797,122 800,126 760,126" fill="#1E1A17" stroke="#B87C3B" stroke-width="1.5" stroke-linejoin="round" />
+                        <line x1="772" x2="788" y1="110" y2="110" stroke="#10B981" stroke-width="1.5" />
+                        <line x1="772" x2="780" y1="114" y2="114" stroke="#B87C3B" stroke-width="1.5" />
+                        <text x="780" y="168" text-anchor="middle" font-family="'Inter', sans-serif" font-size="12" font-weight="600" fill="#4A4540">Laptop Client</text>
+                    </g>
+
+                    <!-- 5. Firewall Node -->
+                    <g id="node-firewall" class="device-node">
+                        <circle cx="120" cy="270" r="30" fill="rgba(255, 255, 255, 0.9)" stroke="#B87C3B" stroke-width="2" />
+                        <path d="M 108 258 L 132 258 C 132 258 134 274 120 282 C 106 274 108 258 108 258 Z" 
+                              fill="none" stroke="#1E1A17" stroke-width="2.5" stroke-linejoin="round" />
+                        <path d="M 114 270 L 119 275 L 126 266" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        <text x="120" y="318" text-anchor="middle" font-family="'Inter', sans-serif" font-size="12" font-weight="600" fill="#4A4540">Gateway Shield</text>
+                    </g>
+
+                    <!-- 6. Database Node -->
+                    <g id="node-database" class="device-node">
+                        <circle cx="840" cy="270" r="30" fill="rgba(255, 255, 255, 0.9)" stroke="#B87C3B" stroke-width="2" />
+                        <ellipse cx="840" cy="257" rx="14" ry="4.5" fill="#1E1A17" stroke="#B87C3B" stroke-width="1.5" />
+                        <path d="M 826 257 L 826 266 A 14 4.5 0 0 0 854 266 L 854 257" fill="none" stroke="#B87C3B" stroke-width="1.5" />
+                        <path d="M 826 266 L 826 275 A 14 4.5 0 0 0 854 275 L 854 266" fill="none" stroke="#B87C3B" stroke-width="1.5" />
+                        <circle cx="840" cy="262.5" r="1" fill="#10B981" class="led-blink-3" />
+                        <circle cx="840" cy="271.5" r="1" fill="#10B981" class="led-blink-1" />
+                        <text x="840" y="318" text-anchor="middle" font-family="'Inter', sans-serif" font-size="12" font-weight="600" fill="#4A4540">Database Cluster</text>
+                    </g>
+
+                    <!-- 7. Mobile Phone Node -->
+                    <g id="node-phone" class="device-node">
+                        <circle cx="220" cy="420" r="30" fill="rgba(255, 255, 255, 0.9)" stroke="#B87C3B" stroke-width="2" />
+                        <rect x="211" y="405" width="18" height="30" rx="3" fill="#1E1A17" stroke="#B87C3B" stroke-width="1.5" />
+                        <rect x="214" y="409" width="12" height="22" rx="0.5" fill="#1E1A17" />
+                        <line x1="217" x2="223" y1="432.5" y2="432.5" stroke="#B87C3B" stroke-width="1" />
+                        <circle cx="220" cy="397" r="2.5" fill="#10B981" class="bounce-dot" />
+                        <text x="220" y="468" text-anchor="middle" font-family="'Inter', sans-serif" font-size="12" font-weight="600" fill="#4A4540">Mobile / IoT</text>
+                    </g>
+
+                    <!-- 8. Workstation Node -->
+                    <g id="node-workstation" class="device-node">
+                        <circle cx="740" cy="420" r="30" fill="rgba(255, 255, 255, 0.9)" stroke="#B87C3B" stroke-width="2" />
+                        <rect x="726" y="406" width="28" height="18" rx="1.5" fill="#1E1A17" stroke="#B87C3B" stroke-width="1.5" />
+                        <polygon points="736,424 744,424 746,431 734,431" fill="#1E1A17" stroke="#B87C3B" stroke-width="1.5" />
+                        <line x1="722" x2="758" y1="433.5" y2="433.5" stroke="#B87C3B" stroke-width="2" stroke-linecap="round" />
+                        <text x="740" y="468" text-anchor="middle" font-family="'Inter', sans-serif" font-size="12" font-weight="600" fill="#4A4540">Workstation</text>
+                    </g>
                 </svg>
             </div>
         </div>
